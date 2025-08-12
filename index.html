@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOP Creator - Generate Your Statement of Purpose in 15 Minutes</title>
+    <title>Download SOP</title>
+    <meta name="description" content="Create a professional Statement of Purpose for university applications with our AI-powered SOP Creator. Get your personalized SOP in just 15 minutes!" />
+    <meta name="author" content="SOP Creator" />
+
+    <style>
+    #popup {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border: 2px solid #007bff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    #popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+
+    button {
+      margin-top: 10px;
+    }
+  </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script type="module" src="/src/main.tsx">
+      function showPopup() {
+      document.getElementById('popup').style.display = 'block';
+      document.getElementById('popup-overlay').style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('popup-overlay').style.display = 'none';
+    }
+
+    function proceedToDownload() {
+      document.querySelector('.blur-overlay').style.display = 'none';
+      document.querySelector('.preview-wrapper').style.maxHeight = 'none';
+      // Replace this with your actual download logic
+      alert("Thank you! Starting download...");
+      closePopup();
+      // window.location.href = "your-sop.pdf"; // Uncomment this to download a file
+    }
+    </script>
+  </body>
+</html>
