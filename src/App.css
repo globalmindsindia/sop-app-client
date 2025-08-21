@@ -40,27 +40,3 @@
 .read-the-docs {
   color: #888;
 }
-
-.rating-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 1rem;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.stars {
-  color: yellow; /* Yellow stars */
-  font-size: 1.4rem;
-}
-
-.star {
-  margin-right: 2px;
-}
-
-.rating-text {
-  color: white; /* White text */
-  font-size: 1rem;
-  font-weight: 500;
-}
-
