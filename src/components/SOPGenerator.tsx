@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import Swal from "sweetalert2";
 import {
   Select,
   SelectContent,
@@ -13,6 +13,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Upload,
   Download,
   Copy,
@@ -20,10 +31,20 @@ import {
   ArrowLeft,
   FileText,
   Sparkles,
+  CreditCard,
+  Shield,
+  Check,
+  Home,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-type Step = "university" | "resume" | "questions" | "generate" | "result";
+type Step =
+  | "university"
+  | "resume"
+  | "questions"
+  | "payment"
+  | "generate"
+  | "result";
 
 interface FormData {
   university: string;
@@ -35,6 +56,7 @@ interface FormData {
 }
 
 export default function SOPGenerator() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>("university");
   const [formData, setFormData] = useState<FormData>({
     university: "",
@@ -46,7 +68,47 @@ export default function SOPGenerator() {
   });
   const [generatedSOP, setGeneratedSOP] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
   const { toast } = useToast();
+
+  const hasProgress = () => {
+    const steps: Step[] = [
+      "university",
+      "resume",
+      "questions",
+      "payment",
+      "generate",
+      "result",
+    ];
+    const currentIndex = steps.indexOf(currentStep);
+    return (
+      currentIndex > 0 ||
+      formData.university ||
+      formData.course ||
+      formData.resume ||
+      formData.experience ||
+      formData.motivation ||
+      formData.goals
+    );
+  };
+
+  const handleBackToHome = () => {
+    // Reset all form data
+    setFormData({
+      university: "",
+      course: "",
+      resume: null,
+      experience: "",
+      motivation: "",
+      goals: "",
+    });
+    setCurrentStep("university");
+    setGeneratedSOP("");
+    setPaymentCompleted(false);
+
+    // Navigate to home
+    window.location.href = "/";
+  };
 
   const universities = [
     "Harvard University",
@@ -75,6 +137,7 @@ export default function SOPGenerator() {
       "university",
       "resume",
       "questions",
+      "payment",
       "generate",
       "result",
     ];
@@ -89,6 +152,7 @@ export default function SOPGenerator() {
       "university",
       "resume",
       "questions",
+      "payment",
       "generate",
       "result",
     ];
@@ -134,6 +198,23 @@ Sincerely,
     setCurrentStep("result");
   };
 
+  const handlePayment = () => {
+    // This would integrate with Stripe when Supabase is connected
+    toast({
+      title: "Payment Required",
+      description:
+        "Please connect Supabase to enable Stripe payment processing.",
+    });
+    // For demo purposes, we'll simulate payment completion
+    setTimeout(() => {
+      setPaymentCompleted(true);
+      toast({
+        title: "Payment Successful! ✅",
+        description: "You can now generate your SOP.",
+      });
+    }, 2000);
+  };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedSOP);
     toast({
@@ -162,6 +243,7 @@ Sincerely,
     university: "Choose Your Destination 🎓",
     resume: "Upload Your Resume 📄",
     questions: "Tell Us About Yourself ✨",
+    payment: "Secure Payment 💳",
     generate: "Ready to Generate? 🚀",
     result: "Your Statement of Purpose 📝",
   };
@@ -174,99 +256,130 @@ Sincerely,
         return formData.resume !== null;
       case "questions":
         return formData.experience && formData.motivation && formData.goals;
+      case "payment":
+        return paymentCompleted;
       default:
         return false;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft py-12 px-4">
-      {/* Back to Landing Page */}
-      <div className="absolute top-6 left-6">
-        <Button
-          className="rounded-xl flex items-center"
-          onClick={() => {
-            if (currentStep !== "university") {
-              Swal.fire({
-                title: "Leave this page?",
-                text: "Your progress will be lost if you go back to the landing page.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, go back",
-                cancelButtonText: "Stay here",
-                confirmButtonColor: "#ef4444", // red
-                cancelButtonColor: "#3b82f6", // blue
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  window.location.href = "/"; // redirect to landing
-                }
-              });
-            } else {
-              window.location.href = "/"; // direct redirect
-            }
-          }}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-      </div>
-
+    <div className="min-h-screen bg-gradient-soft py-6 md:py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Progress Steps */}
-        <div className="flex justify-center mb-12">
-          <div className="flex items-center space-x-4">
-            {["university", "resume", "questions", "generate", "result"].map(
-              (step, index) => (
-                <div key={step} className="flex items-center">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                      currentStep === step
-                        ? "bg-primary text-primary-foreground shadow-soft"
-                        : isStepComplete(step as Step) ||
-                          (step === "generate" && currentStep === "result")
-                        ? "bg-pastel-green text-foreground"
-                        : "bg-muted text-muted-foreground"
-                    }`}
+        {/* Back to Home Button */}
+        <div className="mb-4 md:mb-6">
+          {hasProgress() ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
+                  onClick={handleBackToHome}
+                  size="sm"
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Back to Home</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Application in Progress</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You have unsaved progress in your SOP application. Are you
+                    sure you want to go back to the home page? Your current
+                    progress will be lost.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                  <AlertDialogCancel className="rounded-lg">
+                    Continue Application
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBackToHome}
+                    className="rounded-lg bg-destructive hover:bg-destructive/90"
                   >
-                    {index + 1}
-                  </div>
-                  {index < 4 && (
-                    <div
-                      className={`w-8 h-0.5 mx-2 transition-all duration-300 ${
-                        isStepComplete(
-                          ["university", "resume", "questions", "generate"][
-                            index
-                          ] as Step
-                        ) ||
-                        index <
-                          [
-                            "university",
-                            "resume",
-                            "questions",
-                            "generate",
-                          ].indexOf(currentStep)
-                          ? "bg-primary"
-                          : "bg-border"
-                      }`}
-                    />
-                  )}
+                    Yes, Go Back
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={handleBackToHome}
+              className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
+              size="sm"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Button>
+          )}
+        </div>
+        {/* Progress Steps */}
+        <div className="flex justify-center mb-8 md:mb-12">
+          <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-2">
+            {[
+              "university",
+              "resume",
+              "questions",
+              "payment",
+              "generate",
+              "result",
+            ].map((step, index) => (
+              <div key={step} className="flex items-center flex-shrink-0">
+                <div
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium transition-all duration-300 ${
+                    currentStep === step
+                      ? "bg-primary text-primary-foreground shadow-soft"
+                      : isStepComplete(step as Step) ||
+                        (step === "generate" && currentStep === "result")
+                      ? "bg-pastel-green text-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {index + 1}
                 </div>
-              )
-            )}
+                {index < 5 && (
+                  <div
+                    className={`w-4 md:w-8 h-0.5 mx-1 md:mx-2 transition-all duration-300 ${
+                      isStepComplete(
+                        [
+                          "university",
+                          "resume",
+                          "questions",
+                          "payment",
+                          "generate",
+                        ][index] as Step
+                      ) ||
+                      index <
+                        [
+                          "university",
+                          "resume",
+                          "questions",
+                          "payment",
+                          "generate",
+                        ].indexOf(currentStep)
+                        ? "bg-primary"
+                        : "bg-border"
+                    }`}
+                  />
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Main Content */}
         <Card className="shadow-card bg-gradient-card border-0 animate-fade-in">
-          <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl font-bold text-foreground">
+          <CardHeader className="text-center pb-4 md:pb-6">
+            <CardTitle className="text-xl md:text-2xl font-bold text-foreground">
               {stepTitles[currentStep]}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-4 md:p-8">
             {currentStep === "university" && (
               <div className="space-y-6 animate-slide-up">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="university" className="text-sm font-medium">
                       University
@@ -317,7 +430,7 @@ Sincerely,
 
             {currentStep === "resume" && (
               <div className="space-y-6 animate-slide-up">
-                <div className="border-2 border-dashed border-border rounded-xl p-8 text-center bg-pastel-blue">
+                <div className="border-2 border-dashed border-border rounded-xl p-4 md:p-8 text-center bg-pastel-blue">
                   <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <div className="space-y-2">
                     <p className="text-lg font-medium">Upload your resume</p>
@@ -397,21 +510,92 @@ Sincerely,
               </div>
             )}
 
+            {currentStep === "payment" && (
+              <div className="space-y-6 animate-scale-in">
+                <div className="bg-gradient-card rounded-2xl p-4 md:p-8 border shadow-card">
+                  <div className="text-center mb-6">
+                    <CreditCard className="mx-auto h-12 w-12 text-primary mb-4" />
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">
+                      Secure Payment
+                    </h3>
+                    <p className="text-sm md:text-base text-muted-foreground">
+                      Complete your payment to generate your personalized SOP
+                    </p>
+                  </div>
+
+                  <div className="bg-pastel-blue rounded-xl p-4 md:p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="font-medium">
+                        SOP Generation Service
+                      </span>
+                      <span className="text-xl font-bold text-primary">
+                        $29.99
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center">
+                        <Check className="h-4 w-4 text-green-500 mr-2" />
+                        Personalized SOP based on your profile
+                      </div>
+                      <div className="flex items-center">
+                        <Check className="h-4 w-4 text-green-500 mr-2" />
+                        Unlimited revisions for 7 days
+                      </div>
+                      <div className="flex items-center">
+                        <Check className="h-4 w-4 text-green-500 mr-2" />
+                        Multiple format downloads (PDF, Word, TXT)
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg">
+                      <Shield className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-sm text-muted-foreground">
+                        Secured by 256-bit SSL encryption
+                      </span>
+                    </div>
+
+                    {!paymentCompleted ? (
+                      <Button
+                        onClick={handlePayment}
+                        className="w-full rounded-xl py-3 text-lg shadow-hover hover:shadow-hover"
+                        size="lg"
+                      >
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Pay $29.99 - Generate SOP
+                      </Button>
+                    ) : (
+                      <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                        <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
+                        <p className="text-green-700 font-medium">
+                          Payment Successful!
+                        </p>
+                        <p className="text-sm text-green-600">
+                          You can now proceed to generate your SOP
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {currentStep === "generate" && (
               <div className="text-center space-y-6 animate-scale-in">
-                <div className="bg-pastel-purple rounded-2xl p-8">
+                <div className="bg-pastel-purple rounded-2xl p-4 md:p-8">
                   <Sparkles className="mx-auto h-16 w-16 text-primary mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">
+                  <h3 className="text-lg md:text-xl font-semibold mb-2">
                     Ready to Generate Your SOP!
                   </h3>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-sm md:text-base text-muted-foreground mb-6">
                     We'll craft a personalized statement of purpose based on
                     your information.
                   </p>
                   <Button
                     onClick={generateSOP}
                     disabled={isGenerating}
-                    className="rounded-xl px-8 py-3 text-lg shadow-hover hover:shadow-hover"
+                    className="rounded-xl px-4 md:px-8 py-2 md:py-3 text-sm md:text-lg shadow-hover hover:shadow-hover"
                     size="lg"
                   >
                     {isGenerating ? (
@@ -432,13 +616,13 @@ Sincerely,
 
             {currentStep === "result" && (
               <div className="space-y-6 animate-fade-in">
-                <div className="bg-gradient-card rounded-2xl p-6 border shadow-card">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold flex items-center">
-                      <FileText className="mr-2 h-5 w-5" />
+                <div className="bg-gradient-card rounded-2xl p-4 md:p-6 border shadow-card">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                    <h3 className="text-base md:text-lg font-semibold flex items-center">
+                      <FileText className="mr-2 h-4 md:h-5 w-4 md:w-5" />
                       Your Statement of Purpose
                     </h3>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-center md:justify-end">
                       <Button
                         variant="outline"
                         size="sm"
@@ -459,8 +643,8 @@ Sincerely,
                       </Button>
                     </div>
                   </div>
-                  <div className="bg-background rounded-xl p-6 max-h-96 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                  <div className="bg-background rounded-xl p-4 md:p-6 max-h-64 md:max-h-96 overflow-y-auto">
+                    <pre className="whitespace-pre-wrap text-xs md:text-sm leading-relaxed text-foreground">
                       {generatedSOP}
                     </pre>
                   </div>
@@ -470,7 +654,7 @@ Sincerely,
 
             {/* Navigation Buttons */}
             {currentStep !== "result" && (
-              <div className="flex justify-between pt-8">
+              <div className="flex justify-between pt-6 md:pt-8">
                 <Button
                   variant="outline"
                   onClick={handlePrevious}
@@ -494,7 +678,7 @@ Sincerely,
             )}
 
             {currentStep === "result" && (
-              <div className="flex justify-center pt-8">
+              <div className="flex justify-center pt-6 md:pt-8">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -508,6 +692,7 @@ Sincerely,
                       goals: "",
                     });
                     setGeneratedSOP("");
+                    setPaymentCompleted(false);
                   }}
                   className="rounded-xl"
                 >
