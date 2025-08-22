@@ -268,13 +268,24 @@ Sincerely,
       <div className="max-w-4xl mx-auto">
         {/* Back to Home Button */}
         <div className="mb-4 md:mb-6">
-          {hasProgress() ? (
+          {currentStep === "university" ? (
+            // Direct back if on first step
+            <Button
+              variant="ghost"
+              onClick={handleBackToHome}
+              className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
+              size="sm"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Button>
+          ) : (
+            // Show alert if on step 2+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="ghost"
                   className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
-                  onClick={handleBackToHome}
                   size="sm"
                 >
                   <Home className="h-4 w-4 mr-2" />
@@ -303,16 +314,6 @@ Sincerely,
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={handleBackToHome}
-              className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
-              size="sm"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </Button>
           )}
         </div>
         {/* Progress Steps */}
