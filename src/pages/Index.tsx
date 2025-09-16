@@ -7,6 +7,7 @@ import Accuracy from "@/components/Accuracy";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 import SOPGenerator from "@/components/SOPGenerator";
+import FAQSection from "@/components/FAQSection";
 
 const Index = () => {
   const [showGenerator, setShowGenerator] = useState(false);
@@ -22,6 +23,7 @@ const Index = () => {
       <Features />
       <HowItWorks />
       <Accuracy />
+      <FAQSection />
       <Testimonials />
       <Footer />
     </div>
