@@ -152,9 +152,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-primary" />
-                <a href="tel:+917353446655" className="hover:underline text-primary">
-                    +91 7353446655
-                  </a>
+                <span className="text-sm text-muted-foreground">+91 7353446655</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4 text-primary" />
