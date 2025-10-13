@@ -4,6 +4,7 @@ import { Minus, Plus } from "lucide-react";
 
 const FAQSection = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
+  const [showAll, setShowAll] = useState(false);
 
   const toggleItem = (index: number) => {
     setOpenItems((prev) =>
@@ -94,9 +95,28 @@ const FAQSection = () => {
     },
   ];
 
+  // Helper: splits array into two columns by even/odd index for alignment
+  function splitToAlternatingColumns(arr) {
+    const left = [];
+    const right = [];
+    arr.forEach((item, i) => {
+      if (i % 2 === 0) {
+        left.push(item);
+      } else {
+        right.push(item);
+      }
+    });
+    return [left, right];
+  }
+
+  // Default: first 10 questions in 2 columns
+  const [defaultLeftFAQs, defaultRightFAQs] = splitToAlternatingColumns(faqs.slice(0, 10));
+  // Show All: all questions in 2 columns
+  const [allLeftFAQs, allRightFAQs] = splitToAlternatingColumns(faqs);
+
   return (
     <section className="py-20 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Frequently Asked Questions
@@ -107,75 +127,129 @@ const FAQSection = () => {
           </p>
         </div>
 
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <Card
-              key={index}
-              className={`border-0 shadow-card transition-all duration-200 hover:shadow-lg ${
-                faq.highlight
-                  ? "bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-primary"
-                  : "bg-gradient-card"
-              }`}
-            >
-              <CardContent className="p-0">
-                <button
-                  onClick={() => toggleItem(index)}
-                  className="w-full p-6 text-left focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+          <div className="space-y-6">
+            {(showAll ? allLeftFAQs : defaultLeftFAQs).map((faq, idx) => {
+              const questionIndex = showAll
+                ? faqs.indexOf(faq)
+                : faqs.indexOf(faq);
+              return (
+                <Card
+                  key={questionIndex}
+                  className={`w-full border-0 shadow-card transition-all duration-200 hover:shadow-lg ${
+                    faq.highlight
+                      ? "bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-primary"
+                      : "bg-gradient-card"
+                  }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <h3
-                      className={`font-semibold text-lg text-foreground pr-4 ${
-                        faq.highlight ? "text-primary" : ""
-                      }`}
+                  <CardContent className="p-0">
+                    <button
+                      onClick={() => toggleItem(questionIndex)}
+                      className="w-full px-8 py-6 text-left focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
                     >
-                      {faq.question}
-                      {faq.highlight && (
-                        <span className="inline-flex items-center ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
-                          Important
-                        </span>
-                      )}
-                    </h3>
-                    <div className="flex-shrink-0">
-                      {openItems.includes(index) ? (
-                        <Minus className="h-5 w-5 text-primary" />
-                      ) : (
-                        <Plus className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                  </div>
-                </button>
-
-                {openItems.includes(index) && (
-                  <div className="px-6 pb-6">
-                    <div className="pt-4 border-t border-gray-200">
-                      <p className="text-muted-foreground leading-relaxed">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                      <div className="flex items-center justify-between">
+                        <h3
+                          className={`font-semibold text-lg text-foreground pr-4 ${
+                            faq.highlight ? "text-primary" : ""
+                          }`}
+                        >
+                          {faq.question}
+                          {faq.highlight && (
+                            <span className="inline-flex items-center ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                              Important
+                            </span>
+                          )}
+                        </h3>
+                        <div className="flex-shrink-0">
+                          {openItems.includes(questionIndex) ? (
+                            <Minus className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Plus className="h-5 w-5 text-primary" />
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                    {openItems.includes(questionIndex) && (
+                      <div className="px-8 pb-6">
+                        <div className="pt-4 border-t border-gray-200">
+                          <p className="text-muted-foreground leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <div className="space-y-6">
+            {(showAll ? allRightFAQs : defaultRightFAQs).map((faq, idx) => {
+              const questionIndex = showAll
+                ? faqs.indexOf(faq)
+                : faqs.indexOf(faq);
+              return (
+                <Card
+                  key={questionIndex}
+                  className={`w-full border-0 shadow-card transition-all duration-200 hover:shadow-lg ${
+                    faq.highlight
+                      ? "bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-primary"
+                      : "bg-gradient-card"
+                  }`}
+                >
+                  <CardContent className="p-0">
+                    <button
+                      onClick={() => toggleItem(questionIndex)}
+                      className="w-full px-8 py-6 text-left focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3
+                          className={`font-semibold text-lg text-foreground pr-4 ${
+                            faq.highlight ? "text-primary" : ""
+                          }`}
+                        >
+                          {faq.question}
+                          {faq.highlight && (
+                            <span className="inline-flex items-center ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                              Important
+                            </span>
+                          )}
+                        </h3>
+                        <div className="flex-shrink-0">
+                          {openItems.includes(questionIndex) ? (
+                            <Minus className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Plus className="h-5 w-5 text-primary" />
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                    {openItems.includes(questionIndex) && (
+                      <div className="px-8 pb-6">
+                        <div className="pt-4 border-t border-gray-200">
+                          <p className="text-muted-foreground leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Call-to-Action */}
-        {/* <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl p-8">
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              Ready to Create Your Perfect SOP?
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Don't let a poorly written SOP hurt your chances. Our AI-powered
-              platform helps you craft compelling, personalized statements that
-              highlight your unique story and align with your target program's
-              requirements.
-            </p>
-            <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-lg font-semibold transition-colors">
-              Start Writing Your SOP
+        {faqs.length > 10 && (
+          <div className="mt-8 text-center">
+            <button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-lg font-semibold transition-colors"
+              onClick={() => setShowAll((prev) => !prev)}
+            >
+              {showAll ? "View Less" : "View More"}
             </button>
           </div>
-        </div> */}
+        )}
       </div>
     </section>
   );

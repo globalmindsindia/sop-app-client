@@ -1,63 +1,83 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Testimonials() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
+
   const testimonials = [
     {
-      name: "Sarah Chen",
-      program: "MS Computer Science",
-      university: "Stanford University",
+      name: "Sandhya Venaktesh",
       rating: 5,
-      content: "SOP Buddy helped me craft a compelling narrative that got me into my dream program at Stanford. The AI understood my background and created something truly personal.",
-      image: "SC",
-      country: "🇺🇸 USA"
+      content: "I can confidently say that Global Minds India's SOP Creator was a total game-changer for my university application! I was initially nervous about writing my Statement of Purpose, but the tool made everything so simple and structured. It guided me step-by-step, helped me express my story authentically, and ensured my SOP matched my chosen program perfectly. Within hours, I had a professional, impactful SOP — and it played a huge role in securing my admission! Highly recommend this to every student aiming to study abroad!",
+      image: "SC"
     },
     {
-      name: "Rajesh Patel",
-      program: "MBA",
-      university: "Harvard Business School",
+      name: "Preethi Elango",
       rating: 5,
-      content: "I was struggling with writer's block for weeks. SOP Buddy generated my SOP in minutes and it was better than anything I could have written myself. Highly recommended!",
-      image: "RP",
-      country: "🇮🇳 India"
+      content: "I had a great experience getting my SOP prepared here. The team was very professional and took the time to understand my background and goals before drafting. They presented my profile in a very clear and compelling manner, highlighting my strengths perfectly. The communication was smooth, and they were always open to feedback and revisions. Thanks to their guidance, I now feel confident submitting my application. Highly recommended for anyone looking for quality SOP writing support!",
+      image: "RP"
     },
     {
-      name: "Maria Rodriguez",
-      program: "PhD Psychology",
-      university: "Oxford University",
+      name: "Rachana",
       rating: 5,
-      content: "The level of personalization was incredible. It felt like the AI truly understood my research interests and career goals. Got accepted on my first try!",
-      image: "MR",
-      country: "🇪🇸 Spain"
+      content: "Writing my SOP felt overwhelming at first, but Global Minds India’s SOP Creator completely changed the game! The platform was super easy to use and helped me organize my thoughts beautifully. I loved how it gave personalized prompts that made my SOP sound genuinely ‘me’. Thanks to this, my final draft was both professional and heartfelt — and it truly impressed my university reviewers. I couldn’t have done it this smoothly without Global Minds India!",
+      image: "MR"
     },
     {
-      name: "David Kim",
-      program: "MS Engineering",
-      university: "MIT",
+      name: "Ujwal",
       rating: 5,
-      content: "As a non-native English speaker, I was worried about my writing. SOP Buddy created a polished, professional SOP that impressed the admissions committee.",
-      image: "DK",
-      country: "🇰🇷 South Korea"
+      content: "Global Minds India’s SOP Creator made my entire application journey effortless! I was amazed at how the tool helped me frame my goals and experiences in such a clear, powerful way. It saved me so much time and removed all the guesswork from SOP writing. The end result was a polished, impactful statement that perfectly reflected my ambitions — and it helped me secure my dream admit. Truly one of the best tools for study abroad aspirants!",
+      image: "DK"
     },
     {
-      name: "Emma Thompson",
-      program: "MS Data Science",
-      university: "UC Berkeley",
+      name: "Amogh JS",
       rating: 5,
-      content: "The turnaround time was amazing. I needed my SOP urgently for an early application deadline, and SOP Buddy delivered quality content in minutes.",
-      image: "ET",
-      country: "🇬🇧 UK"
+      content: "I had a wonderful experience getting my SOP written here. The team was highly professional and took genuine interest in understanding my goals and background. They crafted a well-structured and impactful SOP that highlighted my strengths beautifully. Communication was smooth, and they were always open to revisions and feedback. Their expertise gave me great confidence in my application — truly a service I’d recommend to anyone seeking a standout SOP!",
+      image: "ET"
     },
     {
-      name: "Ahmed Hassan",
-      program: "MS Finance",
-      university: "London School of Economics",
+      name: "Shashank S",
       rating: 5,
-      content: "SOP Buddy understood the nuances of my field and created content that perfectly aligned with LSE's expectations. The investment was worth every penny.",
-      image: "AH",
-      country: "🇪🇬 Egypt"
+      content: "My experience with the SOP writing team was truly exceptional. They invested time to learn about my journey, ambitions, and achievements before creating a personalized and powerful SOP. The final version was thoughtful, engaging, and perfectly aligned with my academic goals. I really appreciated their prompt responses and willingness to refine every detail. Their guidance made my application process so much easier and more confident — a top-notch service I’d gladly recommend!",
+      image: "AH"
     }
   ];
+
+  const testimonialsLength = testimonials.length;
+  const fullTestimonials = [...testimonials, ...testimonials];
+  const numVisible = 3;
+  const slideWidth = 100 / numVisible;
+  const gapRem = '1.5rem';
+  const step = `calc(33.333% + ${gapRem})`;
+  const cardBasis = `calc(33.333% - 1rem)`;
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => {
+      if (prev < testimonialsLength - 1) {
+        return prev + 1;
+      } else {
+        setTimeout(() => {
+          setIsTransitioning(false);
+          setCurrentIndex(0);
+          requestAnimationFrame(() => {
+            setIsTransitioning(true);
+          });
+        }, 500);
+        return testimonialsLength;
+      }
+    });
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + testimonialsLength) % testimonialsLength);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(nextSlide, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -83,51 +103,62 @@ export default function Testimonials() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <Card 
-              key={index} 
-              className="border-0 shadow-card bg-gradient-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold">
-                    {testimonial.image}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
-                    <p className="text-xs text-muted-foreground">{testimonial.country}</p>
-                  </div>
-                  <Quote className="h-6 w-6 text-primary opacity-30" />
-                </div>
+        <div className="relative overflow-hidden mb-16">
+          <div 
+            className={`flex gap-6 ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : 'transition-none'}`}
+            style={{ transform: `translateX(calc(-${currentIndex} * ${step}))` }}
+          >
+            {fullTestimonials.map((testimonial, index) => (
+              <div key={`${testimonial.name}-${index}`} className="flex-shrink-0" style={{ flexBasis: cardBasis }}>
+                <Card className="border-0 shadow-card bg-gradient-card h-full w-full hover:shadow-hover transition-all duration-300">
+                  <CardContent className="p-6 h-full">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        {testimonial.image}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                      </div>
+                      <Quote className="h-6 w-6 text-primary opacity-30 flex-shrink-0" />
+                    </div>
 
-                <div className="flex items-center space-x-1 mb-3">
-                  {renderStars(testimonial.rating)}
-                </div>
+                    <div className="flex items-center space-x-1 mb-3">
+                      {renderStars(testimonial.rating)}
+                    </div>
 
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  "{testimonial.content}"
-                </p>
+                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed italic line-clamp-4">
+                      "{testimonial.content}"
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
 
-                <div className="border-t border-border pt-4">
-                  <p className="text-xs font-medium text-primary">{testimonial.program}</p>
-                  <p className="text-xs text-muted-foreground">{testimonial.university}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Navigation Buttons */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all duration-300 z-10"
+          >
+            <ChevronLeft className="h-5 w-5 text-foreground" />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all duration-300 z-10"
+          >
+            <ChevronRight className="h-5 w-5 text-foreground" />
+          </button>
         </div>
 
         {/* Summary Stats */}
-        <div className="mt-16 text-center">
+        <div className="text-center">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">50,000+</div>
+              <div className="text-3xl font-bold text-primary">50+</div>
               <p className="text-sm text-muted-foreground">Successful Applications</p>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">200+</div>
+              <div className="text-3xl font-bold text-primary">100+</div>
               <p className="text-sm text-muted-foreground">Universities Worldwide</p>
             </div>
             <div className="space-y-2">

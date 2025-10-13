@@ -12,13 +12,13 @@ export default function Accuracy() {
     },
     {
       icon: Award,
-      value: "98%",
+      value: "99%",
       label: "Quality Score",
       description: "based on grammar, coherence, and structure analysis"
     },
     {
       icon: Users,
-      value: "50K+",
+      value: "50+",
       label: "Happy Students",
       description: "have used our platform to achieve their dreams"
     },
@@ -73,7 +73,7 @@ export default function Accuracy() {
             Proven Accuracy & Results
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Our AI-powered platform delivers consistently high-quality results backed by 
+            Our platform delivers consistently high-quality results backed by 
             rigorous testing and real-world success stories.
           </p>
         </div>
@@ -94,25 +94,32 @@ export default function Accuracy() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 gap-12 items-center">
           {/* Accuracy Metrics */}
-          <div>
+          <div className="max-w-7xl mx-auto text-center">
             <h3 className="text-2xl font-bold text-foreground mb-8">Quality Metrics</h3>
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {accuracyMetrics.map((metric, index) => (
-                <div key={index} className="space-y-3">
+                <div 
+                  key={index} 
+                  className="space-y-3 bg-muted/50 rounded-xl p-6 transition-all duration-500 ease-out hover:bg-muted/70 hover:scale-105 hover:shadow-lg"
+                >
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-foreground">{metric.metric}</span>
-                    <span className="text-primary font-bold">{metric.score}%</span>
+                    <span className="font-medium text-foreground text-left">{metric.metric}</span>
+                    <span className="text-primary font-bold text-lg">{metric.score}%</span>
                   </div>
-                  <Progress value={metric.score} className="h-2" />
-                  <p className="text-sm text-muted-foreground">{metric.description}</p>
+                  <Progress 
+                    value={metric.score} 
+                    className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-primary/80 [&>div]:to-secondary/80 transition-all duration-700 ease-out" 
+                  />
+                  <p className="text-sm text-muted-foreground text-left">{metric.description}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Certifications & Trust */}
+          {/*
           <div>
             <h3 className="text-2xl font-bold text-foreground mb-8">Trust & Security</h3>
             <Card className="border-0 shadow-card bg-gradient-card mb-8">
@@ -164,6 +171,7 @@ export default function Accuracy() {
               </CardContent>
             </Card>
           </div>
+          */}
         </div>
       </div>
     </section>

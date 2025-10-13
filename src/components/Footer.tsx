@@ -1,7 +1,17 @@
 import { GraduationCap, Mail, MapPin, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 import companyLogo from "@/assets/gmi_logo.png";
 
 export default function Footer() {
+  const supportItems = [
+    "Help Center",
+    "FAQ",
+    "Contact Us",
+    "Terms and Conditions",
+    "Privacy Policy",
+    "Refund Policy",
+  ];
+
   return (
     <footer className="bg-gradient-card border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -60,28 +70,32 @@ export default function Footer() {
 
           {/* Support */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Support
-            </h3>
-            <ul className="space-y-2">
-              {[
-                "Help Center",
-                "FAQ",
-                "Contact Us",
-                "Privacy Policy",
-                "Terms of Service",
-              ].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+    Support
+  </h3>
+  <ul className="space-y-2">
+    {supportItems.map((item) => (
+      <li key={item}>
+        {item === "Terms and Conditions" ? (
+          <Link
+            to="/terms-and-conditions"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            {item}
+          </Link>
+        ) : (
+          <a
+            href="#"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            {item}
+          </a>
+        )}
+      </li>
+    ))}
+  </ul>
+</div>
+
 
           {/* Contact */}
           <div className="space-y-4">
@@ -92,14 +106,14 @@ export default function Footer() {
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
                 <span className="text-sm text-muted-foreground">
-                  support@sopbuddy.com
+                  <a href="mailto:support@sopbuddy.com" className="hover:underline">
+                    support@sopbuddy.com
+                  </a>
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  +1 (555) 123-4567
-                </span>
+                <span className="text-sm text-muted-foreground">+1 (555) 123-4567</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4 text-primary" />
@@ -114,9 +128,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            © 2024 SOP Buddy. All rights reserved.
-          </p>
+          <p className="text-sm text-muted-foreground">© 2024 SOP Buddy. All rights reserved.</p>
           <p className="text-sm text-muted-foreground mt-2 md:mt-0">
             Made with ❤️ for students worldwide
           </p>
