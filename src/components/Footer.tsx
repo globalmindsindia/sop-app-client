@@ -1,16 +1,28 @@
 import { GraduationCap, Mail, MapPin, Phone } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import companyLogo from "@/assets/gmi_logo.png";
 
 export default function Footer() {
+  const navigate = useNavigate();
+
   const supportItems = [
-    "Help Center",
+    /*"Help Center",*/
     "FAQ",
-    "Contact Us",
+    "Contact Us @ +91 7353446655",
     "Terms and Conditions",
     "Privacy Policy",
     "Refund Policy",
   ];
+
+  const handleFAQClick = () => {
+    navigate("/");
+    setTimeout(() => {
+      const element = document.querySelector("#faq");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
 
   return (
     <footer className="bg-gradient-card border-t border-border">
@@ -70,32 +82,59 @@ export default function Footer() {
 
           {/* Support */}
           <div className="space-y-4">
-  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-    Support
-  </h3>
-  <ul className="space-y-2">
-    {supportItems.map((item) => (
-      <li key={item}>
-        {item === "Terms and Conditions" ? (
-          <Link
-            to="/terms-and-conditions"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            {item}
-          </Link>
-        ) : (
-          <a
-            href="#"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            {item}
-          </a>
-        )}
-      </li>
-    ))}
-  </ul>
-</div>
-
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+              Support
+            </h3>
+            <ul className="space-y-2">
+              {supportItems.map((item) => (
+                <li key={item}>
+                  {item === "Terms and Conditions" ? (
+                    <Link
+                      to="/terms-and-conditions"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  ) : item === "Refund Policy" ? (
+                    <Link
+                      to="/refund-policy"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  ) : item === "Privacy Policy" ? (
+                    <Link
+                      to="/privacy-policy"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  ) : item === "FAQ" ? (
+                    <button
+                      onClick={handleFAQClick}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </button>
+                  ) : item === "Contact Us @ +91 7353446655" ? (
+                    <a
+                      href="tel:+917353446655"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </a>
+                  ) : (
+                    <a
+                      href="#"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {/* Contact */}
           <div className="space-y-4">
@@ -106,22 +145,40 @@ export default function Footer() {
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
                 <span className="text-sm text-muted-foreground">
-                  <a href="mailto:support@sopbuddy.com" className="hover:underline">
-                    support@sopbuddy.com
+                  <a href="mailto:connect@globalmindsindia.com" className="hover:underline">
+                    connect@globalmindsindia.com
                   </a>
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">+1 (555) 123-4567</span>
+                <a href="tel:+917353446655" className="hover:underline text-primary">
+                    +91 7353446655
+                  </a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  123 Education St.
+                <div className="text-sm text-muted-foreground">
+                  23, CJ VenkataDas road,
                   <br />
-                  San Francisco, CA 94102
-                </span>
+                  Padmanabhanagar, Bangalore
+                  <br />
+                  <a href="tel:+917353446655" className="hover:underline text-primary">
+                    +91 7353446655
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <MapPin className="h-4 w-4 text-primary" />
+                <div className="text-sm text-muted-foreground">
+                  Overseas Office - Germany
+                  <br />
+                  Koenigsheideweg Berlin, Germany
+                  <br />
+                  <a href="tel:+4917645728219" className="hover:underline text-primary">
+                    +49 17645728219
+                  </a>
+                </div>
               </div>
             </div>
           </div>
