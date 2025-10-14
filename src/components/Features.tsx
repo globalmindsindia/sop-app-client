@@ -20,7 +20,7 @@ export default function Features() {
     },
     {
       icon: Clock,
-      title: "Lightning Fast",
+      title: "Fast Turnaround",
       description: "Get your complete SOP ready in 1 to 2 working days. No more weeks of writer's block or endless revisions."
     },
     {
