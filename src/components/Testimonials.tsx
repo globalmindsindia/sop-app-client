@@ -98,8 +98,7 @@ export default function Testimonials() {
             What Our Students Say
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Real stories from students who achieved their dreams with SOP Buddy. 
-            Join thousands of successful applicants worldwide.
+            Real stories from students who achieved their dreams with expert guidance. Join hundreds of successful applicants worldwide.
           </p>
         </div>
 

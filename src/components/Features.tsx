@@ -15,8 +15,8 @@ export default function Features() {
   const features = [
     {
       icon: Sparkles,
-      title: "AI-Powered Writing",
-      description: "Advanced AI algorithms analyze your background and craft compelling, personalized statements that reflect your unique story."
+      title: "Smart Writing Assistance",
+      description: "Advanced technology analyzes your background and crafts compelling, personalized statements that reflect your unique story."
     },
     {
       icon: Clock,
@@ -36,7 +36,7 @@ export default function Features() {
     {
       icon: Users,
       title: "Expert-Reviewed",
-      description: "Our AI models are trained on thousands of successful SOPs reviewed by admission experts."
+      description: "Our models are built using thousands of successful SOPs reviewed by experienced admission professionals."
     },
     {
       icon: Trophy,
@@ -68,8 +68,7 @@ export default function Features() {
             Why Choose SOP Generator?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            We combine cutting-edge AI technology with deep understanding of admission processes 
-            to help you create statements that stand out.
+            We combine cutting-edge technology with a deep understanding of admission processes to help you create statements that stand out.
           </p>
         </div>
 

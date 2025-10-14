@@ -34,27 +34,27 @@ export default function Accuracy() {
     {
       metric: "Grammar & Language",
       score: 99,
-      description: "Advanced NLP ensures perfect grammar and natural language flow"
+      description: "We ensure flawless grammar and a natural flow of language in every statement."
     },
     {
       metric: "Content Relevance", 
       score: 96,
-      description: "AI matches content to specific program requirements and university culture"
+      description: "We tailor each SOP to match specific program requirements and university expectations."
     },
     {
       metric: "Personalization",
       score: 94,
-      description: "Unique narratives crafted from individual backgrounds and experiences"
+      description: "We craft unique narratives based on your personal background, goals, and experiences."
     },
     {
       metric: "Structure & Format",
       score: 98,
-      description: "Follows academic standards and admission committee preferences"
+      description: "We follow academic standards and admission committee preferences to maintain a strong structure."
     },
     {
       metric: "Authenticity",
       score: 97,
-      description: "Maintains genuine voice while highlighting key achievements"
+      description: "We preserve your genuine voice while effectively highlighting your achievements and aspirations."
     }
   ];
 

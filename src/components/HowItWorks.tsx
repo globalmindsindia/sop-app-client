@@ -12,7 +12,7 @@ export default function HowItWorks() {
     {
       icon: Upload,
       title: "Upload Your Resume",
-      description: "Share your academic and professional background so our AI can understand your unique story.",
+      description: "Share your academic and professional background so we can understand your unique story.",
       color: "from-pastel-purple via-white to-pastel-pink"
     },
     {
@@ -23,8 +23,8 @@ export default function HowItWorks() {
     },
     {
       icon: Sparkles,
-      title: "AI Generates Your SOP",
-      description: "Our advanced AI crafts a personalized, compelling statement tailored to your profile and target program.",
+      title: "Our Experts Crafts Your SOP",
+      description: "Our Experienced counsellors crafts a personalized, compelling SOP tailored to your profile and target program.",
       color: "from-pastel-green via-white to-pastel-yellow"
     },
     {
