@@ -43,12 +43,12 @@ export default function Hero({ onGetStarted }: HeroProps) {
             {
               icon: "✨",
               title: "Future-Ready",
-              description: "Advanced algorithms craft personalized content",
+              description: "Expertly Crafted, Personalized Content Just for You",
             },
             {
               icon: "⚡",
-              title: "Lightning Fast",
-              description: "Generate your SOP in under 5 minutes",
+              title: "Efficient Service",
+              description: "Your personalized SOP delivered in 1–2 working days.",
             },
             {
               icon: "🎯",
