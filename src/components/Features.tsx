@@ -16,12 +16,12 @@ export default function Features() {
     {
       icon: Sparkles,
       title: "Smart Writing Assistance",
-      description: "Advanced technology analyzes your background and crafts compelling, personalized statements that reflect your unique story."
+      description: "Our internal team analyzes your background and crafts compelling, personalized statements that reflect your unique story."
     },
     {
       icon: Clock,
       title: "Lightning Fast",
-      description: "Generate your complete SOP in under 5 minutes. No more weeks of writer's block or endless revisions."
+      description: "Get your complete SOP ready in 1 to 2 working days. No more weeks of writer's block or endless revisions."
     },
     {
       icon: Target,
