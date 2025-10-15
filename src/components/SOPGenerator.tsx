@@ -44,6 +44,38 @@ import { AppFormData } from "@/types/types";
 import { sopService } from "@/services/sopService";
 import { handleError } from "@/helpers/errorHandler";
 import Loader from "./Loader";
+import CreatableCombobox from "./CreatableCombobox";
+import { paymentService } from "@/services/paymentService";
+import { loadRazorpayScript } from "@/utils/razorpay";
+import { leadService } from "@/services/leadService";
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  theme: { color: string };
+  handler: (response: any) => void;
+}
+
+interface PaymentResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 type Step =
   | "university"
@@ -67,7 +99,7 @@ export default function SOPGenerator() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>("university");
   const [formData, setFormData] = useState<AppFormData>({
-    country: "",
+    country: "Germany",
     university: "",
     course: "",
     name: "",
@@ -93,6 +125,35 @@ export default function SOPGenerator() {
 
   // ✅ Added: Track if quality check and improvements are completed
   const [qualityCheckCompleted, setQualityCheckCompleted] = useState(false);
+  // Add these state variables after your existing useState declarations
+  const [selectedPackage, setSelectedPackage] = useState<"expert" | "quick">(
+    "expert"
+  );
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+
+  // Package configurations
+  const packages = {
+    expert: {
+      name: "SOP Expert",
+      price: 1500,
+      displayPrice: "₹1,500",
+      features: [
+        "We provide a tailored SOP customized to your profile and goals",
+        "Our SOP expert crafts the draft based on the inputs you provide",
+        "Receive a professionally written SOP that reflects your unique story",
+      ],
+    },
+    // quick: {
+    //   name: "SOP Quick",
+    //   price: 199,
+    //   displayPrice: "₹199",
+    //   features: [
+    //     "Access to a bundle of winning SOPs",
+    //     "Create personalised SOP draft",
+    //     "Bring your SOP for expert review feedback",
+    //   ],
+    // },
+  };
 
   async function handleQuestionnaireComplete(
     answersFromQuestionnaire: Record<string, string>
@@ -196,86 +257,80 @@ export default function SOPGenerator() {
   };
 
   const universityData = {
-    USA: {
-      universities: [
-        "Harvard University",
-        "Stanford University",
-        "MIT",
-        "UC Berkeley",
-        "Yale University",
-        "Princeton University",
-      ],
-      courses: [
-        "Computer Science",
-        "Business Administration",
-        "Engineering",
-        "Medicine",
-        "Law",
-        "Economics",
-        "Psychology",
-        "International Relations",
-      ],
-    },
-    UK: {
-      universities: [
-        "Oxford University",
-        "Cambridge University",
-        "Imperial College London",
-        "London School of Economics",
-        "University College London",
-      ],
-      courses: [
-        "Law",
-        "Medicine",
-        "Economics",
-        "Political Science",
-        "Data Science",
-        "Engineering",
-        "Psychology",
-      ],
-    },
-    Canada: {
-      universities: [
-        "University of Toronto",
-        "McGill University",
-        "University of British Columbia",
-        "University of Waterloo",
-        "McMaster University",
-      ],
-      courses: [
-        "Computer Science",
-        "Engineering",
-        "Medicine",
-        "Environmental Science",
-        "Business Administration",
-        "Data Analytics",
-      ],
-    },
-    Australia: {
-      universities: [
-        "University of Melbourne",
-        "Australian National University",
-        "University of Sydney",
-        "University of Queensland",
-        "Monash University",
-      ],
-      courses: [
-        "Marine Biology",
-        "Engineering",
-        "Business Management",
-        "Medicine",
-        "Law",
-        "Computer Science",
-        "Architecture",
-      ],
-    },
     Germany: {
       universities: [
-        "Technical University of Munich",
+        "Carl Benz School",
+        "Charité - Universitätsmedizin Berlin",
+        "Constructor University",
+        "ESMT Berlin",
+        "FAU WiSo Nuremberg",
+        "Freie Universität Berlin",
+        "Furtwangen University",
+        "Goethe University Frankfurt",
         "Heidelberg University",
-        "Humboldt University of Berlin",
+        "Hochschule Bielefeld",
+        "Humboldt-Universität zu Berlin",
+        "Justus Liebig University Giessen",
+        "Karlsruhe Institute of Technology (KIT)",
+        "LMU Munich",
+        "Leibniz Universität Hannover",
+        "Leuphana University Lüneburg",
+        "Munich University of Applied Sciences",
+        "OTH Regensburg",
+        "RWTH Business School",
+        "Ruhr-Universität Bochum",
+        "TU Dortmund University",
+        "Technical University of Munich (TUM)",
+        "Technische Universität Berlin",
+        "Technische Universität Dresden",
+        "University of Cologne",
         "University of Freiburg",
-        "RWTH Aachen University",
+        "University of Göttingen",
+        "University of Hohenheim",
+        "University of Kassel",
+        "University of Konstanz",
+        "University of Mannheim",
+        "University of Münster",
+        "University of Passau",
+        "University of Potsdam",
+        "University of Stuttgart",
+        "University of Tübingen",
+        "Universität Hamburg",
+        "Universität Regensburg",
+        "Bard College Berlin",
+        "Berlin School of Business and Innovation",
+        "Bucerius Law School (not initially listed—add here as known reputable private law school)",
+        "CBS International Business School (Cologne)",
+        "CODE University of Applied Sciences",
+        "Charité – Universitätsmedizin Berlin",
+        "Cologne Business School",
+        "EBS Universität für Wirtschaft und Recht",
+        "FOM Hochschule für Oekonomie und Management",
+        "Fachhochschule Wedel",
+        "Frankfurt School of Finance & Management",
+        "Fresenius University of Applied Sciences",
+        "GISMA Business School",
+        "HHL Leipzig Graduate School of Management",
+        "Hamburger Fern-Hochschule (from broader lists)",
+        "Hertie School of Governance",
+        "Hochschule Fresenius (Idstein & various campuses)",
+        "IST-Hochschule für Management (Düsseldorf)",
+        "IU International University of Applied Sciences",
+        "IU Internationale Hochschule (Erfurt)",
+        "International School of Management (ISM) (from standyou list)",
+        "Jacobs University Bremen (now Constructor University)",
+        "Katholische Universität Eichstätt-Ingolstadt",
+        "Kühne Logistics University (KLU)",
+        "Munich Business School",
+        "Quadriga University of Applied Sciences Berlin (from broader lists)",
+        "SRH Hochschulen (Heidelberg)",
+        "Steinbeis-Hochschule Berlin",
+        "University of Applied Sciences Europe (Iserlohn)",
+        "University of Europe for Applied Sciences",
+        "Universität Witten/Herdecke",
+        "WHU – Otto Beisheim School of Management",
+        "Wilhelm Büchner University of Applied Sciences",
+        "Zeppelin University",
       ],
       courses: [
         "Mechanical Engineering",
@@ -287,7 +342,7 @@ export default function SOPGenerator() {
         "Philosophy",
       ],
     },
-  };
+  } as const;
 
   const handleNext = () => {
     const currentIndex = steps.indexOf(currentStep);
@@ -340,52 +395,160 @@ export default function SOPGenerator() {
   };
 
   const handlePayment = async () => {
-    try {
-      // Show initial payment processing message
+    setIsPaymentLoading(true);
+
+    const selectedPkg = packages[selectedPackage];
+    const amount = selectedPkg.price; // Remove split payment calculation
+
+    // Validate required form data
+    if (!formData.name || !formData.email || !formData.phone) {
       toast({
-        title: "Processing Payment...",
-        description: "Please wait while we process your payment.",
+        title: "Missing Information",
+        description: "Please ensure your name, email, and phone are provided.",
+        variant: "destructive",
       });
+      setIsPaymentLoading(false);
+      return;
+    }
 
-      // For demo purposes, simulate payment processing delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Check if we have the required data
-      if (!sopId) {
+    try {
+      // Load Razorpay SDK
+      const res = await loadRazorpayScript();
+      if (!res) {
         toast({
-          title: "Error",
-          description: "SOP ID is missing. Please try again.",
+          title: "Payment Gateway Error",
+          description: "Failed to load Razorpay SDK. Please try again.",
           variant: "destructive",
         });
+        setIsPaymentLoading(false);
         return;
       }
 
-      // Generate output_pdf filename (you might want to customize this logic)
-      const output_pdf = `sop_${sopId}_${Date.now()}.pdf`;
-
-      // Call the verifyPayment API
-      const response = await sopService.verifyPayment(sopId, output_pdf);
-
-      // Payment successful
-      setPaymentCompleted(true);
-
-      // ✅ Auto-navigate to result after successful payment
-      setTimeout(() => {
-        setCurrentStep("result");
-      }, 1000);
-
-      toast({
-        title: "Payment Successful! ✅",
-        description: response.message || "You can now generate your SOP.",
+      // Create Razorpay order via backend
+      const order = await paymentService.createOrder({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        amount: amount,
+        description: `${selectedPkg.name} - SOP Generation Service`,
       });
-    } catch (error) {
-      console.error("Payment verification failed:", error);
+
+      if (!order?.success) {
+        toast({
+          title: "Order Creation Failed",
+          description: "Unable to initiate payment. Please try again.",
+          variant: "destructive",
+        });
+        setIsPaymentLoading(false);
+        return;
+      }
+
+      // Razorpay checkout options
+      const options: RazorpayOptions = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Global Minds India",
+        description: order.description,
+        order_id: order.id,
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        theme: { color: "#3B82F6" },
+
+        handler: async function (response: PaymentResponse) {
+          try {
+            // Verify payment on backend
+            const verify = await paymentService.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              internal_receipt_id: order.internal_receipt_id,
+            });
+
+            if (verify.success) {
+              // Create lead/order record after successful verification
+              const date = new Date();
+              const formatted = date.toLocaleString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              });
+
+              const payload = {
+                name: formData.name,
+                email: formData.email,
+                phoneNumber: formData.phone,
+                serviceType: selectedPkg.name,
+                leadSource: "SOP_GENERATION_SERVICE",
+                userNotes: `Package: ${selectedPkg.name}; University: ${formData.university}; Course: ${formData.course}`,
+                purpose: "SOP_GENERATION",
+                serviceName: selectedPkg.name,
+                purchaseDate: formatted,
+                paymentAmount: amount,
+                domainUrl: window.location.origin,
+              };
+
+              // Create lead entry
+              const { lead } = await leadService.createLeads(payload);
+              if (lead) {
+                // Call your existing SOP verification API
+                const output_pdf = `sop_${sopId}_${Date.now()}.pdf`;
+                const sopResponse = await sopService.verifyPayment(
+                  sopId!,
+                  output_pdf
+                );
+
+                setPaymentCompleted(true);
+
+                // Show success message
+                toast({
+                  title: "Payment Successful! ✅",
+                  description:
+                    "Payment confirmed. Your SOP will be ready within 24-48 hours.",
+                });
+
+                // Auto-navigate to result after successful payment
+                setTimeout(() => {
+                  setCurrentStep("result");
+                }, 2000);
+              }
+            } else {
+              toast({
+                title: "Payment Verification Failed",
+                description:
+                  "Please contact support with your payment details.",
+                variant: "destructive",
+              });
+            }
+          } catch (error: any) {
+            toast({
+              title: "Payment Error",
+              description:
+                error.message || "Something went wrong during verification.",
+              variant: "destructive",
+            });
+          }
+        },
+      };
+
+      // Open Razorpay modal
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error: any) {
       toast({
         title: "Payment Failed",
-        description:
-          "There was an issue processing your payment. Please try again.",
+        description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsPaymentLoading(false);
     }
   };
 
@@ -608,14 +771,14 @@ export default function SOPGenerator() {
                       </Label>
                       <Select
                         value={formData.country}
-                        onValueChange={(value) => {
+                        onValueChange={(value) =>
                           setFormData({
                             ...formData,
                             country: value,
                             university: "",
                             course: "",
-                          });
-                        }}
+                          })
+                        }
                       >
                         <SelectTrigger className="rounded-xl border-border bg-input">
                           <SelectValue placeholder="Select a country" />
@@ -630,7 +793,6 @@ export default function SOPGenerator() {
                       </Select>
                     </div>
 
-                    {/* University */}
                     <div className="flex flex-col space-y-2">
                       <Label
                         htmlFor="university"
@@ -638,55 +800,42 @@ export default function SOPGenerator() {
                       >
                         University
                       </Label>
-                      <Select
-                        value={formData.university}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, university: value })
-                        }
+                      <CreatableCombobox
                         disabled={!formData.country}
-                      >
-                        <SelectTrigger className="rounded-xl border-border bg-input">
-                          <SelectValue placeholder="Select university" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {formData.country &&
-                            universityData[formData.country].universities.map(
-                              (uni) => (
-                                <SelectItem key={uni} value={uni}>
-                                  {uni}
-                                </SelectItem>
-                              )
-                            )}
-                        </SelectContent>
-                      </Select>
+                        value={formData.university}
+                        onChange={(val) =>
+                          setFormData({ ...formData, university: val })
+                        }
+                        options={
+                          formData.country
+                            ? universityData[
+                                formData.country as keyof typeof universityData
+                              ].universities
+                            : []
+                        }
+                        placeholder="Search or enter university"
+                      />
                     </div>
 
-                    {/* Course */}
                     <div className="flex flex-col space-y-2">
                       <Label htmlFor="course" className="text-sm font-medium">
                         Course/Program
                       </Label>
-                      <Select
-                        value={formData.course}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, course: value })
-                        }
+                      <CreatableCombobox
                         disabled={!formData.country}
-                      >
-                        <SelectTrigger className="rounded-xl border-border bg-input">
-                          <SelectValue placeholder="Select program" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {formData.country &&
-                            universityData[formData.country].courses.map(
-                              (course) => (
-                                <SelectItem key={course} value={course}>
-                                  {course}
-                                </SelectItem>
-                              )
-                            )}
-                        </SelectContent>
-                      </Select>
+                        value={formData.course}
+                        onChange={(val) =>
+                          setFormData({ ...formData, course: val })
+                        }
+                        options={
+                          formData.country
+                            ? universityData[
+                                formData.country as keyof typeof universityData
+                              ].courses
+                            : []
+                        }
+                        placeholder="Search or enter course"
+                      />
                     </div>
                   </div>
                 </div>
@@ -820,73 +969,137 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "payment" && (
-                <div className="space-y-6 animate-scale-in">
-                  <div className="bg-gradient-card rounded-2xl p-4 md:p-8 border shadow-card">
-                    <div className="text-center mb-6">
-                      <CreditCard className="mx-auto h-12 w-12 text-primary mb-4" />
-                      <h3 className="text-lg md:text-xl font-semibold mb-2">
-                        Secure Payment
-                      </h3>
-                      <p className="text-sm md:text-base text-muted-foreground">
-                        Complete your payment to generate your personalized SOP
-                      </p>
-                    </div>
+                <div className="space-y-6 animate-scale-in max-w-4xl mx-auto">
+                  {/* Header */}
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                      Choose Your SOP Package
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Select the package that best fits your needs
+                    </p>
+                  </div>
 
-                    <div className="bg-pastel-blue rounded-xl p-4 md:p-6 mb-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="font-medium">
-                          SOP Generation Service
-                        </span>
-                        <span className="text-xl font-bold text-primary">
-                          $29.99
-                        </span>
-                      </div>
-                      <div className="space-y-2 text-sm text-muted-foreground">
-                        <div className="flex items-center">
-                          <Check className="h-4 w-4 text-green-500 mr-2" />
-                          Personalized SOP based on your profile
-                        </div>
-                        <div className="flex items-center">
-                          <Check className="h-4 w-4 text-green-500 mr-2" />
-                          Unlimited revisions for 7 days
-                        </div>
-                        <div className="flex items-center">
-                          <Check className="h-4 w-4 text-green-500 mr-2" />
-                          Multiple format downloads (PDF, Word, TXT)
+                  {/* Package Cards */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* SOP Expert Package - Most Popular */}
+                    <div
+                      className={`relative cursor-pointer transition-all duration-200 ${
+                        selectedPackage === "expert"
+                          ? "transform scale-105"
+                          : ""
+                      }`}
+                      onClick={() => setSelectedPackage("expert")}
+                    >
+                      {/* Most Popular Badge */}
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                        <div className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                          Most Popular
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg">
-                        <Shield className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="text-sm text-muted-foreground">
-                          Secured by 256-bit SSL encryption
-                        </span>
-                      </div>
-
-                      {!paymentCompleted ? (
-                        <Button
-                          onClick={handlePayment}
-                          className="w-full rounded-xl py-3 text-lg shadow-hover hover:shadow-hover"
-                          size="lg"
-                        >
-                          <CreditCard className="mr-2 h-5 w-5" />
-                          Pay $29.99 - Generate SOP
-                        </Button>
-                      ) : (
-                        <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
-                          <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
-                          <p className="text-green-700 font-medium">
-                            Payment Successful!
-                          </p>
-                          <p className="text-sm text-green-600">
-                            Redirecting to your results...
-                          </p>
+                      <div
+                        className={`bg-white rounded-2xl p-6 border-2 shadow-lg relative transition-all duration-200 ${
+                          selectedPackage === "expert"
+                            ? "border-blue-600 shadow-blue-100"
+                            : "border-gray-200 hover:border-blue-300"
+                        }`}
+                      >
+                        {/* Radio Button */}
+                        <div className="absolute top-6 left-6">
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                              selectedPackage === "expert"
+                                ? "border-blue-600 bg-blue-600"
+                                : "border-gray-300 bg-white"
+                            }`}
+                          >
+                            {selectedPackage === "expert" && (
+                              <div className="w-3 h-3 rounded-full bg-white"></div>
+                            )}
+                          </div>
                         </div>
-                      )}
+
+                        <div className="pt-8">
+                          {/* Package Header */}
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold">
+                              {packages.expert.name}
+                            </h3>
+                            <div className="text-right">
+                              <span className="text-2xl font-bold">
+                                {packages.expert.displayPrice}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Includes Section */}
+                          <div className="mb-6">
+                            <h4 className="font-medium text-gray-700 mb-4">
+                              Includes
+                            </h4>
+                            <div className="space-y-3">
+                              {packages.expert.features.map(
+                                (feature, index) => (
+                                  <div key={index} className="flex items-start">
+                                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                    <span className="text-sm text-gray-600">
+                                      {feature}
+                                    </span>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Price Summary */}
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-blue-900">
+                        Total amount:
+                      </span>
+                      <span className="text-xl font-bold text-blue-900">
+                        {packages[selectedPackage].displayPrice}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Security Badge */}
+                  <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg">
+                    <Shield className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-sm text-muted-foreground">
+                      Secured by 256-bit SSL encryption
+                    </span>
+                  </div>
+
+                  {/* Payment Button */}
+                  {!paymentCompleted ? (
+                    <Button
+                      onClick={handlePayment}
+                      disabled={isPaymentLoading}
+                      className="w-full rounded-xl py-4 text-lg shadow-hover hover:shadow-hover bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                      size="lg"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      {isPaymentLoading
+                        ? "Processing..."
+                        : `Pay ${packages[selectedPackage].displayPrice} - Generate SOP`}
+                    </Button>
+                  ) : (
+                    <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                      <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
+                      <p className="text-green-700 font-medium">
+                        Payment Successful!
+                      </p>
+                      <p className="text-sm text-green-600">
+                        Payment confirmed. Starting SOP generation...
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
