@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import TermsandConditions from "./components/TermsandConditions";
 import RefundPolicy from "./components/RefundPolicy";
 import PrivacyPolicy from "./components/PrivacyPolicy";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -17,9 +18,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/terms-and-conditions" element={<TermsandConditions />} />
+          <Route
+            path="/terms-and-conditions"
+            element={<TermsandConditions />}
+          />
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
