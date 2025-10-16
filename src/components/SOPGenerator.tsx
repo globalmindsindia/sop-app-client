@@ -504,7 +504,7 @@ export default function SOPGenerator() {
 
               if (lead) {
                 // Call your existing SOP verification API
-                const output_pdf = `sop_${sopId}_${Date.now()}.pdf`;
+                const output_pdf = generatedSOP;
                 await sopService.verifyPayment(sopId!, output_pdf);
 
                 setPaymentCompleted(true);

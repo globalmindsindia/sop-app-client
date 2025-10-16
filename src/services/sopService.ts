@@ -43,7 +43,7 @@ export const sopService = {
 
   async verifyPayment(sop_id: number, output_pdf: string) {
     const { data } = await getApi().post(
-      `/api/v1/sop/verify-payment/${sop_id}/${output_pdf}`
+      `/api/v1/sop/verify-payment/${sop_id}${output_pdf}`
     );
     return data as { message: string };
   },
