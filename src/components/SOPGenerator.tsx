@@ -130,6 +130,7 @@ export default function SOPGenerator() {
     "expert"
   );
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   // Package configurations
   const packages = {
@@ -398,7 +399,7 @@ export default function SOPGenerator() {
     setIsPaymentLoading(true);
 
     const selectedPkg = packages[selectedPackage];
-    const amount = selectedPkg.price; // Remove split payment calculation
+    const amount = selectedPkg.price;
 
     // Validate required form data
     if (!formData.name || !formData.email || !formData.phone) {
@@ -460,6 +461,9 @@ export default function SOPGenerator() {
 
         handler: async function (response: PaymentResponse) {
           try {
+            // ✅ Show loading while verifying payment
+            setPaymentProcessing(true);
+
             // Verify payment on backend
             const verify = await paymentService.verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
@@ -495,15 +499,13 @@ export default function SOPGenerator() {
                 domainUrl: window.location.origin,
               };
 
-              // Create lead entry
+              // ✅ Create lead entry (loading screen is already showing)
               const { lead } = await leadService.createLeads(payload);
+
               if (lead) {
                 // Call your existing SOP verification API
                 const output_pdf = `sop_${sopId}_${Date.now()}.pdf`;
-                const sopResponse = await sopService.verifyPayment(
-                  sopId!,
-                  output_pdf
-                );
+                await sopService.verifyPayment(sopId!, output_pdf);
 
                 setPaymentCompleted(true);
 
@@ -514,12 +516,23 @@ export default function SOPGenerator() {
                     "Payment confirmed. Your SOP will be ready within 24-48 hours.",
                 });
 
+                // ✅ Hide loading before navigation
+                setPaymentProcessing(false);
+
                 // Auto-navigate to result after successful payment
                 setTimeout(() => {
                   setCurrentStep("result");
                 }, 2000);
+              } else {
+                setPaymentProcessing(false); // ✅ Fixed: Use consistent state variable
+                toast({
+                  title: "Error",
+                  description: "Failed to create lead. Please contact support.",
+                  variant: "destructive",
+                });
               }
             } else {
+              setPaymentProcessing(false); // ✅ Fixed: Use consistent state variable
               toast({
                 title: "Payment Verification Failed",
                 description:
@@ -528,6 +541,7 @@ export default function SOPGenerator() {
               });
             }
           } catch (error: any) {
+            setPaymentProcessing(false); // ✅ Fixed: Use consistent state variable
             toast({
               title: "Payment Error",
               description:
@@ -541,13 +555,15 @@ export default function SOPGenerator() {
       // Open Razorpay modal
       const razorpay = new window.Razorpay(options);
       razorpay.open();
+
+      // ✅ Reset payment loading state after modal opens
+      setIsPaymentLoading(false);
     } catch (error: any) {
       toast({
         title: "Payment Failed",
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsPaymentLoading(false);
     }
   };
@@ -604,11 +620,14 @@ export default function SOPGenerator() {
   return (
     <>
       {/* Loader Overlay */}
-      {(loading || polling) && (
+      {(loading || polling || paymentProcessing) && (
         <>
           {loading && <Loader text="Processing..." />}
           {polling && (
             <Loader text="Performing quality check, please wait..." />
+          )}
+          {paymentProcessing && (
+            <Loader text="Verifying payment, please wait..." />
           )}
         </>
       )}
