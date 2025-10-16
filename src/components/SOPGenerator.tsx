@@ -136,8 +136,10 @@ export default function SOPGenerator() {
   const packages = {
     expert: {
       name: "SOP Expert",
-      price: 1500,
-      displayPrice: "₹1,500",
+      price: 1299,
+      displayPrice: "₹1,299",
+      originalPrice: 2599,
+      discount: "50%",
       features: [
         "We provide a tailored SOP customized to your profile and goals",
         "Our SOP expert crafts the draft based on the inputs you provide",
@@ -632,16 +634,16 @@ export default function SOPGenerator() {
         </>
       )}
 
-      <div className="min-h-screen bg-gradient-soft py-6 md:py-12 px-4">
+      <div className="min-h-screen bg-gradient-soft py-4 sm:py-6 md:py-12 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           {/* Back to Home Button */}
-          <div className="mb-4 md:mb-6">
+          <div className="mb-4 sm:mb-6 md:mb-6">
             {currentStep === "university" ? (
               // Direct back if on first step
               <Button
                 variant="ghost"
                 onClick={handleBackToHome}
-                className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
+                className="rounded-xl p-2 sm:p-3 hover:bg-muted/50 w-full sm:w-auto"
                 size="sm"
               >
                 <Home className="h-4 w-4 mr-2" />
@@ -653,14 +655,14 @@ export default function SOPGenerator() {
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="rounded-xl p-2 md:p-3 hover:bg-muted/50"
+                    className="rounded-xl p-2 sm:p-3 hover:bg-muted/50 w-full sm:w-auto"
                     size="sm"
                   >
                     <Home className="h-4 w-4 mr-2" />
                     <span className="hidden sm:inline">Back to Home</span>
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="rounded-xl">
+                <AlertDialogContent className="rounded-xl max-w-md mx-auto">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Application in Progress</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -686,30 +688,28 @@ export default function SOPGenerator() {
           </div>
 
           {/* ✅ Fixed: Updated Progress Steps to match actual flow */}
-          <div className="flex justify-center mb-8 md:mb-12">
-            <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-2">
+          <div className="flex justify-center mb-6 sm:mb-8 md:mb-12">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 overflow-x-auto pb-2">
               {progressSteps.map((step, index) => (
                 <div key={step.key} className="flex items-center flex-shrink-0">
                   <div
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium transition-all duration-300 ${
-                      currentStep === step.key
+                    className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-300 ${currentStep === step.key
                         ? "bg-primary text-primary-foreground shadow-soft"
                         : isStepComplete(step.key as Step)
-                        ? "bg-pastel-green text-foreground"
-                        : "bg-muted text-muted-foreground"
-                    }`}
+                          ? "bg-pastel-green text-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}
                   >
                     {step.index}
                   </div>
                   {index < progressSteps.length - 1 && (
                     <div
-                      className={`w-4 md:w-8 h-0.5 mx-1 md:mx-2 transition-all duration-300 ${
-                        isStepComplete(step.key as Step) ||
-                        progressSteps.findIndex((s) => s.key === currentStep) >
+                      className={`w-2 sm:w-4 md:w-8 h-0.5 mx-0.5 sm:mx-1 md:mx-2 transition-all duration-300 ${isStepComplete(step.key as Step) ||
+                          progressSteps.findIndex((s) => s.key === currentStep) >
                           index
                           ? "bg-primary"
                           : "bg-border"
-                      }`}
+                        }`}
                     />
                   )}
                 </div>
@@ -719,16 +719,16 @@ export default function SOPGenerator() {
 
           {/* Main Content */}
           <Card className="shadow-card bg-gradient-card border-0 animate-fade-in">
-            <CardHeader className="text-center pb-4 md:pb-6">
-              <CardTitle className="text-xl md:text-2xl font-bold text-foreground">
+            <CardHeader className="text-center pb-4 sm:pb-6 md:pb-6">
+              <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
                 {stepTitles[currentStep]}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 md:p-8">
+            <CardContent className="p-4 sm:p-6 md:p-8">
               {/* ... All your existing step content remains the same ... */}
               {currentStep === "university" && (
-                <div className="space-y-6 animate-slide-up">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div className="space-y-4 sm:space-y-6 animate-slide-up">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
                     {/* Full Name */}
                     <div className="flex flex-col space-y-2">
                       <Label htmlFor="name" className="text-sm font-medium">
@@ -828,8 +828,8 @@ export default function SOPGenerator() {
                         options={
                           formData.country
                             ? universityData[
-                                formData.country as keyof typeof universityData
-                              ].universities
+                              formData.country as keyof typeof universityData
+                            ].universities
                             : []
                         }
                         placeholder="Search or enter university"
@@ -849,8 +849,8 @@ export default function SOPGenerator() {
                         options={
                           formData.country
                             ? universityData[
-                                formData.country as keyof typeof universityData
-                              ].courses
+                              formData.country as keyof typeof universityData
+                            ].courses
                             : []
                         }
                         placeholder="Search or enter course"
@@ -861,11 +861,11 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "resume" && (
-                <div className="space-y-6 animate-slide-up">
-                  <div className="border-2 border-dashed border-border rounded-xl p-4 md:p-8 text-center bg-pastel-blue">
-                    <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <div className="space-y-4 sm:space-y-6 animate-slide-up">
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 sm:p-6 md:p-8 text-center bg-pastel-blue">
+                    <Upload className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
                     <div className="space-y-2">
-                      <p className="text-lg font-medium">Upload your resume</p>
+                      <p className="text-base sm:text-lg font-medium">Upload your resume</p>
                       <p className="text-sm text-muted-foreground">
                         PDF, DOC, or DOCX up to 10MB
                       </p>
@@ -904,14 +904,14 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "quality_check" && (
-                <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+                <div className="max-w-2xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-md">
                   {/* Quality Score Display */}
-                  <div className="mb-8 text-center">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                  <div className="mb-6 sm:mb-8 text-center">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
                       Quality Check
                     </h2>
                     <div className="flex items-center justify-center">
-                      <div className="relative w-32 h-32">
+                      <div className="relative w-24 h-24 sm:w-32 sm:h-32">
                         {/* Circular Progress for Quality Score */}
                         <svg className="w-full h-full" viewBox="0 0 100 100">
                           <circle
@@ -926,7 +926,7 @@ export default function SOPGenerator() {
                           <circle
                             className="text-blue-600"
                             strokeWidth="10"
-                            strokeDasharray={`${qualityScore * 2.51}, 251.2`} // 251.2 is 2πr for r=40
+                            strokeDasharray={`${qualityScore ? qualityScore * 2.51 : 0}, 251.2`} // 251.2 is 2πr for r=40
                             strokeDashoffset="0"
                             strokeLinecap="round"
                             stroke="currentColor"
@@ -937,21 +937,21 @@ export default function SOPGenerator() {
                             transform="rotate(-90 50 50)"
                           />
                         </svg>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl font-bold text-gray-800">
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xl sm:text-2xl font-bold text-gray-800">
                           {qualityScore}/100
                         </div>
                       </div>
                     </div>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-2 text-gray-600 text-sm sm:text-base">
                       Your Answer Quality Score
                     </p>
                   </div>
 
                   {/* Questions Section */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {qualityQuestions.map((q, index) => (
                       <div key={q} className="space-y-2">
-                        <Label className="text-lg font-medium text-gray-700">
+                        <Label className="text-base sm:text-lg font-medium text-gray-700">
                           {index + 1}. {q}
                         </Label>
                         <Textarea
@@ -971,7 +971,7 @@ export default function SOPGenerator() {
                   </div>
 
                   {/* Submit Button */}
-                  <div className="mt-8 text-center">
+                  <div className="mt-6 sm:mt-8 text-center">
                     <Button
                       onClick={handleSubmitImprovements}
                       disabled={
@@ -979,7 +979,7 @@ export default function SOPGenerator() {
                           v?.trim()
                         ) || loading
                       }
-                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
                     >
                       Submit Improvements
                     </Button>
@@ -988,81 +988,78 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "payment" && (
-                <div className="space-y-6 animate-scale-in max-w-4xl mx-auto">
+                <div className="space-y-4 sm:space-y-6 animate-scale-in max-w-4xl mx-auto">
                   {/* Header */}
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                  <div className="text-center mb-6 sm:mb-8">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
                       Choose Your SOP Package
                     </h2>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm sm:text-base">
                       Select the package that best fits your needs
                     </p>
                   </div>
 
                   {/* Package Cards */}
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     {/* SOP Expert Package - Most Popular */}
                     <div
-                      className={`relative cursor-pointer transition-all duration-200 ${
-                        selectedPackage === "expert"
+                      className={`relative cursor-pointer transition-all duration-200 max-w-md mx-auto ${selectedPackage === "expert"
                           ? "transform scale-105"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => setSelectedPackage("expert")}
                     >
                       {/* Most Popular Badge */}
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                        <div className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        <div className="bg-blue-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
                           Most Popular
                         </div>
                       </div>
 
                       <div
-                        className={`bg-white rounded-2xl p-6 border-2 shadow-lg relative transition-all duration-200 ${
-                          selectedPackage === "expert"
+                        className={`bg-white rounded-2xl p-4 sm:p-6 border-2 shadow-lg relative transition-all duration-200 w-full ${selectedPackage === "expert"
                             ? "border-blue-600 shadow-blue-100"
                             : "border-gray-200 hover:border-blue-300"
-                        }`}
+                          }`}
                       >
                         {/* Radio Button */}
-                        <div className="absolute top-6 left-6">
+                        <div className="absolute top-4 sm:top-6 left-4 sm:left-6">
                           <div
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                              selectedPackage === "expert"
+                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${selectedPackage === "expert"
                                 ? "border-blue-600 bg-blue-600"
                                 : "border-gray-300 bg-white"
-                            }`}
+                              }`}
                           >
                             {selectedPackage === "expert" && (
-                              <div className="w-3 h-3 rounded-full bg-white"></div>
+                              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white"></div>
                             )}
                           </div>
                         </div>
 
-                        <div className="pt-8">
+                        <div className="pt-6 sm:pt-8">
                           {/* Package Header */}
-                          <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold">
+                          <div className="flex items-center justify-between mb-4 sm:mb-6">
+                            <h3 className="text-lg sm:text-xl font-bold">
                               {packages.expert.name}
                             </h3>
-                            <div className="text-right">
-                              <span className="text-2xl font-bold">
-                                {packages.expert.displayPrice}
-                              </span>
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <span className="text-sm sm:text-base font-semibold text-gray-500 line-through">₹2,599</span>
+                              <span className="text-xs sm:text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full font-medium">50% off</span>
+                              <span className="text-lg sm:text-xl font-bold text-blue-600">₹1,299</span>
                             </div>
                           </div>
 
                           {/* Includes Section */}
-                          <div className="mb-6">
-                            <h4 className="font-medium text-gray-700 mb-4">
+                          <div className="mb-4 sm:mb-6">
+                            <h4 className="font-medium text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">
                               Includes
                             </h4>
-                            <div className="space-y-3">
+                            <div className="space-y-2 sm:space-y-3">
                               {packages.expert.features.map(
                                 (feature, index) => (
                                   <div key={index} className="flex items-start">
-                                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                                    <span className="text-sm text-gray-600">
+                                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                    <span className="text-xs sm:text-sm text-gray-600">
                                       {feature}
                                     </span>
                                   </div>
@@ -1076,88 +1073,91 @@ export default function SOPGenerator() {
                   </div>
 
                   {/* Price Summary */}
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-blue-900">
-                        Total amount:
-                      </span>
-                      <span className="text-xl font-bold text-blue-900">
-                        {packages[selectedPackage].displayPrice}
-                      </span>
+                  <div className="max-w-md mx-auto">
+                    <div className="bg-blue-50 rounded-xl p-3 sm:p-4 border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-blue-900 text-sm sm:text-base">
+                          Total amount (Inclusive Of GST):
+                        </span>
+                        <span className="text-lg sm:text-xl font-bold text-blue-900">
+                          {packages[selectedPackage].displayPrice}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Security Badge */}
-                  <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg">
-                    <Shield className="h-5 w-5 text-green-500 mr-2" />
-                    <span className="text-sm text-muted-foreground">
-                      Secured by 256-bit SSL encryption
-                    </span>
+                  <div className="max-w-md mx-auto">
+                    <div className="flex items-center justify-center p-3 sm:p-4 bg-muted/50 rounded-lg">
+                      <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2" />
+                      <span className="text-xs sm:text-sm text-muted-foreground">
+                        Secured by 256-bit SSL encryption
+                      </span>
+                    </div>
                   </div>
 
                   {/* Payment Button */}
-                  {!paymentCompleted ? (
-                    <Button
-                      onClick={handlePayment}
-                      disabled={isPaymentLoading}
-                      className="w-full rounded-xl py-4 text-lg shadow-hover hover:shadow-hover bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                      size="lg"
-                    >
-                      <CreditCard className="mr-2 h-5 w-5" />
-                      {isPaymentLoading
-                        ? "Processing..."
-                        : `Pay ${packages[selectedPackage].displayPrice} - Generate SOP`}
-                    </Button>
-                  ) : (
-                    <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
-                      <Check className="mx-auto h-8 w-8 text-green-500 mb-2" />
-                      <p className="text-green-700 font-medium">
-                        Payment Successful!
-                      </p>
-                      <p className="text-sm text-green-600">
-                        Payment confirmed. Starting SOP generation...
-                      </p>
-                    </div>
-                  )}
+                  <div className="max-w-md mx-auto">
+                    {!paymentCompleted ? (
+                      <Button
+                        onClick={handlePayment}
+                        disabled={isPaymentLoading}
+                        className="w-full rounded-xl py-3 sm:py-4 text-base sm:text-lg shadow-hover hover:shadow-hover bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                        size="lg"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        {isPaymentLoading
+                          ? "Processing..."
+                          : `Pay ${packages[selectedPackage].displayPrice} - Generate SOP`}
+                      </Button>
+                    ) : (
+                      <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                        <Check className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-green-500 mb-2" />
+                        <p className="text-green-700 font-medium text-sm sm:text-base">
+                          Payment Successful!
+                        </p>
+                        <p className="text-sm text-green-600">
+                          Payment confirmed. Starting SOP generation...
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
               {currentStep === "result" && (
-                <div className="space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
+                <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
                   <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl border shadow-lg">
                     <CardHeader className="text-center">
-                      <p className="text-xl md:text-2xl font-semibold text-foreground mt-2">
-                        Your Statement of Purpose Being Tailored by our SOP
-                        Experts!
-                      </p>
+                      <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground mt-2">
+                        We’ve received your request       </p>
                     </CardHeader>
-                    <CardContent className="space-y-4 text-center">
-                      <p className="text-sm md:text-base text-muted-foreground">
-                        Your Statement of Purpose has been successfully
-                        generated and is being tailored to your specifications.
+                    <CardContent className="space-y-3 sm:space-y-4 text-center">
+                      <p className="text-sm sm:text-base text-muted-foreground">
+                        Your SOP is Being Tailored by Our Experts! customizing it to match your profile and requirements.
                       </p>
-                      <p className="text-sm md:text-base text-muted-foreground">
-                        You will receive the final SOP via email within 24
-                        hours.
+                      <p className="text-sm sm:text-base text-muted-foreground">
+                        You will receive your professionally written SOP via email within <strong>1–2 working days</strong>.
                       </p>
-                      <div className="flex flex-col items-center gap-4 mt-6">
-                        <p className="text-sm md:text-base text-muted-foreground">
+
+                      <div className="flex flex-col items-center gap-3 sm:gap-4 mt-4 sm:mt-6">
+                        <p className="text-sm sm:text-base text-muted-foreground">
                           For any queries, feel free to contact us:
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
                           <Button
                             variant="outline"
-                            className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors"
+                            className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors w-full sm:w-auto justify-center"
                             asChild
                           >
-                            <a href="mailto:support@example.com">
+                            <a href="mailto:connect@globalmindsindia@gmail.com">
                               <Mail className="w-4 h-4" />
-                              Email Us
+                              Email Us @ connect@globalmindsindia@gmail.com
                             </a>
                           </Button>
                           <Button
                             variant="outline"
-                            className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors"
+                            className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors w-full sm:w-auto justify-center"
                             asChild
                           >
                             <a href="tel:+917353446655">
@@ -1169,7 +1169,7 @@ export default function SOPGenerator() {
 
                         <Button
                           variant="default"
-                          className="mt-6"
+                          className="mt-4 sm:mt-6 w-full sm:w-auto"
                           onClick={() => (window.location.href = "/")}
                         >
                           Home
@@ -1178,16 +1178,17 @@ export default function SOPGenerator() {
                     </CardContent>
                   </Card>
                 </div>
+
               )}
 
               {/* ✅ Fixed: Updated Navigation Buttons Logic */}
               {currentStep !== "result" && (
-                <div className="flex justify-between pt-6 md:pt-8">
+                <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 md:pt-8 gap-2 sm:gap-0">
                   <Button
                     variant="outline"
                     onClick={handlePrevious}
                     disabled={currentStep === "university"}
-                    className="rounded-xl"
+                    className="rounded-xl w-full sm:w-auto"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Previous
@@ -1201,7 +1202,7 @@ export default function SOPGenerator() {
                     <Button
                       onClick={handleNext}
                       disabled={!isStepComplete(currentStep)}
-                      className="rounded-xl"
+                      className="rounded-xl w-full sm:w-auto"
                     >
                       Next
                       <ArrowRight className="h-4 w-4 ml-2" />
