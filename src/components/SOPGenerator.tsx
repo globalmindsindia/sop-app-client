@@ -1134,7 +1134,7 @@ export default function SOPGenerator() {
                     </CardHeader>
                     <CardContent className="space-y-3 sm:space-y-4 text-center">
                       <p className="text-sm sm:text-base text-muted-foreground">
-                        Your SOP is Being Tailored by Our Experts! customizing it to match your profile and requirements.
+                        SOP is Being Tailored by Our Experts! customizing it to match your profile and requirements.
                       </p>
                       <p className="text-sm sm:text-base text-muted-foreground">
                         You will receive your professionally written SOP via email within <strong>1–2 working days</strong>.
