@@ -10,6 +10,27 @@ import RefundPolicy from "./components/RefundPolicy";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import ScrollToTop from "./components/ScrollToTop";
 
+// Syne
+import "@fontsource/syne/400.css";
+import "@fontsource/syne/500.css";
+import "@fontsource/syne/600.css";
+import "@fontsource/syne/700.css";
+import "@fontsource/syne/800.css";
+
+// Inter
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/inter/800.css";
+
+// Poppins
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
+import "@fontsource/poppins/800.css";
+
 const queryClient = new QueryClient();
 
 const App = () => (

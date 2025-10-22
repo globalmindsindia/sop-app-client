@@ -1,77 +1,92 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, GraduationCap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface HeroProps {
   onGetStarted: () => void;
 }
 
+const steps = [
+  {
+    label: "1. Personal Info",
+    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    label: "2. Resume Upload",
+    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    label: "3. Questionnaires",
+    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    label: "4. Quality Check",
+    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  { label: "5. Payment", video: "https://www.w3schools.com/html/mov_bbb.mp4" },
+  {
+    label: "6. Thank You",
+    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+];
+
 export default function Hero({ onGetStarted }: HeroProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
   return (
-    <div className="text-center py-20 px-4 bg-gradient-soft">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8 animate-fade-in">
-          {/* <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-primary rounded-full mb-6 shadow-soft">
-            <GraduationCap className="h-10 w-10 text-white" />
-          </div> */}
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+    <section className="bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900 py-20 px-4 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+        {/* Left: Intro & CTA */}
+        <div className="space-y-8">
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Craft Your Perfect{" "}
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Statement of Purpose
             </span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Transform your dreams into compelling narratives. Our SOP
-            generator helps you create personalized, professional statements
-            that stand out to admissions committees.
+          <p className="text-xl text-gray-700 max-w-lg leading-relaxed">
+            Transform your dreams into compelling narratives. Our SOP generator
+            creates personalized, professional statements that stand out.
           </p>
-        </div>
-
-        <div className="animate-scale-in">
           <Button
             onClick={onGetStarted}
             size="lg"
-            className="rounded-2xl px-8 py-4 text-lg font-semibold shadow-hover hover:shadow-hover transition-all duration-300 transform hover:scale-105"
+            className="inline-flex items-center rounded-2xl px-8 py-4 text-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
           >
             Start Building Your Future
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-6 mt-16 animate-slide-up">
-          {[
-            {
-              icon: "✨",
-              title: "Future-Ready",
-              description: "Expertly Crafted, Personalized Content Just for You",
-            },
-            {
-              icon: "⚡",
-              title: "Efficient Service",
-              description: "Your personalized SOP delivered in 1–2 working days.",
-            },
-            {
-              icon: "🎯",
-              title: "Tailored Content",
-              description: "Customized for your university and program",
-            },
-          ].map((feature, index) => (
-            <div
-              key={index}
-              className="bg-card rounded-2xl p-6 shadow-card border hover:shadow-hover transition-all duration-300 hover:-translate-y-1"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="text-3xl mb-3">{feature.icon}</div>
-              <h3 className="font-semibold text-lg mb-2 text-foreground">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                {feature.description}
-              </p>
-            </div>
-          ))}
+        {/* Right: Tabs above Video & Features */}
+        <div className="space-y-6">
+          {/* Tabs */}
+          <div className="bg-green-800 rounded-lg p-1 flex space-x-1">
+            {steps.map((step, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`flex-1 py-2 px-4 text-center rounded text-sm font-medium transition ${
+                  activeIndex === idx
+                    ? "bg-green-500 text-white shadow-md"
+                    : "text-white hover:bg-green-700"
+                }`}
+              >
+                {step.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Video */}
+          <video
+            src={steps[activeIndex].video}
+            autoPlay
+            loop
+            muted
+            className="w-full rounded-xl shadow-lg border-2 border-gray-200"
+          />
         </div>
       </div>
-    </div>
+    </section>
   );
 }

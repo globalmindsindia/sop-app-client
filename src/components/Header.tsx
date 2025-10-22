@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import companyLogo from "@/assets/gmi_logo.png";
 
@@ -32,58 +32,54 @@ export default function Header({ onGetStarted }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <Link to="/">
+        <div className="flex items-center justify-between h-16">
+          {/* Left: Logo + Nav */}
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="flex-shrink-0">
               <img
                 src={companyLogo}
                 alt="Company Logo"
-                className="h-10 w-auto object-contain cursor-pointer"
+                className="h-10 w-auto object-contain"
               />
             </Link>
+            <nav className="hidden md:flex items-center space-x-6">
+              {navItems.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => handleNavClick(item.href)}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition"
+                >
+                  {item.name}
+                </button>
+              ))}
+            </nav>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => handleNavClick(item.href)}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
-              >
-                {item.name}
-              </button>
-            ))}
-          </nav>
-
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Right: CTA + Mobile Menu */}
+          <div className="flex items-center space-x-4">
             <Button
               onClick={onGetStarted}
-              className="rounded-xl shadow-soft hover:shadow-hover transition-all duration-300"
+              className="hidden md:inline-flex rounded-xl shadow-soft hover:shadow-hover transition"
             >
               Get Started
             </Button>
+            <button
+              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in">
-            <nav className="flex flex-col space-y-4">
+          <div className="md:hidden mt-2 py-4 border-t border-border animate-fade-in">
+            <nav className="flex flex-col space-y-3 px-2">
               {navItems.map((item) => (
                 <button
                   key={item.name}
@@ -91,7 +87,7 @@ export default function Header({ onGetStarted }: HeaderProps) {
                     handleNavClick(item.href);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 px-2 py-1 text-left"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition text-left"
                 >
                   {item.name}
                 </button>
@@ -101,7 +97,7 @@ export default function Header({ onGetStarted }: HeaderProps) {
                   onGetStarted();
                   setIsMobileMenuOpen(false);
                 }}
-                className="rounded-xl mt-4"
+                className="rounded-xl mt-4 w-full"
                 size="sm"
               >
                 Get Started Free
