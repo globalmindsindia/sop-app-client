@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Sparkles, 
@@ -12,6 +13,12 @@ import {
 } from "lucide-react";
 
 export default function Features() {
+  const [expandedIndex, setExpandedIndex] = useState(null);
+
+  const handleToggle = (index: number) => {
+    setExpandedIndex(expandedIndex === index ? null : index);
+  };
+
   const features = [
     {
       icon: Sparkles,
@@ -76,7 +83,8 @@ export default function Features() {
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="border-0 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1 bg-gradient-card"
+              onClick={() => handleToggle(index)}
+              className="border-0 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1 bg-gradient-card cursor-pointer"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CardContent className="p-6">
@@ -88,9 +96,11 @@ export default function Features() {
                     <h3 className="font-semibold text-lg mb-2 text-foreground">
                       {feature.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
+                    {expandedIndex === index && (
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
