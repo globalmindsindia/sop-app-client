@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { motion } from "framer-motion";
+
 import {
   Select,
   SelectContent,
@@ -37,6 +39,7 @@ import {
   Home,
   Mail,
   Phone,
+  MessageCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Questionnaire from "./Questionnaire";
@@ -82,6 +85,7 @@ type Step =
   | "resume"
   | "questions"
   | "quality_check"
+  | "review"
   | "payment"
   | "result";
 
@@ -92,6 +96,7 @@ export default function SOPGenerator() {
     "resume",
     "questions",
     "quality_check", // Added this step
+    "review",
     "payment",
     "result",
   ];
@@ -110,8 +115,10 @@ export default function SOPGenerator() {
     specific_requirements: "",
   });
   const [generatedSOP, setGeneratedSOP] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [reviewCompleted, setIsReviewCompleted] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const { toast } = useToast();
 
   const [sopId, setSopId] = useState<number | null>(null);
@@ -131,6 +138,15 @@ export default function SOPGenerator() {
   );
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+
+  useEffect(() => {
+    setShowInstructions(true);
+  }, []);
+
+  const handleCloseInstructions = () => {
+    setShowInstructions(false);
+    // sessionStorage.setItem("instructionsShown", "true");
+  };
 
   // Package configurations
   const packages = {
@@ -397,6 +413,125 @@ export default function SOPGenerator() {
     }
   };
 
+  function ReviewApplication({
+    formData,
+    onEdit,
+    onConfirm,
+  }: {
+    formData: AppFormData;
+    onEdit: (step: Step) => void;
+    onConfirm: () => void;
+  }) {
+    return (
+      <div className="review-application p-4 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-6">Review Your Application</h2>
+
+        <section className="mb-4 border rounded p-3">
+          <h3 className="flex justify-between items-center">
+            Personal & Contact Details
+            <button
+              className="text-blue-600 underline"
+              onClick={() => onEdit("university")}
+            >
+              Edit
+            </button>
+          </h3>
+          <p>
+            <strong>Full Name:</strong> {formData.name}
+          </p>
+          <p>
+            <strong>Email:</strong> {formData.email}
+          </p>
+          <p>
+            <strong>Phone:</strong> {formData.phone}
+          </p>
+          <p>
+            <strong>Country:</strong> {formData.country}
+          </p>
+          <p>
+            <strong>University:</strong> {formData.university}
+          </p>
+          <p>
+            <strong>Course:</strong> {formData.course}
+          </p>
+        </section>
+
+        <section className="mb-4 border rounded p-3">
+          <h3 className="flex justify-between items-center">
+            Resume
+            <button
+              className="text-blue-600 underline"
+              onClick={() => onEdit("resume")}
+            >
+              Edit
+            </button>
+          </h3>
+          <p>{formData.resume ? formData.resume.name : "No resume uploaded"}</p>
+        </section>
+
+        <section className="mb-4 border rounded p-3">
+          <h3 className="flex justify-between items-center">
+            Questionnaire Answers
+            <button
+              className="text-blue-600 underline"
+              onClick={() => onEdit("questions")}
+            >
+              Edit
+            </button>
+          </h3>
+          {/* Render summary of your questionnaire answers here */}
+          <pre className="whitespace-pre-wrap">
+            {
+              JSON.stringify(
+                formData.answers,
+                null,
+                2
+              ) /* Assuming answers stored here */
+            }
+          </pre>
+        </section>
+
+        <section className="mb-4 border rounded p-3">
+          <h3 className="flex justify-between items-center">
+            Quality Check
+            <button
+              className="text-blue-600 underline"
+              onClick={() => onEdit("quality_check")}
+            >
+              Edit
+            </button>
+          </h3>
+          {/* Show quality check score or improvement answers summary */}
+          <p>Quality Score: {qualityScore ?? "Not available"}</p>
+        </section>
+
+        <section className="mb-4 border rounded p-3">
+          <h3 className="flex justify-between items-center">
+            Payment Details
+            <button
+              className="text-blue-600 underline"
+              onClick={() => onEdit("payment")}
+            >
+              Edit
+            </button>
+          </h3>
+          <p>Package: {selectedPackage}</p>
+          {/* You can show transaction id or amount if stored */}
+          {/* <p>Transaction ID: {paymentDetails.transactionId}</p> */}
+        </section>
+
+        <div className="flex justify-end gap-4 mt-6">
+          <button
+            className="rounded bg-blue-600 text-white px-6 py-2 hover:bg-blue-700"
+            onClick={onConfirm}
+          >
+            Confirm & Submit Application
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const handlePayment = async () => {
     setIsPaymentLoading(true);
 
@@ -575,6 +710,7 @@ export default function SOPGenerator() {
     resume: "Upload Your Resume 📄",
     questions: "Tell Us About Yourself ✨",
     quality_check: "Additional Questions ❓",
+    review: "Review your Application ❓",
     payment: "Secure Payment 💳",
     result: "Thank You 📚",
   };
@@ -611,16 +747,66 @@ export default function SOPGenerator() {
 
   // ✅ Fixed: Updated progress step display to match actual steps
   const progressSteps = [
-    { key: "university", label: "University", index: 1 },
+    { key: "university", label: "Personal Info.", index: 1 },
     { key: "resume", label: "Resume", index: 2 },
-    { key: "questions", label: "Questions", index: 3 },
-    { key: "quality_check", label: "Quality", index: 4 },
-    { key: "payment", label: "Payment", index: 5 },
-    { key: "result", label: "Result", index: 6 },
+    { key: "questions", label: "Questionnaire", index: 3 },
+    { key: "quality_check", label: "Quality Check", index: 4 },
+    { key: "quality_check", label: "Review", index: 5 },
+    { key: "payment", label: "Payment", index: 6 },
+    { key: "result", label: "SOP", index: 7 },
   ];
 
   return (
     <>
+      {showInstructions && (
+        <AlertDialog open onOpenChange={() => {}}>
+          <AlertDialogContent className="max-w-lg mx-auto">
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Please Read Instructions Carefully
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <ul className="list-disc list-inside text-sm">
+                  <li>Complete each step before moving on to the next.</li>
+                  <li>Ensure all required fields are filled accurately.</li>
+                  <li>Upload a clear, up-to-date resume in PDF format.</li>
+                  <li>
+                    Provide detailed and thoughtful responses to all questions.
+                  </li>
+                  <li>
+                    Avoid one-word or generic answers — the more detail, the
+                    better your SOP.
+                  </li>
+                  <li>
+                    Be honest and authentic while describing your experiences
+                    and goals.
+                  </li>
+                  <li>
+                    Use correct grammar and spelling where possible for best
+                    results.
+                  </li>
+                  <li>
+                    Review your answers carefully before final submission.
+                  </li>
+                </ul>
+                <p className="mt-4 font-semibold text-red-600">
+                  Your Statement of Purpose will be generated entirely based on
+                  your inputs by our SOP Experts. Please provide complete,
+                  accurate, and meaningful responses.
+                </p>
+              </div>
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={handleCloseInstructions}>
+                Got It
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
       {/* Loader Overlay */}
       {(loading || polling || paymentProcessing) && (
         <>
@@ -692,24 +878,36 @@ export default function SOPGenerator() {
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 overflow-x-auto pb-2">
               {progressSteps.map((step, index) => (
                 <div key={step.key} className="flex items-center flex-shrink-0">
-                  <div
-                    className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-300 ${currentStep === step.key
-                        ? "bg-primary text-primary-foreground shadow-soft"
-                        : isStepComplete(step.key as Step)
+                  <div className="flex flex-col items-center">
+                    {/* Step Circle */}
+                    <div
+                      className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-300 ${
+                        currentStep === step.key
+                          ? "bg-primary text-primary-foreground shadow-soft"
+                          : isStepComplete(step.key as Step)
                           ? "bg-pastel-green text-foreground"
                           : "bg-muted text-muted-foreground"
                       }`}
-                  >
-                    {step.index}
+                    >
+                      {step.index}
+                    </div>
+
+                    {/* Step Label */}
+                    <div className="mt-1 text-[10px] sm:text-xs md:text-sm text-center text-muted-foreground font-medium">
+                      {step.label}
+                    </div>
                   </div>
+
+                  {/* Step Connector */}
                   {index < progressSteps.length - 1 && (
                     <div
-                      className={`w-2 sm:w-4 md:w-8 h-0.5 mx-0.5 sm:mx-1 md:mx-2 transition-all duration-300 ${isStepComplete(step.key as Step) ||
-                          progressSteps.findIndex((s) => s.key === currentStep) >
+                      className={`w-2 sm:w-4 md:w-8 h-0.5 mx-0.5 sm:mx-1 md:mx-2 transition-all duration-300 ${
+                        isStepComplete(step.key as Step) ||
+                        progressSteps.findIndex((s) => s.key === currentStep) >
                           index
                           ? "bg-primary"
                           : "bg-border"
-                        }`}
+                      }`}
                     />
                   )}
                 </div>
@@ -828,8 +1026,8 @@ export default function SOPGenerator() {
                         options={
                           formData.country
                             ? universityData[
-                              formData.country as keyof typeof universityData
-                            ].universities
+                                formData.country as keyof typeof universityData
+                              ].universities
                             : []
                         }
                         placeholder="Search or enter university"
@@ -849,8 +1047,8 @@ export default function SOPGenerator() {
                         options={
                           formData.country
                             ? universityData[
-                              formData.country as keyof typeof universityData
-                            ].courses
+                                formData.country as keyof typeof universityData
+                              ].courses
                             : []
                         }
                         placeholder="Search or enter course"
@@ -865,7 +1063,9 @@ export default function SOPGenerator() {
                   <div className="border-2 border-dashed border-border rounded-xl p-4 sm:p-6 md:p-8 text-center bg-pastel-blue">
                     <Upload className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
                     <div className="space-y-2">
-                      <p className="text-base sm:text-lg font-medium">Upload your resume</p>
+                      <p className="text-base sm:text-lg font-medium">
+                        Upload your resume
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         PDF, DOC, or DOCX up to 10MB
                       </p>
@@ -926,7 +1126,9 @@ export default function SOPGenerator() {
                           <circle
                             className="text-blue-600"
                             strokeWidth="10"
-                            strokeDasharray={`${qualityScore ? qualityScore * 2.51 : 0}, 251.2`} // 251.2 is 2πr for r=40
+                            strokeDasharray={`${
+                              qualityScore ? qualityScore * 2.51 : 0
+                            }, 251.2`} // 251.2 is 2πr for r=40
                             strokeDashoffset="0"
                             strokeLinecap="round"
                             stroke="currentColor"
@@ -1003,10 +1205,11 @@ export default function SOPGenerator() {
                   <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     {/* SOP Expert Package - Most Popular */}
                     <div
-                      className={`relative cursor-pointer transition-all duration-200 max-w-md mx-auto ${selectedPackage === "expert"
+                      className={`relative cursor-pointer transition-all duration-200 max-w-md mx-auto ${
+                        selectedPackage === "expert"
                           ? "transform scale-105"
                           : ""
-                        }`}
+                      }`}
                       onClick={() => setSelectedPackage("expert")}
                     >
                       {/* Most Popular Badge */}
@@ -1017,18 +1220,20 @@ export default function SOPGenerator() {
                       </div>
 
                       <div
-                        className={`bg-white rounded-2xl p-4 sm:p-6 border-2 shadow-lg relative transition-all duration-200 w-full ${selectedPackage === "expert"
+                        className={`bg-white rounded-2xl p-4 sm:p-6 border-2 shadow-lg relative transition-all duration-200 w-full ${
+                          selectedPackage === "expert"
                             ? "border-blue-600 shadow-blue-100"
                             : "border-gray-200 hover:border-blue-300"
-                          }`}
+                        }`}
                       >
                         {/* Radio Button */}
                         <div className="absolute top-4 sm:top-6 left-4 sm:left-6">
                           <div
-                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${selectedPackage === "expert"
+                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${
+                              selectedPackage === "expert"
                                 ? "border-blue-600 bg-blue-600"
                                 : "border-gray-300 bg-white"
-                              }`}
+                            }`}
                           >
                             {selectedPackage === "expert" && (
                               <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white"></div>
@@ -1043,9 +1248,15 @@ export default function SOPGenerator() {
                               {packages.expert.name}
                             </h3>
                             <div className="flex items-center gap-1 sm:gap-2">
-                              <span className="text-sm sm:text-base font-semibold text-gray-500 line-through">₹2,599</span>
-                              <span className="text-xs sm:text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full font-medium">50% off</span>
-                              <span className="text-lg sm:text-xl font-bold text-blue-600">₹1,299</span>
+                              <span className="text-sm sm:text-base font-semibold text-gray-500 line-through">
+                                ₹2,599
+                              </span>
+                              <span className="text-xs sm:text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full font-medium">
+                                50% off
+                              </span>
+                              <span className="text-lg sm:text-xl font-bold text-blue-600">
+                                ₹1,299
+                              </span>
                             </div>
                           </div>
 
@@ -1130,14 +1341,17 @@ export default function SOPGenerator() {
                   <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl border shadow-lg">
                     <CardHeader className="text-center">
                       <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground mt-2">
-                        We’ve received your request       </p>
+                        We’ve received your request{" "}
+                      </p>
                     </CardHeader>
                     <CardContent className="space-y-3 sm:space-y-4 text-center">
                       <p className="text-sm sm:text-base text-muted-foreground">
-                        SOP is Being Tailored by Our Experts! customizing it to match your profile and requirements.
+                        SOP is Being Tailored by Our Experts! customizing it to
+                        match your profile and requirements.
                       </p>
                       <p className="text-sm sm:text-base text-muted-foreground">
-                        You will receive your professionally written SOP via email within <strong>1–2 working days</strong>.
+                        You will receive your professionally written SOP via
+                        email within <strong>1–2 working days</strong>.
                       </p>
 
                       <div className="flex flex-col items-center gap-3 sm:gap-4 mt-4 sm:mt-6">
@@ -1178,7 +1392,6 @@ export default function SOPGenerator() {
                     </CardContent>
                   </Card>
                 </div>
-
               )}
 
               {/* ✅ Fixed: Updated Navigation Buttons Logic */}
@@ -1214,6 +1427,61 @@ export default function SOPGenerator() {
           </Card>
         </div>
       </div>
+
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 10 }}
+        className="fixed bottom-4 right-4 z-50"
+      >
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Button
+            variant="secondary"
+            className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold p-4 shadow-2xl hover:scale-110 hover:shadow-indigo-400/50 transition-all duration-300"
+            onClick={() => setShowHelp(true)}
+          >
+            <MessageCircle className="mr-2 h-5 w-5" />
+            Help
+          </Button>
+        </motion.div>
+      </motion.div>
+      {showHelp && (
+        <AlertDialog open onOpenChange={setShowHelp}>
+          <AlertDialogContent className="max-w-sm mx-auto">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Customer Support</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>If you need assistance, please contact us:</p>
+                <p>
+                  <strong>Email:</strong>{" "}
+                  <a
+                    href="mailto:connect@globalmindsindia@gmail.com"
+                    className="text-blue-600"
+                  >
+                    connect@globalmindsindia@gmail.com
+                  </a>
+                </p>
+                <p>
+                  <strong>Phone:</strong>{" "}
+                  <a href="tel:+917353446655" className="text-blue-600">
+                    +91 7353446655
+                  </a>
+                </p>
+              </div>
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowHelp(false)}>
+                Close
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
