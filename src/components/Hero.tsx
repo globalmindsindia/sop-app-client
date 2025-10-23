@@ -37,7 +37,7 @@ export default function Hero({ onGetStarted }: HeroProps) {
     <section className="bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900 py-20 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         {/* Left: Intro & CTA */}
-        <div className="space-y-8">
+        <div className="space-y-8 md:ml-8 lg:ml-12">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Craft Your Perfect{" "}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -61,15 +61,15 @@ export default function Hero({ onGetStarted }: HeroProps) {
         {/* Right: Tabs above Video & Features */}
         <div className="space-y-6">
           {/* Tabs */}
-          <div className="bg-green-800 rounded-lg p-1 flex space-x-1">
+          <div className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 rounded-lg p-1 flex space-x-1 shadow-lg transition-colors duration-300">
             {steps.map((step, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
-                className={`flex-1 py-2 px-4 text-center rounded text-sm font-medium transition ${
+                className={`flex-1 py-2 px-4 text-center rounded text-sm font-medium transition bg-white bg-clip-text text-transparent ${
                   activeIndex === idx
-                    ? "bg-green-500 text-white shadow-md"
-                    : "text-white hover:bg-green-700"
+                    ? "bg-gradient-to-r from-white to-gray-100 text-gray-800 shadow-md"
+                    : "text-white hover:opacity-90"
                 }`}
               >
                 {step.label}
