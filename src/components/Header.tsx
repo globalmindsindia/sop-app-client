@@ -30,81 +30,92 @@ export default function Header({ onGetStarted }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left: Logo + Nav */}
-          <div className="flex items-center space-x-60">
-            <Link to="/" className="flex-shrink-0">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-300 shadow-md transition-colors duration-500">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="flex items-center h-16 justify-between">
+          {/* Logo on extreme left */}
+          <div className="flex-shrink-0">
+            <Link to="/" aria-label="Home" className="inline-flex items-center">
               <img
                 src={companyLogo}
                 alt="Company Logo"
-                className="h-10 w-auto object-contain"
+                className="h-14 w-auto object-contain" // Increased height to 56px (14 * 4)
               />
             </Link>
-            <nav className="hidden md:flex items-center space-x-6">
-              {navItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavClick(item.href)}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition"
-                >
-                  {item.name}
-                </button>
-              ))}
-            </nav>
           </div>
 
-          {/* Right: CTA + Mobile Menu */}
-          <div className="flex items-center space-x-4">
+          {/* Nav menu centered absolutely */}
+          <nav className="hidden md:flex space-x-12 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            {navItems.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => handleNavClick(item.href)}
+                className="relative text-gray-700 text-base font-semibold hover:text-blue-600 transition-colors duration-300 px-3 py-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                {item.name}
+                <span className="block absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-blue-600 transition-all duration-300 rounded group-hover:w-full"></span>
+              </button>
+            ))}
+          </nav>
+
+          {/* "Get Started" button on extreme right */}
+          <div className="flex-shrink-0">
             <Button
               onClick={onGetStarted}
-              className="hidden md:inline-flex rounded-xl shadow-soft hover:shadow-hover transition"
+              className="rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl text-white font-semibold px-6 py-2 transition duration-300"
             >
               Get Started
             </Button>
+          </div>
+
+          {/* Mobile menu button centered */}
+          <div className="md:hidden absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <button
-              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition"
+              aria-label="Toggle menu"
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? (
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6 animate-fade-in" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <Menu className="h-6 w-6 animate-fade-in" />
               )}
             </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden mt-2 py-4 border-t border-border animate-fade-in">
-            <nav className="flex flex-col space-y-3 px-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => {
-                    handleNavClick(item.href);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition text-left"
-                >
-                  {item.name}
-                </button>
-              ))}
-              <Button
+        <div
+          className={`md:hidden origin-top transform transition-all duration-300 ${
+            isMobileMenuOpen
+              ? "opacity-100 scale-100 pointer-events-auto"
+              : "opacity-0 scale-95 pointer-events-none"
+          }`}
+        >
+          <nav className="flex flex-col space-y-3 mt-4 px-4 pb-6 bg-white rounded-lg shadow-lg border border-gray-200">
+            {navItems.map((item) => (
+              <button
+                key={item.name}
                 onClick={() => {
-                  onGetStarted();
+                  handleNavClick(item.href);
                   setIsMobileMenuOpen(false);
                 }}
-                className="rounded-xl mt-4 w-full"
-                size="sm"
+                className="text-base font-medium text-gray-700 hover:text-blue-600 text-left transition-colors duration-300 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
-                Get Started Free
-              </Button>
-            </nav>
-          </div>
-        )}
+                {item.name}
+              </button>
+            ))}
+            <Button
+              onClick={() => {
+                onGetStarted();
+                setIsMobileMenuOpen(false);
+              }}
+              className="rounded-2xl mt-5 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition duration-300"
+            >
+              Get Started Free
+            </Button>
+          </nav>
+        </div>
       </div>
     </header>
   );

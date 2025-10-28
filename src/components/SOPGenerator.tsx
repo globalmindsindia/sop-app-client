@@ -140,6 +140,7 @@ export default function SOPGenerator() {
   );
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     setShowInstructions(true);
@@ -666,49 +667,201 @@ export default function SOPGenerator() {
     <>
       {showInstructions && (
         <AlertDialog open onOpenChange={() => {}}>
-          <AlertDialogContent className="max-w-lg mx-auto">
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Please Read Instructions Carefully
-              </AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2">
-                <ul className="list-disc list-inside text-sm">
-                  <li>Complete each step before moving on to the next.</li>
-                  <li>Ensure all required fields are filled accurately.</li>
-                  <li>Upload a clear, up-to-date resume in PDF format.</li>
-                  <li>
-                    Provide detailed and thoughtful responses to all questions.
-                  </li>
-                  <li>
-                    Avoid one-word or generic answers — the more detail, the
-                    better your SOP.
-                  </li>
-                  <li>
-                    Be honest and authentic while describing your experiences
-                    and goals.
-                  </li>
-                  <li>
-                    Use correct grammar and spelling where possible for best
-                    results.
-                  </li>
-                  <li>
-                    Review your answers carefully before final submission.
-                  </li>
-                </ul>
-                <p className="mt-4 font-semibold text-red-600">
-                  Your Statement of Purpose will be generated entirely based on
-                  your inputs by our SOP Experts. Please provide complete,
-                  accurate, and meaningful responses.
-                </p>
-              </div>
-            </AlertDialogDescription>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={handleCloseInstructions}>
-                Got It
-              </AlertDialogAction>
-            </AlertDialogFooter>
+          <AlertDialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] lg:w-full mx-auto max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <AlertDialogHeader className="text-center pb-6">
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.3 }}
+                  className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-3 sm:mb-4 shadow-lg"
+                >
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                </motion.div>
+                <AlertDialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  📋 Important Guidelines
+                </AlertDialogTitle>
+                <p className="text-sm sm:text-base text-gray-600 mt-2">Please read these instructions carefully to ensure the best SOP quality</p>
+              </AlertDialogHeader>
+
+              <AlertDialogDescription asChild>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                  className="space-y-4"
+                >
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                      <Sparkles className="h-4 w-4 text-yellow-500 mr-2" />
+                      Key Requirements
+                    </h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      {[
+                        "Complete each step before moving on to the next",
+                        "Ensure all required fields are filled accurately",
+                        "Upload a clear, up-to-date resume in PDF format",
+                        "Provide detailed and thoughtful responses to all questions",
+                        "Avoid one-word or generic answers — the more detail, the better",
+                        "Be honest and authentic while describing your experiences",
+                        "Use correct grammar and spelling for best results",
+                        "Review your answers carefully before final submission"
+                      ].map((item, index) => (
+                        <motion.li
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
+                          className="flex items-start"
+                        >
+                          <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                          {item}
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8, duration: 0.4 }}
+                    className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4"
+                  >
+                    <div className="flex items-start">
+                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-red-600 font-bold text-sm">!</span>
+                      </div>
+                      <p className="text-sm font-medium text-red-700">
+                        Your Statement of Purpose will be generated entirely based on your inputs by our SOP Experts. 
+                        Please provide complete, accurate, and meaningful responses.
+                      </p>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </AlertDialogDescription>
+              
+              {/* Consent Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0, duration: 0.4 }}
+                className="mt-6 border-t border-gray-200 pt-6"
+              >
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-700 mb-4 flex items-center">
+                    <Check className="h-4 w-4 text-green-600 mr-2" />
+                    Provide genuine and thoughtful responses that accurately reflect your experiences and aspirations.
+                  </p>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center space-x-3 cursor-pointer"
+                    onClick={() => setAgreed(!agreed)}
+                  >
+                    <div className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
+                      agreed 
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-500' 
+                        : 'border-gray-300 bg-white hover:border-green-400'
+                    }`}>
+                      {agreed && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <Check className="h-3 w-3 text-white" />
+                        </motion.div>
+                      )}
+                    </div>
+                    <label className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                      I agree and confirm that the above information is accurate.
+                    </label>
+                  </motion.div>
+                </div>
+              </motion.div>
+
+              {/* Contact Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.4 }}
+                className="mt-6 border-t border-gray-200 pt-6"
+              >
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                    <MessageCircle className="h-4 w-4 text-blue-600 mr-2" />
+                    Need Help? Contact Us
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                    <motion.a
+                      href="mailto:connect@globalmindsindis.com"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center space-x-2 p-2 sm:p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Mail className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-700 break-all">connect@globalmindsindis.com</p>
+                      </div>
+                    </motion.a>
+                    <motion.a
+                      href="tel:7357446655"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-green-100 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <Phone className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Phone</p>
+                        <p className="text-sm font-medium text-gray-700">7357446655</p>
+                      </div>
+                    </motion.a>
+                  </div>
+                </div>
+              </motion.div>
+
+              <AlertDialogFooter className="mt-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.4, duration: 0.4 }}
+                  className="w-full"
+                >
+                  <AlertDialogAction
+                    onClick={handleCloseInstructions}
+                    disabled={!agreed}
+                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
+                      agreed
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {agreed ? (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center justify-center"
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Let's Get Started!
+                      </motion.span>
+                    ) : (
+                      'Please agree to continue'
+                    )}
+                  </AlertDialogAction>
+                </motion.div>
+              </AlertDialogFooter>
+            </motion.div>
           </AlertDialogContent>
         </AlertDialog>
       )}
