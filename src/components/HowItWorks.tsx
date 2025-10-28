@@ -1,57 +1,78 @@
 import { useEffect, useRef, useState } from "react";
-import { University, Upload, MessageSquare, Sparkles, Download } from "lucide-react";
+import { University, Upload, MessageSquare, Sparkles, CheckCircle, CreditCard, FileText } from "lucide-react";
 
 const steps = [
   {
     num: 1,
     icon: University,
-    title: "Choose University & Program",
-    desc: "Select your target university and program from our comprehensive database of global institutions.",
+    title: "Personal Info",
+    desc: "Provide your basic personal details to get started.",
     color: "#F26AAC",
     border: "border-[#F26AAC]",
     circle: "bg-[#F26AAC]",
-    text: "text-[#F26AAC]"
+    text: "text-[#F26AAC]",
   },
   {
     num: 2,
     icon: Upload,
-    title: "Upload Your Resume",
-    desc: "Share your academic and professional background so we can understand your unique story.",
+    title: "Resume",
+    desc: "Upload your up-to-date resume highlighting your academic and professional achievements.",
     color: "#FFD33F",
     border: "border-[#FFD33F]",
     circle: "bg-[#FFD33F]",
-    text: "text-[#FFD33F]"
+    text: "text-[#FFD33F]",
   },
   {
     num: 3,
     icon: MessageSquare,
-    title: "Answer Key Questions",
-    desc: "Tell us about your motivations, experiences, and career goals through our guided questionnaire.",
+    title: "Questionnaire",
+    desc: "Answer key questions about your motivations, experiences, and aspirations.",
     color: "#51A8EF",
     border: "border-[#51A8EF]",
     circle: "bg-[#51A8EF]",
-    text: "text-[#51A8EF]"
+    text: "text-[#51A8EF]",
   },
   {
     num: 4,
     icon: Sparkles,
-    title: "Our Experts Crafts Your SOP",
-    desc: "Our Experienced counsellors crafts a personalized, compelling SOP tailored to your profile and target program.",
+    title: "Quality Check",
+    desc: "Our experts review and refine your inputs ensuring highest quality.",
     color: "#38CE88",
     border: "border-[#38CE88]",
     circle: "bg-[#38CE88]",
-    text: "text-[#38CE88]"
+    text: "text-[#38CE88]",
   },
   {
     num: 5,
-    icon: Download,
-    title: "Download & Apply",
-    desc: "Review, download, and submit your professionally written SOP with confidence.",
+    icon: CheckCircle,
+    title: "Review",
+    desc: "Review the SOP draft and provide your feedback for finalization.",
     color: "#A369DB",
     border: "border-[#A369DB]",
     circle: "bg-[#A369DB]",
-    text: "text-[#A369DB]"
-  }
+    text: "text-[#A369DB]",
+  },
+  {
+    num: 6,
+    icon: CreditCard,
+    title: "Payment",
+    desc: "Complete your payment securely to proceed with the final SOP preparation.",
+    color: "#FF8C00",
+    border: "border-[#FF8C00]",
+    circle: "bg-[#FF8C00]",
+    text: "text-[#FF8C00]",
+  },
+  {
+  num: 7,
+  icon: FileText,
+  title: "SOP",
+  desc: "Your professionally crafted SOP is drafted and emailed to you to start your application journey.",
+  color: "#38BDF8",
+  border: "border-[#38BDF8]",
+  circle: "bg-[#38BDF8]",
+  text: "text-[#38BDF8]",
+}
+
 ];
 
 function FallbackIcon({ id, className }: { id: number; className?: string }) {
@@ -167,7 +188,7 @@ export default function HowItWorks() {
           Our streamlined process makes creating your perfect <span className="font-semibold text-indigo-600">SOP</span> simple and stress-free.
         </p>
         <p className="text-base mt-2 text-[#5a6072] max-w-md mx-auto">
-          Follow these <span className="text-pink-500 font-semibold">5 easy steps</span> to get started.
+          Follow these <span className="text-pink-500 font-semibold">7 easy steps</span> to get started.
         </p>
       </div>
 
