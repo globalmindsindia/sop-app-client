@@ -46,7 +46,7 @@ const steps = [
 {
   num: 5,
   icon: Sparkles,
-  title: "Automated Quality Check",
+  title: "Quality Check",
   desc: "System automatically checks your responses for accuracy and completeness.",
   color: "#38CE88",
   border: "border-[#38CE88]",
