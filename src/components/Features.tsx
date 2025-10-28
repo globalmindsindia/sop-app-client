@@ -1,111 +1,230 @@
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Sparkles, 
-  Clock, 
-  Target, 
-  Shield, 
-  Users, 
+import { useState, useEffect } from "react";
+import {
+  Sparkles,
+  Clock,
+  Target,
+  Shield,
+  Users,
   Trophy,
   BookOpen,
   CheckCircle,
-  Globe
+  Globe,
 } from "lucide-react";
 
 export default function Features() {
-  const [expandedIndex, setExpandedIndex] = useState(null);
+  const [openIndex, setOpenIndex] = useState<null | number>(null);
 
-  const handleToggle = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
+  // Responsive sizing based on screen size
+  const [responsive, setResponsive] = useState({
+    imgWidth: 100,
+    imgHeight: 150,
+    radius: 60,
+    cardWidth: "w-12",
+    cardWidthPx: 48,
+    marginTop: "-mt-8",
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      const width = window.innerWidth;
+      if (width < 640) {
+        const cardW = 72;
+        const r = Math.max(30, (width - cardW) / 2 - 10);
+        setResponsive({
+          imgWidth: 90,
+          imgHeight: 120,
+          radius: r,
+          cardWidth: "w-20",
+          cardWidthPx: cardW,
+          marginTop: "-mt-2",
+        });
+      } else if (width < 768) {
+        setResponsive({
+          imgWidth: 300,
+          imgHeight: 430,
+          radius: 250,
+          cardWidth: "w-40",
+          cardWidthPx: 160,
+          marginTop: "-mt-32",
+        });
+      } else if (width < 1024) {
+        setResponsive({
+          imgWidth: 400,
+          imgHeight: 580,
+          radius: 320,
+          cardWidth: "w-48",
+          cardWidthPx: 192,
+          marginTop: "-mt-40",
+        });
+      } else {
+        setResponsive({
+          imgWidth: 540,
+          imgHeight: 780,
+          radius: 470,
+          cardWidth: "w-56",
+          cardWidthPx: 224,
+          marginTop: "-mt-40",
+        });
+      }
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const { imgWidth, imgHeight, radius, cardWidth, cardWidthPx, marginTop } = responsive;
 
   const features = [
     {
       icon: Sparkles,
-      title: "Smart Writing Assistance",
-      description: "Our internal team analyzes your background and crafts compelling, personalized statements that reflect your unique story."
+      title: "Smart Writing",
+      description: "Our team crafts compelling, personalized statements reflecting your unique story.",
+      color: "from-indigo-200 to-blue-100",
     },
     {
       icon: Clock,
       title: "Fast Turnaround",
-      description: "Get your complete SOP ready in 1 to 2 working days. No more weeks of writer's block or endless revisions."
+      description: "Get your SOP ready in 1–2 days—no endless waiting.",
+      color: "from-cyan-100 to-blue-50",
     },
     {
       icon: Target,
       title: "University-Specific",
-      description: "Tailored content that aligns with specific program requirements and university expectations."
+      description: "Content tailored for specific programs and university expectations.",
+      color: "from-rose-100 to-pink-50",
     },
     {
       icon: Shield,
       title: "100% Original",
-      description: "Every SOP is uniquely generated from scratch, ensuring complete originality and authenticity."
+      description: "Every SOP is generated from scratch for authenticity.",
+      color: "from-green-100 to-lime-50",
     },
     {
       icon: Users,
       title: "Expert-Reviewed",
-      description: "Our models are built using thousands of successful SOPs reviewed by experienced admission professionals."
+      description: "Reviewed by experienced professionals, based on thousands of successes.",
+      color: "from-yellow-100 to-amber-50",
     },
     {
       icon: Trophy,
       title: "Proven Success",
-      description: "95% of our users report improved application outcomes and higher acceptance rates."
+      description: "95% of users report improved outcomes and acceptance rates.",
+      color: "from-orange-100 to-yellow-50",
     },
     {
       icon: BookOpen,
       title: "Multiple Formats",
-      description: "Generate SOPs for various programs: MS, PhD, MBA, undergraduate applications, and more."
+      description: "Create SOPs for MS, PhD, MBA, and more.",
+      color: "from-sky-100 to-purple-50",
     },
     {
       icon: CheckCircle,
       title: "Grammar Perfect",
-      description: "Built-in grammar and style checking ensures your SOP is polished and professional."
+      description: "Built-in grammar and style checks ensure polish.",
+      color: "from-emerald-100 to-lime-50",
     },
     {
       icon: Globe,
-      title: "Global Universities",
-      description: "Supports applications to universities worldwide with region-specific formatting and requirements."
-    }
+      title: "Global Reach",
+      description: "Supports applications worldwide with region-specific formatting.",
+      color: "from-fuchsia-100 to-indigo-50",
+    },
   ];
 
   return (
-    <section id="features" className="py-20 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+    <section
+      className="pt-6 md:pt-8 pb-1 md:pb-0 bg-gradient-to-br from-blue-100 via-white to-blue-50 relative"
+      // style={{
+      //   backgroundImage: 'url(/src/assets/SOP_Background.jpg)',
+      //   backgroundSize: 'cover',
+      //   backgroundPosition: 'center',
+      //   backgroundRepeat: 'no-repeat',
+      // }}
+    >
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-6 md:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-900 mb-2 md:mb-2">
             Why Choose SOP Generator?
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            We combine cutting-edge technology with a deep understanding of admission processes to help you create statements that stand out.
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-600/80 max-w-3xl mx-auto font-medium px-4">
+            We combine cutting-edge technology with deep admission process expertise to help your application stand out.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <Card 
-              key={index} 
-              onClick={() => handleToggle(index)}
-              className="border-0 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1 bg-gradient-card cursor-pointer"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-pastel-blue rounded-lg p-3 flex-shrink-0">
-                    <feature.icon className="h-6 w-6 text-primary" />
+        <div
+          className={`relative flex justify-center items-center ${marginTop} md:mt-0 overflow-visible`}
+          style={{
+            minHeight: `${Math.max(imgHeight + radius * 2 - (imgWidth > 200 ? 500 : 0), 220)}px`,
+          }}
+        >
+          <img
+            src="/src/assets/why_choose_us.png"
+            alt="Expert"
+            className="absolute left-1/2 top-1/2 z-10 max-w-full max-h-full"
+            style={{
+              width: `${imgWidth}px`,
+              height: `${imgHeight}px`,
+              transform: "translate(-50%, -50%)",
+              objectFit: "contain",
+              objectPosition: "center",
+            }}
+          />
+          <div
+            className="absolute inset-0 animate-spin"
+            style={{
+              animationDuration: "20s",
+            }}
+          >
+            {features.map((feature, idx) => {
+              const angle = ((2 * Math.PI) / features.length) * idx - Math.PI / 2;
+              const x = Math.cos(angle) * radius;
+              const y = Math.sin(angle) * radius;
+              const isOpen = openIndex === idx;
+              return (
+                <button
+                  key={feature.title}
+                  type="button"
+                  onClick={() => setOpenIndex(isOpen ? null : idx)}
+                  className={
+                    `absolute flex flex-col items-center p-0 border-0 transition-all ${cardWidth} group focus:outline-none` +
+                    (isOpen ? " z-30" : " z-20")
+                  }
+                  style={{
+                    left: `calc(50% + ${x}px)`,
+                    top: `calc(50% + ${y}px)`,
+                    transform: "translate(-50%, -50%)",
+                    cursor: "pointer",
+                    background: "none",
+                    width: `${cardWidthPx}px`,
+                  }}
+                  tabIndex={0}
+                >
+                  <div
+                    className={
+                      // hover:scale-105 was removed below!
+                      `w-full rounded-lg md:rounded-2xl shadow-xl px-1 md:px-4 py-2 md:py-5 select-none bg-gradient-to-br ${feature.color} border border-blue-100 duration-200 animate-spin`
+                    }
+                    style={{
+                      animationDuration: "20s",
+                      animationDirection: "reverse",
+                    }}
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="rounded-full bg-white mb-1 md:mb-2 p-0.5 md:p-2 shadow">
+                        <feature.icon className="h-3 w-3 md:h-8 md:w-8 text-blue-700" />
+                      </div>
+                      <div className="text-xs md:text-base font-bold text-blue-900 text-center leading-tight md:leading-normal">{feature.title}</div>
+                      {isOpen && (
+                        <div className="text-xs mt-1 md:mt-2 text-blue-800 font-medium text-center transition-all">
+                          {feature.description}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2 text-foreground">
-                      {feature.title}
-                    </h3>
-                    {expandedIndex === index && (
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {feature.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

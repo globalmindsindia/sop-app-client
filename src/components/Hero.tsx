@@ -34,7 +34,7 @@ export default function Hero({ onGetStarted }: HeroProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <section className="bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900 py-20 px-4 overflow-hidden">
+    <section className="bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900 py-28 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         {/* Left: Intro & CTA */}
         <div className="space-y-8 md:ml-8 lg:ml-12">
