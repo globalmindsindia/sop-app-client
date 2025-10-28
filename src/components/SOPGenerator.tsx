@@ -779,7 +779,7 @@ export default function SOPGenerator() {
                       )}
                     </div>
                     <label className="text-sm font-medium text-gray-700 cursor-pointer select-none">
-                      I agree and confirm that the above information is accurate.
+                      I agree and confirm.
                     </label>
                   </motion.div>
                 </div>
