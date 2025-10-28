@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { University, Upload, MessageSquare, Sparkles, CheckCircle, CreditCard, FileText } from "lucide-react";
+import airplaneImg from "../assets/airplane.png";
 
 const steps = [
   {
@@ -33,25 +34,27 @@ const steps = [
     text: "text-[#51A8EF]",
   },
   {
-    num: 4,
-    icon: Sparkles,
-    title: "Quality Check",
-    desc: "Our experts review and refine your inputs ensuring highest quality.",
-    color: "#38CE88",
-    border: "border-[#38CE88]",
-    circle: "bg-[#38CE88]",
-    text: "text-[#38CE88]",
-  },
-  {
-    num: 5,
-    icon: CheckCircle,
-    title: "Review",
-    desc: "Review the SOP draft and provide your feedback for finalization.",
-    color: "#A369DB",
-    border: "border-[#A369DB]",
-    circle: "bg-[#A369DB]",
-    text: "text-[#A369DB]",
-  },
+  num: 4,
+  icon: CheckCircle,
+  title: "Answer Review",
+  desc: "Review your responses to ensure all questions are answered accurately before submission.",
+  color: "#A369DB",
+  border: "border-[#A369DB]",
+  circle: "bg-[#A369DB]",
+  text: "text-[#A369DB]",
+},
+{
+  num: 5,
+  icon: Sparkles,
+  title: "Automated Quality Check",
+  desc: "System automatically checks your responses for accuracy and completeness.",
+  color: "#38CE88",
+  border: "border-[#38CE88]",
+  circle: "bg-[#38CE88]",
+  text: "text-[#38CE88]",
+},
+
+  
   {
     num: 6,
     icon: CreditCard,
@@ -66,7 +69,7 @@ const steps = [
   num: 7,
   icon: FileText,
   title: "SOP",
-  desc: "Your professionally crafted SOP is drafted and emailed to you to start your application journey.",
+  desc: "Your professionally crafted SOP is drafted and emailed to you to start your study abroad journey.",
   color: "#38BDF8",
   border: "border-[#38BDF8]",
   circle: "bg-[#38BDF8]",
@@ -199,7 +202,7 @@ export default function HowItWorks() {
         {/* Airplane on mobile: rotate 90deg, exactly centered on number timeline */}
         {showPlane && numberTopsMobile.length === steps.length &&
           <img
-            src="src/assets/airplane.png"
+            src={airplaneImg}
             alt="Airplane"
             className="absolute z-30 transition-all duration-700"
             style={{
@@ -246,10 +249,10 @@ export default function HowItWorks() {
       </div>
 
       {/* --- Desktop Timeline + Airplane --- */}
-      <div className="hidden md:block w-full relative z-10" style={{ height: sectionHeight }}>
+      <div className="hidden md:block w-full relative z-10 px-8" style={{ height: sectionHeight }}>
         {/* Timeline */}
         <div
-          className="absolute left-0 right-0 mx-auto w-[97%] h-1 bg-gradient-to-r from-[#f26aac] to-[#a369db] z-10"
+          className="absolute left-8 right-8 mx-auto h-1 bg-gradient-to-r from-[#f26aac] to-[#a369db] z-10"
           style={{
             top: timelineY,
             height: "4px",
@@ -258,12 +261,12 @@ export default function HowItWorks() {
         />
         {showPlane && numberCenters.length === steps.length &&
           <img
-            src="src/assets/airplane.png"
+            src={airplaneImg}
             alt="Airplane"
             className="absolute z-30 transition-all duration-700"
             style={{
-              top: timelineY - airplaneH / 2 + numSize / 2 - 20,
-              left: numberCenters[planeStep] - airplaneW / 2,
+              top: timelineY - airplaneH / 2 + 2,
+              left: numberCenters[planeStep] + 32 - airplaneW / 2,
               width: airplaneW,
               height: airplaneH,
               pointerEvents: "none"
@@ -272,7 +275,7 @@ export default function HowItWorks() {
         }
         <div
           ref={stepsWrapperRef}
-          className="flex flex-row justify-between items-stretch w-full"
+          className="flex flex-row justify-between items-stretch w-full px-8"
           style={{ height: sectionHeight }}
         >
           {steps.map((step, idx) => {
@@ -289,8 +292,8 @@ export default function HowItWorks() {
             return (
               <div
                 key={step.num}
-                className="flex flex-col items-center w-1/5 relative"
-                style={{ height: sectionHeight }}
+                className="flex flex-col items-center relative"
+                style={{ height: sectionHeight, width: `${100/steps.length}%` }}
               >
                 {/* Dotted line */}
                 <div

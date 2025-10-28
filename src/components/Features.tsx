@@ -10,6 +10,8 @@ import {
   CheckCircle,
   Globe,
 } from "lucide-react";
+import whyChooseUsImg from "../assets/Why_choose_us.png";
+import sopBackgroundImg from "../assets/SOP_Background.jpg";
 
 export default function Features() {
   const [openIndex, setOpenIndex] = useState<null | number>(null);
@@ -158,7 +160,7 @@ export default function Features() {
           }}
         >
           <img
-            src="/src/assets/why_choose_us.png"
+            src={whyChooseUsImg}
             alt="Expert"
             className="absolute left-1/2 top-1/2 z-10 max-w-full max-h-full"
             style={{
