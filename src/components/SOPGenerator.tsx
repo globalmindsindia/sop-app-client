@@ -51,6 +51,7 @@ import CreatableCombobox from "./CreatableCombobox";
 import { paymentService } from "@/services/paymentService";
 import { loadRazorpayScript } from "@/utils/razorpay";
 import { leadService } from "@/services/leadService";
+import { courseData } from "@/data/courseData";
 
 interface RazorpayOptions {
   key: string;
@@ -115,7 +116,8 @@ export default function SOPGenerator() {
     specific_requirements: "",
   });
   const [generatedSOP, setGeneratedSOP] = useState("");
-  const [reviewCompleted, setIsReviewCompleted] = useState(false);
+  const [reviewCompleted, setReviewCompleted] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -184,8 +186,11 @@ export default function SOPGenerator() {
         ...answersFromQuestionnaire,
         "Preffered length": formData.preffered_length || "450", // exact key as requested
         "specific requirements":
-          formData.specific_requirements || "Do whatever you want", // exact key as requested
+          formData.specific_requirements || "Not Specified", // exact key as requested
       };
+
+      setFormData((prev) => ({ ...prev, answers: fullAnswers }));
+      setAnswers(fullAnswers);
 
       const payload = {
         name: formData.name || "",
@@ -262,7 +267,7 @@ export default function SOPGenerator() {
       university: "",
       course: "",
       resume: null,
-      experience: "",
+      // experience: "",
       preffered_length: "",
       specific_requirements: "",
     });
@@ -275,93 +280,7 @@ export default function SOPGenerator() {
     window.location.href = "/";
   };
 
-  const universityData = {
-    Germany: {
-      universities: [
-        "Carl Benz School",
-        "Charité - Universitätsmedizin Berlin",
-        "Constructor University",
-        "ESMT Berlin",
-        "FAU WiSo Nuremberg",
-        "Freie Universität Berlin",
-        "Furtwangen University",
-        "Goethe University Frankfurt",
-        "Heidelberg University",
-        "Hochschule Bielefeld",
-        "Humboldt-Universität zu Berlin",
-        "Justus Liebig University Giessen",
-        "Karlsruhe Institute of Technology (KIT)",
-        "LMU Munich",
-        "Leibniz Universität Hannover",
-        "Leuphana University Lüneburg",
-        "Munich University of Applied Sciences",
-        "OTH Regensburg",
-        "RWTH Business School",
-        "Ruhr-Universität Bochum",
-        "TU Dortmund University",
-        "Technical University of Munich (TUM)",
-        "Technische Universität Berlin",
-        "Technische Universität Dresden",
-        "University of Cologne",
-        "University of Freiburg",
-        "University of Göttingen",
-        "University of Hohenheim",
-        "University of Kassel",
-        "University of Konstanz",
-        "University of Mannheim",
-        "University of Münster",
-        "University of Passau",
-        "University of Potsdam",
-        "University of Stuttgart",
-        "University of Tübingen",
-        "Universität Hamburg",
-        "Universität Regensburg",
-        "Bard College Berlin",
-        "Berlin School of Business and Innovation",
-        "Bucerius Law School (not initially listed—add here as known reputable private law school)",
-        "CBS International Business School (Cologne)",
-        "CODE University of Applied Sciences",
-        "Charité – Universitätsmedizin Berlin",
-        "Cologne Business School",
-        "EBS Universität für Wirtschaft und Recht",
-        "FOM Hochschule für Oekonomie und Management",
-        "Fachhochschule Wedel",
-        "Frankfurt School of Finance & Management",
-        "Fresenius University of Applied Sciences",
-        "GISMA Business School",
-        "HHL Leipzig Graduate School of Management",
-        "Hamburger Fern-Hochschule (from broader lists)",
-        "Hertie School of Governance",
-        "Hochschule Fresenius (Idstein & various campuses)",
-        "IST-Hochschule für Management (Düsseldorf)",
-        "IU International University of Applied Sciences",
-        "IU Internationale Hochschule (Erfurt)",
-        "International School of Management (ISM) (from standyou list)",
-        "Jacobs University Bremen (now Constructor University)",
-        "Katholische Universität Eichstätt-Ingolstadt",
-        "Kühne Logistics University (KLU)",
-        "Munich Business School",
-        "Quadriga University of Applied Sciences Berlin (from broader lists)",
-        "SRH Hochschulen (Heidelberg)",
-        "Steinbeis-Hochschule Berlin",
-        "University of Applied Sciences Europe (Iserlohn)",
-        "University of Europe for Applied Sciences",
-        "Universität Witten/Herdecke",
-        "WHU – Otto Beisheim School of Management",
-        "Wilhelm Büchner University of Applied Sciences",
-        "Zeppelin University",
-      ],
-      courses: [
-        "Mechanical Engineering",
-        "Automotive Engineering",
-        "Computer Science",
-        "Physics",
-        "Economics",
-        "Medicine",
-        "Philosophy",
-      ],
-    },
-  } as const;
+  const universityData = courseData;
 
   const handleNext = () => {
     const currentIndex = steps.indexOf(currentStep);
@@ -402,7 +321,7 @@ export default function SOPGenerator() {
       if (res?.message === "Final SOP generated successfully") {
         setGeneratedSOP(res.sop_path);
         setQualityCheckCompleted(true); // ✅ Mark quality check as completed
-        setCurrentStep("payment");
+        setCurrentStep("review");
       } else {
         console.error("Failed to generate final SOP:", res);
       }
@@ -505,27 +424,12 @@ export default function SOPGenerator() {
           <p>Quality Score: {qualityScore ?? "Not available"}</p>
         </section>
 
-        <section className="mb-4 border rounded p-3">
-          <h3 className="flex justify-between items-center">
-            Payment Details
-            <button
-              className="text-blue-600 underline"
-              onClick={() => onEdit("payment")}
-            >
-              Edit
-            </button>
-          </h3>
-          <p>Package: {selectedPackage}</p>
-          {/* You can show transaction id or amount if stored */}
-          {/* <p>Transaction ID: {paymentDetails.transactionId}</p> */}
-        </section>
-
         <div className="flex justify-end gap-4 mt-6">
           <button
             className="rounded bg-blue-600 text-white px-6 py-2 hover:bg-blue-700"
             onClick={onConfirm}
           >
-            Confirm & Submit Application
+            Confirm & Proceed Application
           </button>
         </div>
       </div>
@@ -734,6 +638,8 @@ export default function SOPGenerator() {
         return sopId !== null; // If sopId exists, questionnaire is complete
       case "quality_check":
         return qualityCheckCompleted; // Use the new state variable
+      case "review":
+        return reviewCompleted;
       case "payment":
         return paymentCompleted;
       case "result":
@@ -751,7 +657,7 @@ export default function SOPGenerator() {
     { key: "resume", label: "Resume", index: 2 },
     { key: "questions", label: "Questionnaire", index: 3 },
     { key: "quality_check", label: "Quality Check", index: 4 },
-    { key: "quality_check", label: "Review", index: 5 },
+    { key: "review", label: "Review", index: 5 }, // <- fix
     { key: "payment", label: "Payment", index: 6 },
     { key: "result", label: "SOP", index: 7 },
   ];
@@ -1187,6 +1093,17 @@ export default function SOPGenerator() {
                     </Button>
                   </div>
                 </div>
+              )}
+
+              {currentStep === "review" && (
+                <ReviewApplication
+                  formData={formData}
+                  onEdit={(step) => {
+                    setCurrentStep(step);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onConfirm={() => setCurrentStep("payment")}
+                />
               )}
 
               {currentStep === "payment" && (

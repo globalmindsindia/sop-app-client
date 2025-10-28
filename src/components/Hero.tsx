@@ -13,20 +13,26 @@ const steps = [
   },
   {
     label: "2. Resume Upload",
-    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+    video: "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
   },
   {
     label: "3. Questionnaires",
-    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+    video:
+      "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
   },
   {
     label: "4. Quality Check",
-    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+    video: "https://filesamples.com/samples/video/mp4/sample_640x360.mp4",
   },
-  { label: "5. Payment", video: "https://www.w3schools.com/html/mov_bbb.mp4" },
+  {
+    label: "5. Payment",
+    video:
+      "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
+  },
   {
     label: "6. Thank You",
-    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+    video:
+      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   },
 ];
 
