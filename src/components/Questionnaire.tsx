@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,6 +90,10 @@ export default function Questionnaire({
   onComplete,
 }: Props) {
   const [subStep, setSubStep] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [subStep]);
 
   const group = QUESTION_GROUPS[subStep];
   const total = QUESTION_GROUPS.length;

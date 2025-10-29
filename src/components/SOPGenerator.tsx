@@ -151,6 +151,10 @@ export default function SOPGenerator() {
     setShowInstructions(true);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
+
   const handleCloseInstructions = () => {
     setShowInstructions(false);
     // sessionStorage.setItem("instructionsShown", "true");
@@ -623,12 +627,12 @@ export default function SOPGenerator() {
                       transition={{ delay: 0.4 + itemIndex * 0.05 }}
                       className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/50"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center">
-                        <span className="text-sm font-medium text-gray-600 mb-1 sm:mb-0 sm:w-1/3">
-                          {item.label}:
+                      <div className="flex flex-col space-y-2">
+                        <span className="text-sm font-medium text-gray-600">
+                          Q: {item.label}
                         </span>
-                        <span className="text-sm text-gray-800 sm:w-2/3 break-words">
-                          {item.value || "Not provided"}
+                        <span className="text-sm text-gray-800 break-words pl-2 border-l-2 border-gray-200">
+                          Ans: {item.value || "Not provided"}
                         </span>
                       </div>
                     </motion.div>
@@ -1391,30 +1395,38 @@ export default function SOPGenerator() {
                           </motion.div>
                         </motion.div>
 
-                        {/* Step Connector - Positioned between icons */}
+                        {/* Step Connector - From right edge of current step to left edge of next step */}
                         {index < progressSteps.length - 1 && (
-                          <motion.div
-                            className="absolute top-3 sm:top-4 md:top-5 left-full w-full flex items-center justify-start z-0 -ml-3 sm:-ml-4 md:-ml-5"
-                            initial={{ scaleX: 0 }}
-                            animate={{ scaleX: 1 }}
-                            transition={{
-                              delay: index * 0.1 + 0.3,
-                              duration: 0.4,
+                          <div 
+                            className="absolute top-3 sm:top-4 md:top-5 flex items-center z-0 pointer-events-none"
+                            style={{
+                              left: 'calc(50% + 25px)', // Start exactly at the right edge of current step rectangle
+                              width: 'calc(100% - 50px)', // Span to the left edge of next step rectangle
                             }}
                           >
-                            <div className="w-6 sm:w-8 md:w-10 h-0.5 sm:h-1 bg-gray-200 rounded-full" />
                             <motion.div
-                              className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
-                                isCompleted
-                                  ? "bg-gradient-to-r from-green-500 to-emerald-600 w-full"
-                                  : "bg-gray-200 w-0"
-                              }`}
-                              animate={{
-                                width: isCompleted ? "100%" : "0%",
+                              className="w-full flex items-center"
+                              initial={{ scaleX: 0 }}
+                              animate={{ scaleX: 1 }}
+                              transition={{
+                                delay: index * 0.1 + 0.3,
+                                duration: 0.4,
                               }}
-                              transition={{ duration: 0.6, delay: 0.2 }}
-                            />
-                          </motion.div>
+                            >
+                              <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full" />
+                              <motion.div
+                                className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
+                                  isCompleted
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-600 w-full"
+                                    : "bg-gray-200 w-0"
+                                }`}
+                                animate={{
+                                  width: isCompleted ? "100%" : "0%",
+                                }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                              />
+                            </motion.div>
+                          </div>
                         )}
                       </div>
                     );
@@ -2001,7 +2013,6 @@ export default function SOPGenerator() {
                   formData={formData}
                   onEdit={(step) => {
                     setCurrentStep(step);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   onConfirm={handleReviewConfirm} // ✅ Pass the new function here
                 />
@@ -2337,62 +2348,77 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "result" && (
-                <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
-                  <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl border shadow-lg">
-                    <CardHeader className="text-center">
-                      <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground mt-2">
-                        We’ve received your request{" "}
-                      </p>
-                    </CardHeader>
-                    <CardContent className="space-y-3 sm:space-y-4 text-center">
-                      <p className="text-sm sm:text-base text-muted-foreground">
-                        SOP is Being Tailored by Our Experts! customizing it to
-                        match your profile and requirements.
-                      </p>
-                      <p className="text-sm sm:text-base text-muted-foreground">
-                        You will receive your professionally written SOP via
-                        email within <strong>1–2 working days</strong>.
-                      </p>
+  <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
+    <Card className="relative bg-gradient-to-br from-blue-50 via-white to-gray-100 dark:from-blue-950 dark:via-gray-900 dark:to-gray-950 rounded-2xl border border-blue-100 dark:border-gray-800 shadow-2xl overflow-hidden">
+      {/* Floating animated bubble background */}
+      <div className="absolute -top-8 -right-8 w-32 h-32 bg-blue-200/[0.20] blur-2xl rounded-full animate-pulse pointer-events-none z-0" />
+      <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-pink-200/[0.10] blur-xl rounded-full animate-blob pointer-events-none z-0" />
+      {/* Animated checkmark circle */}
+      <div className="flex justify-center mt-8 z-10 relative">
+        <div className="flex items-center justify-center bg-gradient-to-br from-blue-400 via-green-300 to-green-500 w-20 h-20 rounded-full shadow-lg animate-bounce-slow">
+          <svg className="w-12 h-12 text-white drop-shadow-lg" fill="none" stroke="currentColor" strokeWidth={4} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+      </div>
+      <CardHeader className="text-center z-10 relative">
+        <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-900 dark:text-blue-100 mt-6">
+          We’ve received your request
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4 sm:space-y-6 text-center z-10 relative">
+        <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300">
+          SOP is Being Tailored by Our Experts! Customizing it to match your profile and requirements.
+        </p>
+        <p className="text-base sm:text-lg text-blue-700 dark:text-blue-200">
+          You will receive your professionally written SOP via email within <span className="font-bold text-green-600 dark:text-green-400 animate-pulse">1–2 working days</span>.
+        </p>
+        <div className="flex flex-col items-center gap-4 sm:gap-6 mt-6">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+            For any queries, feel free to contact us:
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 hover:bg-blue-100 dark:hover:bg-blue-950 transition-all w-full sm:w-auto py-2 font-medium border-blue-300 shadow hover:scale-105"
+              asChild
+            >
+              <a href="mailto:connect@globalmindsindia@gmail.com">
+                <Mail className="w-5 h-5" />
+                Email Us @ connect@globalmindsindia@gmail.com
+              </a>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-950 transition-all w-full sm:w-auto py-2 font-medium border-green-300 shadow hover:scale-105"
+              asChild
+            >
+              <a href="tel:+917353446655">
+                <Phone className="w-5 h-5" />
+                +91 7353446655
+              </a>
+            </Button>
+          </div>
+          <Button
+            variant="default"
+            className="mt-4 sm:mt-6 w-full sm:w-auto px-8 bg-gradient-to-r from-blue-600 to-green-500 text-white font-bold shadow-xl hover:scale-105 transition-transform"
+            onClick={() => (window.location.href = "/")}
+          >
+            Home
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+    {/* Custom keyframes for slow bounce and blob animation, can be added in your global CSS or Tailwind config */}
+    <style>{`
+      @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+      .animate-bounce-slow { animation: bounce-slow 2.5s infinite; }
+      @keyframes blob { 0%,100% { transform: scale(1) translate(0,0);} 33% { transform: scale(1.1) translate(-8px, 8px);} 66% { transform: scale(0.9) translate(8px, -4px);} }
+      .animate-blob { animation: blob 6s infinite; }
+    `}</style>
+  </div>
+)}
 
-                      <div className="flex flex-col items-center gap-3 sm:gap-4 mt-4 sm:mt-6">
-                        <p className="text-sm sm:text-base text-muted-foreground">
-                          For any queries, feel free to contact us:
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-                          <Button
-                            variant="outline"
-                            className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors w-full sm:w-auto justify-center"
-                            asChild
-                          >
-                            <a href="mailto:connect@globalmindsindia@gmail.com">
-                              <Mail className="w-4 h-4" />
-                              Email Us @ connect@globalmindsindia@gmail.com
-                            </a>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors w-full sm:w-auto justify-center"
-                            asChild
-                          >
-                            <a href="tel:+917353446655">
-                              <Phone className="w-4 h-4" />
-                              +91 7353446655
-                            </a>
-                          </Button>
-                        </div>
-
-                        <Button
-                          variant="default"
-                          className="mt-4 sm:mt-6 w-full sm:w-auto"
-                          onClick={() => (window.location.href = "/")}
-                        >
-                          Home
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
 
               {/* ✅ Fixed: Updated Navigation Buttons Logic - Hide during questionnaire */}
               {currentStep !== "result" &&
