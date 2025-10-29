@@ -52,6 +52,7 @@ import { paymentService } from "@/services/paymentService";
 import { loadRazorpayScript } from "@/utils/razorpay";
 import { leadService } from "@/services/leadService";
 import { courseData } from "@/data/courseData";
+import SOPBackgroundImage from "@/assets/SOP_Background.jpg";
 
 interface RazorpayOptions {
   key: string;
@@ -141,6 +142,10 @@ export default function SOPGenerator() {
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     setShowInstructions(true);
@@ -152,29 +157,40 @@ export default function SOPGenerator() {
   };
 
   // Package configurations
+  const originalPrice = 1299;
+  const discountedPrice = couponApplied ? Math.round(originalPrice * 0.9) : originalPrice;
+  
   const packages = {
     expert: {
       name: "SOP Expert",
-      price: 1299,
-      displayPrice: "₹1,299",
-      originalPrice: 2599,
-      discount: "50%",
+      price: discountedPrice,
+      displayPrice: `₹${discountedPrice.toLocaleString()}`,
+      originalPrice: originalPrice,
       features: [
         "We provide a tailored SOP customized to your profile and goals",
         "Our SOP expert crafts the draft based on the inputs you provide",
         "Receive a professionally written SOP that reflects your unique story",
       ],
     },
-    // quick: {
-    //   name: "SOP Quick",
-    //   price: 199,
-    //   displayPrice: "₹199",
-    //   features: [
-    //     "Access to a bundle of winning SOPs",
-    //     "Create personalised SOP draft",
-    //     "Bring your SOP for expert review feedback",
-    //   ],
-    // },
+  };
+
+  const handleCouponApply = () => {
+    setCouponError("");
+    if (couponCode.toUpperCase() === "GMI10") {
+      setCouponApplied(true);
+      toast({
+        title: "Coupon Applied! 🎉",
+        description: "10% discount has been applied to your order.",
+      });
+    } else {
+      setCouponError("Invalid coupon code");
+    }
+  };
+
+  const handleCouponRemove = () => {
+    setCouponApplied(false);
+    setCouponCode("");
+    setCouponError("");
   };
 
   async function handleQuestionnaireComplete(
@@ -300,11 +316,68 @@ export default function SOPGenerator() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({ ...formData, resume: file });
+      processFile(file);
+    }
+  };
+
+  const processFile = (file: File) => {
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
       toast({
-        title: "Resume uploaded! 📄",
-        description: "Your resume has been successfully uploaded.",
+        title: "Invalid file type",
+        description: "Please upload a PDF, DOC, or DOCX file.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFormData({ ...formData, resume: file });
+    toast({
+      title: "Resume uploaded! 📄",
+      description: "Your resume has been successfully uploaded.",
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if we're leaving the drop zone entirely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processFile(files[0]);
     }
   };
 
@@ -342,98 +415,190 @@ export default function SOPGenerator() {
     onEdit: (step: Step) => void;
     onConfirm: () => void;
   }) {
+    const reviewSections = [
+      {
+        title: "Personal & Contact Details",
+        icon: FileText,
+        color: "from-blue-500 to-indigo-600",
+        bgColor: "from-blue-50 to-indigo-50",
+        borderColor: "border-blue-200",
+        editStep: "university" as Step,
+        content: [
+          { label: "Full Name", value: formData.name },
+          { label: "Email", value: formData.email },
+          { label: "Phone", value: formData.phone },
+          { label: "Country", value: formData.country },
+          { label: "University", value: formData.university },
+          { label: "Course", value: formData.course },
+        ]
+      },
+      {
+        title: "Resume",
+        icon: Upload,
+        color: "from-green-500 to-emerald-600",
+        bgColor: "from-green-50 to-emerald-50",
+        borderColor: "border-green-200",
+        editStep: "resume" as Step,
+        content: [
+          { label: "File", value: formData.resume ? formData.resume.name : "No resume uploaded" }
+        ]
+      },
+      {
+        title: "Questionnaire Responses",
+        icon: MessageCircle,
+        color: "from-purple-500 to-pink-600",
+        bgColor: "from-purple-50 to-pink-50",
+        borderColor: "border-purple-200",
+        editStep: "questions" as Step,
+        content: formData.answers ? Object.entries(formData.answers).map(([key, value]) => ({
+          label: key,
+          value: typeof value === 'string' ? (value.length > 100 ? value.substring(0, 100) + '...' : value) : 'Not provided'
+        })) : [{ label: "Responses", value: "No responses available" }]
+      },
+      {
+        title: "Quality Assessment",
+        icon: Sparkles,
+        color: "from-orange-500 to-red-600",
+        bgColor: "from-orange-50 to-red-50",
+        borderColor: "border-orange-200",
+        editStep: "quality_check" as Step,
+        content: [
+          { label: "Quality Score", value: qualityScore ? `${qualityScore}/100` : "Assessment completed" }
+        ]
+      }
+    ];
+
     return (
-      <div className="review-application p-4 max-w-3xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-6">Review Your Application</h2>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-5xl mx-auto space-y-8"
+      >
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="text-center mb-8"
+        >
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <Check className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">Review Your Application</h2>
+          <p className="text-gray-600">Please review all information before proceeding to payment</p>
+        </motion.div>
 
-        <section className="mb-4 border rounded p-3">
-          <h3 className="flex justify-between items-center">
-            Personal & Contact Details
-            <button
-              className="text-blue-600 underline"
-              onClick={() => onEdit("university")}
-            >
-              Edit
-            </button>
-          </h3>
-          <p>
-            <strong>Full Name:</strong> {formData.name}
-          </p>
-          <p>
-            <strong>Email:</strong> {formData.email}
-          </p>
-          <p>
-            <strong>Phone:</strong> {formData.phone}
-          </p>
-          <p>
-            <strong>Country:</strong> {formData.country}
-          </p>
-          <p>
-            <strong>University:</strong> {formData.university}
-          </p>
-          <p>
-            <strong>Course:</strong> {formData.course}
-          </p>
-        </section>
+        {/* Review Sections */}
+        <div className="space-y-6">
+          {reviewSections.map((section, index) => {
+            const IconComponent = section.icon;
+            return (
+              <motion.div
+                key={section.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                className={`bg-gradient-to-br ${section.bgColor} rounded-2xl p-6 border ${section.borderColor} shadow-sm hover:shadow-md transition-all duration-200`}
+              >
+                {/* Section Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className={`w-10 h-10 bg-gradient-to-r ${section.color} rounded-full flex items-center justify-center mr-3 shadow-md`}>
+                      <IconComponent className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800">{section.title}</h3>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(section.editStep)}
+                    className="rounded-xl border-2 hover:scale-105 transition-all duration-200"
+                  >
+                    <FileText className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                </div>
 
-        <section className="mb-4 border rounded p-3">
-          <h3 className="flex justify-between items-center">
-            Resume
-            <button
-              className="text-blue-600 underline"
-              onClick={() => onEdit("resume")}
-            >
-              Edit
-            </button>
-          </h3>
-          <p>{formData.resume ? formData.resume.name : "No resume uploaded"}</p>
-        </section>
-
-        <section className="mb-4 border rounded p-3">
-          <h3 className="flex justify-between items-center">
-            Questionnaire Answers
-            <button
-              className="text-blue-600 underline"
-              onClick={() => onEdit("questions")}
-            >
-              Edit
-            </button>
-          </h3>
-          {/* Render summary of your questionnaire answers here */}
-          <pre className="whitespace-pre-wrap">
-            {
-              JSON.stringify(
-                formData.answers,
-                null,
-                2
-              ) /* Assuming answers stored here */
-            }
-          </pre>
-        </section>
-
-        <section className="mb-4 border rounded p-3">
-          <h3 className="flex justify-between items-center">
-            Quality Check
-            <button
-              className="text-blue-600 underline"
-              onClick={() => onEdit("quality_check")}
-            >
-              Edit
-            </button>
-          </h3>
-          {/* Show quality check score or improvement answers summary */}
-          <p>Quality Score: {qualityScore ?? "Not available"}</p>
-        </section>
-
-        <div className="flex justify-end gap-4 mt-6">
-          <button
-            className="rounded bg-blue-600 text-white px-6 py-2 hover:bg-blue-700"
-            onClick={onConfirm}
-          >
-            Confirm & Proceed Application
-          </button>
+                {/* Section Content */}
+                <div className="space-y-3">
+                  {section.content.map((item, itemIndex) => (
+                    <motion.div
+                      key={itemIndex}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 + itemIndex * 0.05 }}
+                      className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/50"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center">
+                        <span className="text-sm font-medium text-gray-600 mb-1 sm:mb-0 sm:w-1/3">
+                          {item.label}:
+                        </span>
+                        <span className="text-sm text-gray-800 sm:w-2/3 break-words">
+                          {item.value || "Not provided"}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
-      </div>
+
+        {/* Summary Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200"
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3">
+              <Check className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">Application Summary</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {[
+              { label: "Personal Info", completed: !!(formData.name && formData.email && formData.phone) },
+              { label: "Resume", completed: !!formData.resume },
+              { label: "Questionnaire", completed: !!formData.answers },
+              { label: "Quality Check", completed: !!qualityScore }
+            ].map((item, index) => (
+              <div key={index} className="bg-white/70 rounded-xl p-3">
+                <div className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                  item.completed ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {item.completed ? (
+                    <Check className="h-4 w-4 text-white" />
+                  ) : (
+                    <span className="text-white text-sm">!</span>
+                  )}
+                </div>
+                <p className="text-xs font-medium text-gray-700">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Confirmation Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.4 }}
+          className="text-center"
+        >
+          <Button
+            onClick={onConfirm}
+            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+            size="lg"
+          >
+            <Check className="h-5 w-5 mr-2" />
+            Confirm & Proceed to Payment
+          </Button>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -644,7 +809,7 @@ export default function SOPGenerator() {
       case "payment":
         return paymentCompleted;
       case "result":
-        return true; // Result is always complete when reached
+        return paymentCompleted; // Only complete when payment is done
       default:
         return false;
     }
@@ -809,7 +974,7 @@ export default function SOPGenerator() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Email</p>
-                        <p className="text-xs sm:text-sm font-medium text-gray-700 break-all">connect@globalmindsindis.com</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-700 break-all">connect@globalmindsindia.com</p>
                       </div>
                     </motion.a>
                     <motion.a
@@ -879,99 +1044,247 @@ export default function SOPGenerator() {
         </>
       )}
 
-      <div className="min-h-screen bg-gradient-soft py-4 sm:py-6 md:py-12 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Back to Home Button */}
-          <div className="mb-4 sm:mb-6 md:mb-6">
-            {currentStep === "university" ? (
-              // Direct back if on first step
-              <Button
-                variant="ghost"
-                onClick={handleBackToHome}
-                className="rounded-xl p-2 sm:p-3 hover:bg-muted/50 w-full sm:w-auto"
-                size="sm"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Back to Home</span>
-              </Button>
-            ) : (
-              // Show alert if on step 2+
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+      <div 
+        className="min-h-screen bg-gradient-soft py-4 sm:py-6 md:py-12 px-4 sm:px-6 relative"
+        style={{
+          backgroundImage: `url(${SOPBackgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        {/* Background overlay for better readability */}
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
+        <div className="max-w-4xl mx-auto relative z-10">
+          {/* Back to Home Button and Progress Steps Container */}
+          <div className="mb-8 sm:mb-10 md:mb-12">
+            {/* Enhanced Back to Home Button */}
+            <div className="mb-4">
+              {currentStep === "university" ? (
+                // Direct back if on first step
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex justify-start"
+                >
                   <Button
                     variant="ghost"
-                    className="rounded-xl p-2 sm:p-3 hover:bg-muted/50 w-full sm:w-auto"
+                    onClick={handleBackToHome}
+                    className="group relative overflow-hidden rounded-2xl p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-indigo-50 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     size="sm"
                   >
-                    <Home className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Back to Home</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <Home className="h-5 w-5 mr-3 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
+                    <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors duration-300">Back to Home</span>
+                    <motion.div
+                      className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
+                      initial={{ x: -10 }}
+                      animate={{ x: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ArrowRight className="h-4 w-4 text-blue-500" />
+                    </motion.div>
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="rounded-xl max-w-md mx-auto">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Application in Progress</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      You have unsaved progress in your SOP application. Are you
-                      sure you want to go back to the home page? Your current
-                      progress will be lost.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                    <AlertDialogCancel className="rounded-lg">
-                      Continue Application
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleBackToHome}
-                      className="rounded-lg bg-destructive hover:bg-destructive/90"
-                    >
-                      Yes, Go Back
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
-
-          {/* ✅ Fixed: Updated Progress Steps to match actual flow */}
-          <div className="flex justify-center mb-6 sm:mb-8 md:mb-12">
-            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 overflow-x-auto pb-2">
-              {progressSteps.map((step, index) => (
-                <div key={step.key} className="flex items-center flex-shrink-0">
-                  <div className="flex flex-col items-center">
-                    {/* Step Circle */}
-                    <div
-                      className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-300 ${
-                        currentStep === step.key
-                          ? "bg-primary text-primary-foreground shadow-soft"
-                          : isStepComplete(step.key as Step)
-                          ? "bg-pastel-green text-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {step.index}
-                    </div>
-
-                    {/* Step Label */}
-                    <div className="mt-1 text-[10px] sm:text-xs md:text-sm text-center text-muted-foreground font-medium">
-                      {step.label}
-                    </div>
-                  </div>
-
-                  {/* Step Connector */}
-                  {index < progressSteps.length - 1 && (
-                    <div
-                      className={`w-2 sm:w-4 md:w-8 h-0.5 mx-0.5 sm:mx-1 md:mx-2 transition-all duration-300 ${
-                        isStepComplete(step.key as Step) ||
-                        progressSteps.findIndex((s) => s.key === currentStep) >
-                          index
-                          ? "bg-primary"
-                          : "bg-border"
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
+                </motion.div>
+              ) : (
+                // Show alert if on step 2+
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex justify-start"
+                >
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="group relative overflow-hidden rounded-2xl p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 border border-orange-200 hover:border-red-300 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                        size="sm"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <Home className="h-5 w-5 mr-3 text-orange-600 group-hover:text-red-600 transition-colors duration-300" />
+                        <span className="font-medium text-orange-700 group-hover:text-red-700 transition-colors duration-300">Back to Home</span>
+                        <motion.div
+                          className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
+                          initial={{ x: -10 }}
+                          animate={{ x: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <ArrowRight className="h-4 w-4 text-red-500" />
+                        </motion.div>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="max-w-lg w-[95vw] sm:w-[90vw] lg:w-full mx-auto bg-gradient-to-br from-white via-red-50/20 to-orange-50/20 border-0 shadow-xl rounded-2xl">
+                      <div className="text-center mb-4">
+                        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                          <Home className="h-8 w-8 text-white" />
+                        </div>
+                      </div>
+                      
+                      <AlertDialogHeader className="text-center">
+                        <AlertDialogTitle className="text-xl font-bold text-gray-800 mb-2">
+                          ⚠️ Application in Progress
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-600">
+                          You have unsaved progress in your SOP application. Are you
+                          sure you want to go back to the home page? Your current
+                          progress will be lost.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      
+                      {/* Contact Section */}
+                      <div className="my-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-center">
+                          <MessageCircle className="h-4 w-4 text-blue-600 mr-2" />
+                          For any queries, please reach out to us:
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <a
+                            href="mailto:connect@globalmindsindia.com"
+                            className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md group"
+                          >
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                              <Mail className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">Email</p>
+                              <p className="text-sm font-medium text-gray-700 break-all">connect@globalmindsindia.com</p>
+                            </div>
+                          </a>
+                          <a
+                            href="tel:7353446655"
+                            className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-green-100 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md group"
+                          >
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                              <Phone className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">Phone</p>
+                              <p className="text-sm font-medium text-gray-700">7353446655</p>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                      
+                      <AlertDialogFooter className="flex-col sm:flex-row gap-3">
+                        <AlertDialogCancel className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 border-0 font-medium transition-all duration-200 hover:scale-105">
+                          Continue Application
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleBackToHome}
+                          className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                        >
+                          <Home className="h-4 w-4 mr-2" />
+                          Yes, Go Back
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </motion.div>
+              )}
             </div>
+
+            {/* Enhanced Progress Steps */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex justify-center"
+            >
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 sm:p-4 shadow-xl border border-gray-100/50 w-full max-w-5xl">
+                <div className="flex items-start justify-between">
+                  {progressSteps.map((step, index) => {
+                    const isActive = currentStep === step.key;
+                    const isCompleted = isStepComplete(step.key as Step);
+                    const isPast = progressSteps.findIndex((s) => s.key === currentStep) > index;
+                    
+                    return (
+                      <div key={step.key} className="flex items-start flex-1 relative">
+                        <motion.div 
+                          className="flex flex-col items-center w-full"
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: index * 0.1, duration: 0.4 }}
+                        >
+                          {/* Step Square */}
+                          <motion.div
+                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 flex-shrink-0 ${
+                              isActive
+                                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-110"
+                                : isCompleted || isPast
+                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
+                                : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+                            }`}
+                            whileHover={{ scale: isActive ? 1.1 : 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isActive && (
+                              <motion.div
+                                className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 to-purple-500 opacity-30"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              />
+                            )}
+                            {isCompleted || isPast ? (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200 }}
+                              >
+                                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </motion.div>
+                            ) : (
+                              <span>{step.index}</span>
+                            )}
+                          </motion.div>
+
+                          {/* Step Label */}
+                          <motion.div 
+                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${
+                              isActive
+                                ? "text-blue-600"
+                                : isCompleted || isPast
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 + 0.2 }}
+                          >
+                            {step.label}
+                          </motion.div>
+                        </motion.div>
+
+                        {/* Step Connector - Positioned between icons */}
+                        {index < progressSteps.length - 1 && (
+                          <motion.div
+                            className="absolute top-3 sm:top-4 md:top-5 left-full w-full flex items-center justify-start z-0 -ml-3 sm:-ml-4 md:-ml-5"
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: 1 }}
+                            transition={{ delay: index * 0.1 + 0.3, duration: 0.4 }}
+                          >
+                            <div className="w-6 sm:w-8 md:w-10 h-0.5 sm:h-1 bg-gray-200 rounded-full" />
+                            <motion.div
+                              className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
+                                isCompleted
+                                  ? "bg-gradient-to-r from-green-500 to-emerald-600 w-full"
+                                  : "bg-gray-200 w-0"
+                              }`}
+                              animate={{
+                                width: isCompleted ? "100%" : "0%"
+                              }}
+                              transition={{ duration: 0.6, delay: 0.2 }}
+                            />
+                          </motion.div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
           </div>
 
           {/* Main Content */}
@@ -984,174 +1297,282 @@ export default function SOPGenerator() {
             <CardContent className="p-4 sm:p-6 md:p-8">
               {/* ... All your existing step content remains the same ... */}
               {currentStep === "university" && (
-                <div className="space-y-4 sm:space-y-6 animate-slide-up">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
-                    {/* Full Name */}
-                    <div className="flex flex-col space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium">
-                        Full Name <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        className="rounded-xl border-border bg-input"
-                        required
-                      />
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <div className="flex items-center mb-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-3">
+                        <FileText className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800">Personal Information</h3>
                     </div>
-
-                    {/* Email Address */}
-                    <div className="flex flex-col space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">
-                        Email Address <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email address"
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        className="rounded-xl border-border bg-input"
-                        required
-                      />
-                    </div>
-
-                    {/* Phone Number */}
-                    <div className="flex flex-col space-y-2">
-                      <Label htmlFor="phone" className="text-sm font-medium">
-                        Phone Number <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="Enter your phone number (e.g., +91 9876543210)"
-                        value={formData.phone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
-                        }
-                        className="rounded-xl border-border bg-input"
-                        required
-                      />
-                    </div>
-
-                    {/* Country */}
-                    <div className="flex flex-col space-y-2">
-                      <Label htmlFor="country" className="text-sm font-medium">
-                        Country <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={formData.country}
-                        onValueChange={(value) =>
-                          setFormData({
-                            ...formData,
-                            country: value,
-                            university: "",
-                            course: "",
-                          })
-                        }
-                      >
-                        <SelectTrigger className="rounded-xl border-border bg-input">
-                          <SelectValue placeholder="Select a country" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {countries.map((country) => (
-                            <SelectItem key={country} value={country}>
-                              {country}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex flex-col space-y-2">
-                      <Label
-                        htmlFor="university"
-                        className="text-sm font-medium"
-                      >
-                        University
-                      </Label>
-                      <CreatableCombobox
-                        disabled={!formData.country}
-                        value={formData.university}
-                        onChange={(val) =>
-                          setFormData({ ...formData, university: val })
-                        }
-                        options={
-                          formData.country
-                            ? universityData[
-                                formData.country as keyof typeof universityData
-                              ].universities
-                            : []
-                        }
-                        placeholder="Search or enter university"
-                      />
-                    </div>
-
-                    <div className="flex flex-col space-y-2">
-                      <Label htmlFor="course" className="text-sm font-medium">
-                        Course/Program
-                      </Label>
-                      <CreatableCombobox
-                        disabled={!formData.country}
-                        value={formData.course}
-                        onChange={(val) =>
-                          setFormData({ ...formData, course: val })
-                        }
-                        options={
-                          formData.country
-                            ? universityData[
-                                formData.country as keyof typeof universityData
-                              ].courses
-                            : []
-                        }
-                        placeholder="Search or enter course"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { id: "name", label: "Full Name", type: "text", placeholder: "Enter your full name", value: formData.name, key: "name" },
+                        { id: "email", label: "Email Address", type: "email", placeholder: "Enter your email address", value: formData.email, key: "email" },
+                        { id: "phone", label: "Phone Number", type: "tel", placeholder: "Enter your phone number", value: formData.phone, key: "phone" }
+                      ].map((field, index) => (
+                        <motion.div
+                          key={field.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1, duration: 0.3 }}
+                          className="space-y-2"
+                        >
+                          <Label htmlFor={field.id} className="text-sm font-medium text-gray-700">
+                            {field.label} <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id={field.id}
+                            type={field.type}
+                            placeholder={field.placeholder}
+                            value={field.value}
+                            onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                            className="rounded-xl border-2 border-gray-200 focus:border-blue-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg"
+                            required
+                          />
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
-                </div>
+
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                    <div className="flex items-center mb-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
+                        <Sparkles className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800">Academic Details</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4, duration: 0.3 }}
+                        className="space-y-2"
+                      >
+                        <Label htmlFor="country" className="text-sm font-medium text-gray-700">
+                          Country <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          value={formData.country}
+                          onValueChange={(value) => setFormData({ ...formData, country: value, university: "", course: "" })}
+                        >
+                          <SelectTrigger className="rounded-xl border-2 border-gray-200 focus:border-purple-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md">
+                            <SelectValue placeholder="Select a country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.map((country) => (
+                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5, duration: 0.3 }}
+                        className="space-y-2"
+                      >
+                        <Label htmlFor="university" className="text-sm font-medium text-gray-700">
+                          University
+                        </Label>
+                        <div className="relative">
+                          <CreatableCombobox
+                            disabled={!formData.country}
+                            value={formData.university}
+                            onChange={(val) => setFormData({ ...formData, university: val })}
+                            options={formData.country ? universityData[formData.country as keyof typeof universityData].universities : []}
+                            placeholder="Search or enter university"
+                          />
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6, duration: 0.3 }}
+                        className="space-y-2 md:col-span-2"
+                      >
+                        <Label htmlFor="course" className="text-sm font-medium text-gray-700">
+                          Course/Program
+                        </Label>
+                        <CreatableCombobox
+                          disabled={!formData.country}
+                          value={formData.course}
+                          onChange={(val) => setFormData({ ...formData, course: val })}
+                          options={formData.country ? universityData[formData.country as keyof typeof universityData].courses : []}
+                          placeholder="Search or enter course"
+                        />
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
               )}
 
               {currentStep === "resume" && (
-                <div className="space-y-4 sm:space-y-6 animate-slide-up">
-                  <div className="border-2 border-dashed border-border rounded-xl p-4 sm:p-6 md:p-8 text-center bg-pastel-blue">
-                    <Upload className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
-                    <div className="space-y-2">
-                      <p className="text-base sm:text-lg font-medium">
-                        Upload your resume
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        PDF, DOC, or DOCX up to 10MB
-                      </p>
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="resume-upload"
-                    />
-                    <Button
-                      onClick={() =>
-                        document.getElementById("resume-upload")?.click()
-                      }
-                      className="mt-4 rounded-xl"
-                      variant="outline"
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-8 border border-green-200">
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.2, duration: 0.4 }}
+                      className="text-center"
                     >
-                      Choose File
-                    </Button>
-                    {formData.resume && (
-                      <p className="mt-4 text-sm text-primary font-medium">
-                        ✅ {formData.resume.name} uploaded successfully!
-                      </p>
-                    )}
+                      <div className="mx-auto w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                        <Upload className="h-10 w-10 text-white" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2">Upload Your Resume</h3>
+                      <p className="text-gray-600 mb-6">Share your professional background with us</p>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.4 }}
+                      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
+                        formData.resume 
+                          ? 'border-green-400 bg-green-50/50' 
+                          : isDragOver
+                          ? 'border-blue-500 bg-blue-50/50 scale-105'
+                          : 'border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30'
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={(e) => {
+                        if (!isDragOver) {
+                          document.getElementById("resume-upload")?.click();
+                        }
+                      }}
+                    >
+                      {!formData.resume ? (
+                        <>
+                          <div className="space-y-4">
+                            <motion.div
+                              animate={isDragOver ? { scale: [1, 1.1, 1] } : {}}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <Upload className={`mx-auto h-16 w-16 transition-colors duration-300 ${
+                                isDragOver ? 'text-blue-500' : 'text-gray-400'
+                              }`} />
+                            </motion.div>
+                            <div>
+                              <p className={`text-lg font-medium transition-colors duration-300 ${
+                                isDragOver ? 'text-blue-700' : 'text-gray-700'
+                              }`}>
+                                {isDragOver ? 'Drop your resume here!' : 'Drag & drop your resume here'}
+                              </p>
+                              <p className="text-sm text-gray-500 mt-1">or click to browse • PDF, DOC, or DOCX up to 10MB</p>
+                            </div>
+                          </div>
+                          
+                          {/* Animated drag indicator */}
+                          {isDragOver && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="absolute inset-0 border-2 border-blue-400 rounded-2xl bg-blue-100/20 flex items-center justify-center"
+                            >
+                              <motion.div
+                                animate={{ y: [-10, 10, -10] }}
+                                transition={{ duration: 1, repeat: Infinity }}
+                                className="text-blue-600 font-semibold text-lg"
+                              >
+                                📄 Drop to upload
+                              </motion.div>
+                            </motion.div>
+                          )}
+                          
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            id="resume-upload"
+                          />
+                          
+                          <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-center">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                document.getElementById("resume-upload")?.click();
+                              }}
+                              className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Choose File
+                            </Button>
+                            {/*<span className="text-sm text-gray-500">or drag and drop</span>*/}
+                          </div>
+                        </>
+                      ) : (
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="space-y-4"
+                        >
+                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                            <Check className="h-8 w-8 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-lg font-semibold text-green-700">Resume Uploaded Successfully!</p>
+                            <p className="text-sm text-green-600 mt-1">{formData.resume.name}</p>
+                          </div>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              document.getElementById("resume-upload")?.click();
+                            }}
+                            variant="outline"
+                            className="mt-4 rounded-xl border-green-300 text-green-700 hover:bg-green-50"
+                          >
+                            Change File
+                          </Button>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            id="resume-upload"
+                          />
+                        </motion.div>
+                      )}
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6, duration: 0.4 }}
+                      className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-blue-600 text-sm font-bold">💡</span>
+                        </div>
+                        <div className="text-sm text-blue-700">
+                          <p className="font-medium mb-1">Tips for best results:</p>
+                          <ul className="space-y-1 text-blue-600">
+                            <li>• Use a recent, updated resume</li>
+                            <li>• Ensure all sections are clearly formatted</li>
+                            <li>• Include relevant work experience and skills</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </motion.div>
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {currentStep === "questions" && (
@@ -1163,31 +1584,45 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "quality_check" && (
-                <div className="max-w-2xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-md">
-                  {/* Quality Score Display */}
-                  <div className="mb-6 sm:mb-8 text-center">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
-                      Quality Check
-                    </h2>
-                    <div className="flex items-center justify-center">
-                      <div className="relative w-24 h-24 sm:w-32 sm:h-32">
-                        {/* Circular Progress for Quality Score */}
-                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="max-w-4xl mx-auto space-y-8"
+                >
+                  {/* Quality Score Card */}
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                    className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl p-8 border border-orange-200 text-center"
+                  >
+                    <div className="flex items-center justify-center mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center mr-3">
+                        <Sparkles className="h-6 w-6 text-white" />
+                      </div>
+                      <h2 className="text-2xl font-bold text-gray-800">Quality Assessment</h2>
+                    </div>
+                    
+                    <div className="flex items-center justify-center mb-6">
+                      <div className="relative w-32 h-32">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                           <circle
                             className="text-gray-200"
-                            strokeWidth="10"
+                            strokeWidth="8"
                             stroke="currentColor"
                             fill="transparent"
                             r="40"
                             cx="50"
                             cy="50"
                           />
-                          <circle
-                            className="text-blue-600"
-                            strokeWidth="10"
-                            strokeDasharray={`${
-                              qualityScore ? qualityScore * 2.51 : 0
-                            }, 251.2`} // 251.2 is 2πr for r=40
+                          <motion.circle
+                            className={`${
+                              qualityScore && qualityScore >= 80 ? 'text-green-500' :
+                              qualityScore && qualityScore >= 60 ? 'text-yellow-500' : 'text-red-500'
+                            }`}
+                            strokeWidth="8"
+                            strokeDasharray={`${qualityScore ? qualityScore * 2.51 : 0}, 251.2`}
                             strokeDashoffset="0"
                             strokeLinecap="round"
                             stroke="currentColor"
@@ -1195,57 +1630,86 @@ export default function SOPGenerator() {
                             r="40"
                             cx="50"
                             cy="50"
-                            transform="rotate(-90 50 50)"
+                            initial={{ strokeDasharray: "0, 251.2" }}
+                            animate={{ strokeDasharray: `${qualityScore ? qualityScore * 2.51 : 0}, 251.2` }}
+                            transition={{ duration: 1, delay: 0.5 }}
                           />
                         </svg>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xl sm:text-2xl font-bold text-gray-800">
-                          {qualityScore}/100
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-gray-800">{qualityScore}</div>
+                            <div className="text-sm text-gray-600">/ 100</div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <p className="mt-2 text-gray-600 text-sm sm:text-base">
-                      Your Answer Quality Score
-                    </p>
-                  </div>
+                    
+                    <p className="text-lg font-medium text-gray-700 mb-2">Your Response Quality Score</p>
+                    <p className="text-sm text-gray-600">Let's enhance your responses for a stronger SOP</p>
+                  </motion.div>
 
-                  {/* Questions Section */}
-                  <div className="space-y-4 sm:space-y-6">
+                  {/* Improvement Questions */}
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Enhancement Questions</h3>
+                      <p className="text-gray-600">Please provide detailed answers to improve your SOP quality</p>
+                    </div>
+                    
                     {qualityQuestions.map((q, index) => (
-                      <div key={q} className="space-y-2">
-                        <Label className="text-base sm:text-lg font-medium text-gray-700">
-                          {index + 1}. {q}
-                        </Label>
-                        <Textarea
-                          value={improvementAnswers[q] || ""}
-                          onChange={(e) =>
-                            setImprovementAnswers((m) => ({
-                              ...m,
-                              [q]: e.target.value,
-                            }))
-                          }
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          rows={4}
-                          placeholder="Provide your improvement suggestions here..."
-                        />
-                      </div>
+                      <motion.div
+                        key={q}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                        className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
+                      >
+                        <div className="flex items-start space-x-4">
+                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                            <span className="text-white font-bold text-sm">{index + 1}</span>
+                          </div>
+                          <div className="flex-1 space-y-3">
+                            <Label className="text-base font-medium text-gray-800 leading-relaxed">
+                              {q}
+                            </Label>
+                            <Textarea
+                              value={improvementAnswers[q] || ""}
+                              onChange={(e) => setImprovementAnswers((m) => ({ ...m, [q]: e.target.value }))}
+                              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors duration-200 bg-gray-50/50 hover:bg-white"
+                              rows={4}
+                              placeholder="Share your detailed thoughts and experiences here..."
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
                     ))}
                   </div>
 
                   {/* Submit Button */}
-                  <div className="mt-6 sm:mt-8 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.4 }}
+                    className="text-center"
+                  >
                     <Button
                       onClick={handleSubmitImprovements}
-                      disabled={
-                        !Object.values(improvementAnswers).every((v) =>
-                          v?.trim()
-                        ) || loading
-                      }
-                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                      disabled={!Object.values(improvementAnswers).every((v) => v?.trim()) || loading}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      Submit Improvements
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-5 w-5 mr-2" />
+                          Submit Improvements
+                        </>
+                      )}
                     </Button>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               )}
 
               {currentStep === "review" && (
@@ -1260,150 +1724,277 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "payment" && (
-                <div className="space-y-4 sm:space-y-6 animate-scale-in max-w-4xl mx-auto">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="max-w-4xl mx-auto space-y-8"
+                >
                   {/* Header */}
-                  <div className="text-center mb-6 sm:mb-8">
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
-                      Choose Your SOP Package
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                    className="text-center"
+                  >
+                    <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                      <CreditCard className="h-8 w-8 text-white" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                      Secure Payment
                     </h2>
-                    <p className="text-muted-foreground text-sm sm:text-base">
-                      Select the package that best fits your needs
+                    <p className="text-gray-600">
+                      Complete your SOP generation with our expert package
                     </p>
-                  </div>
+                  </motion.div>
 
-                  {/* Package Cards */}
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {/* SOP Expert Package - Most Popular */}
-                    <div
-                      className={`relative cursor-pointer transition-all duration-200 max-w-md mx-auto ${
-                        selectedPackage === "expert"
-                          ? "transform scale-105"
-                          : ""
-                      }`}
-                      onClick={() => setSelectedPackage("expert")}
+                  {/* Package Card */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                    className="relative max-w-2xl mx-auto"
+                  >
+                    {/* Most Popular Badge */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5, duration: 0.3 }}
+                      className="absolute -top-4 left-0 right-0 flex justify-center z-10"
                     >
-                      {/* Most Popular Badge */}
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                        <div className="bg-blue-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
-                          Most Popular
+                      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                        ⭐ Most Popular Choice
+                      </div>
+                    </motion.div>
+
+                    <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl p-8 border-2 border-blue-200 shadow-xl hover:shadow-2xl transition-all duration-300">
+                      {/* Package Header */}
+                      <div className="text-center mb-6">
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-3">
+                            <Sparkles className="h-6 w-6 text-white" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-gray-800">{packages.expert.name}</h3>
+                        </div>
+                        
+                        {/* Pricing */}
+                        <div className="flex items-center justify-center space-x-3 mb-6">
+                          {couponApplied && (
+                            <>
+                              <span className="text-2xl font-bold text-gray-400 line-through">₹{originalPrice.toLocaleString()}</span>
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold"
+                              >
+                                10% OFF
+                              </motion.div>
+                            </>
+                          )}
+                          <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            ₹{discountedPrice.toLocaleString()}
+                          </span>
                         </div>
                       </div>
 
-                      <div
-                        className={`bg-white rounded-2xl p-4 sm:p-6 border-2 shadow-lg relative transition-all duration-200 w-full ${
-                          selectedPackage === "expert"
-                            ? "border-blue-600 shadow-blue-100"
-                            : "border-gray-200 hover:border-blue-300"
-                        }`}
+                      {/* Features */}
+                      <div className="mb-8">
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">What's Included</h4>
+                        <div className="space-y-4">
+                          {packages.expert.features.map((feature, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.7 + index * 0.1, duration: 0.3 }}
+                              className="flex items-start bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm"
+                            >
+                              <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                              <span className="text-gray-700 font-medium">{feature}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Coupon Code Section */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.0, duration: 0.4 }}
+                        className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-200 mb-6"
                       >
-                        {/* Radio Button */}
-                        <div className="absolute top-4 sm:top-6 left-4 sm:left-6">
-                          <div
-                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${
-                              selectedPackage === "expert"
-                                ? "border-blue-600 bg-blue-600"
-                                : "border-gray-300 bg-white"
-                            }`}
-                          >
-                            {selectedPackage === "expert" && (
-                              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white"></div>
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">Have a Coupon Code?</h4>
+                        
+                        {!couponApplied ? (
+                          <div className="space-y-4">
+                            <div className="flex gap-2">
+                              <Input
+                                value={couponCode}
+                                onChange={(e) => {
+                                  setCouponCode(e.target.value);
+                                  setCouponError("");
+                                }}
+                                placeholder="Enter coupon code"
+                                className="flex-1 rounded-xl border-2 border-gray-200 focus:border-yellow-500"
+                              />
+                              <Button
+                                onClick={handleCouponApply}
+                                disabled={!couponCode.trim()}
+                                className="px-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl"
+                              >
+                                Apply
+                              </Button>
+                            </div>
+                            {couponError && (
+                              <p className="text-red-500 text-sm text-center">{couponError}</p>
+                            )}
+                            <div 
+                              className="text-center p-3 bg-white/70 rounded-xl border border-yellow-300 cursor-pointer hover:bg-yellow-50 transition-colors duration-200"
+                              onClick={() => {
+                                setCouponCode("GMI10");
+                                setCouponError("");
+                                setCouponApplied(true);
+                                toast({
+                                  title: "Coupon Applied! 🎉",
+                                  description: "10% discount has been applied to your order.",
+                                });
+                              }}
+                            >
+                              <p className="text-sm text-gray-600 mb-1">Try our coupon:</p>
+                              <p className="text-lg font-bold text-yellow-700 hover:text-yellow-800">GMI10</p>
+                              <p className="text-xs text-gray-500">Click to apply 10% discount</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center space-y-3">
+                            <div className="flex items-center justify-center space-x-2">
+                              <Check className="h-5 w-5 text-green-600" />
+                              <span className="text-green-700 font-semibold">Coupon "GMI10" Applied!</span>
+                            </div>
+                            <Button
+                              onClick={handleCouponRemove}
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                            >
+                              Remove Coupon
+                            </Button>
+                          </div>
+                        )}
+                      </motion.div>
+
+                      {/* Price Summary */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.2, duration: 0.4 }}
+                        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200 mb-6"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-600">Total Amount</p>
+                            <p className="text-xs text-gray-500">(Inclusive of GST)</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-blue-900">₹{discountedPrice.toLocaleString()}</p>
+                            {couponApplied && (
+                              <p className="text-sm text-green-600 font-medium">You save ₹{(originalPrice - discountedPrice).toLocaleString()}</p>
                             )}
                           </div>
                         </div>
+                      </motion.div>
 
-                        <div className="pt-6 sm:pt-8">
-                          {/* Package Header */}
-                          <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h3 className="text-lg sm:text-xl font-bold">
-                              {packages.expert.name}
-                            </h3>
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              <span className="text-sm sm:text-base font-semibold text-gray-500 line-through">
-                                ₹2,599
-                              </span>
-                              <span className="text-xs sm:text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full font-medium">
-                                50% off
-                              </span>
-                              <span className="text-lg sm:text-xl font-bold text-blue-600">
-                                ₹1,299
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Includes Section */}
-                          <div className="mb-4 sm:mb-6">
-                            <h4 className="font-medium text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">
-                              Includes
-                            </h4>
-                            <div className="space-y-2 sm:space-y-3">
-                              {packages.expert.features.map(
-                                (feature, index) => (
-                                  <div key={index} className="flex items-start">
-                                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                                    <span className="text-xs sm:text-sm text-gray-600">
-                                      {feature}
-                                    </span>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price Summary */}
-                  <div className="max-w-md mx-auto">
-                    <div className="bg-blue-50 rounded-xl p-3 sm:p-4 border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-blue-900 text-sm sm:text-base">
-                          Total amount (Inclusive Of GST):
-                        </span>
-                        <span className="text-lg sm:text-xl font-bold text-blue-900">
-                          {packages[selectedPackage].displayPrice}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Security Badge */}
-                  <div className="max-w-md mx-auto">
-                    <div className="flex items-center justify-center p-3 sm:p-4 bg-muted/50 rounded-lg">
-                      <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2" />
-                      <span className="text-xs sm:text-sm text-muted-foreground">
-                        Secured by 256-bit SSL encryption
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Payment Button */}
-                  <div className="max-w-md mx-auto">
-                    {!paymentCompleted ? (
-                      <Button
-                        onClick={handlePayment}
-                        disabled={isPaymentLoading}
-                        className="w-full rounded-xl py-3 sm:py-4 text-base sm:text-lg shadow-hover hover:shadow-hover bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                        size="lg"
+                      {/* Security Badge */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.4, duration: 0.4 }}
+                        className="flex items-center justify-center mb-6 p-3 bg-green-50 rounded-xl border border-green-200"
                       >
-                        <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        {isPaymentLoading
-                          ? "Processing..."
-                          : `Pay ${packages[selectedPackage].displayPrice} - Generate SOP`}
-                      </Button>
-                    ) : (
-                      <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
-                        <Check className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-green-500 mb-2" />
-                        <p className="text-green-700 font-medium text-sm sm:text-base">
-                          Payment Successful!
-                        </p>
-                        <p className="text-sm text-green-600">
-                          Payment confirmed. Starting SOP generation...
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                        <Shield className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="text-sm font-medium text-green-700">
+                          🔒 Secured by 256-bit SSL encryption
+                        </span>
+                      </motion.div>
+
+                      {/* Payment Button */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.6, duration: 0.4 }}
+                      >
+                        {!paymentCompleted ? (
+                          <Button
+                            onClick={handlePayment}
+                            disabled={isPaymentLoading}
+                            className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            size="lg"
+                          >
+                            {isPaymentLoading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                                Processing Payment...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="mr-3 h-6 w-6" />
+                                Pay ₹{discountedPrice.toLocaleString()} & Generate My SOP
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5, type: "spring" }}
+                            className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-200"
+                          >
+                            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <Check className="h-8 w-8 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-green-700 mb-2">
+                              Payment Successful! 🎉
+                            </h3>
+                            <p className="text-green-600">
+                              Your SOP generation has started. You'll receive it within 24-48 hours.
+                            </p>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    </div>
+                  </motion.div>
+
+                  {/* Trust Indicators */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.8, duration: 0.4 }}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
+                  >
+                    {[
+                      { icon: Shield, title: "Secure Payment", desc: "Bank-level security" },
+                      { icon: Check, title: "Expert Writers", desc: "Professional SOP crafting" },
+                      { icon: Sparkles, title: "24-48 Hours", desc: "Quick delivery" }
+                    ].map((item, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 2.0 + index * 0.1, duration: 0.3 }}
+                        className="text-center p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm"
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <item.icon className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <h4 className="font-semibold text-gray-800 text-sm">{item.title}</h4>
+                        <p className="text-xs text-gray-600">{item.desc}</p>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </motion.div>
               )}
 
               {currentStep === "result" && (
@@ -1464,8 +2055,8 @@ export default function SOPGenerator() {
                 </div>
               )}
 
-              {/* ✅ Fixed: Updated Navigation Buttons Logic */}
-              {currentStep !== "result" && (
+              {/* ✅ Fixed: Updated Navigation Buttons Logic - Hide during questionnaire */}
+              {currentStep !== "result" && currentStep !== "questions" && (
                 <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 md:pt-8 gap-2 sm:gap-0">
                   <Button
                     variant="outline"
@@ -1498,57 +2089,273 @@ export default function SOPGenerator() {
         </div>
       </div>
 
+      {/* Enhanced Floating Help Button */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 10 }}
-        className="fixed bottom-4 right-4 z-50"
+        initial={{ scale: 0, opacity: 0, rotate: -180 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20, delay: 1 }}
+        className="fixed bottom-6 right-6 z-50"
       >
         <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ 
+            y: [0, -8, 0],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            times: [0, 0.5, 1]
+          }}
+          whileHover={{ scale: 1.1, rotate: 10 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Button
             variant="secondary"
-            className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold p-4 shadow-2xl hover:scale-110 hover:shadow-indigo-400/50 transition-all duration-300"
+            className="group relative overflow-hidden rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold p-4 shadow-2xl hover:shadow-purple-500/50 transition-all duration-500 border-2 border-white/20"
             onClick={() => setShowHelp(true)}
           >
-            <MessageCircle className="mr-2 h-5 w-5" />
-            Help
+            {/* Animated background gradient */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              animate={{
+                background: [
+                  "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)",
+                  "linear-gradient(45deg, #8b5cf6, #ec4899, #06b6d4)",
+                  "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)"
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+            
+            {/* Pulse effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-white/20"
+              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            
+            {/* Content */}
+            <div className="relative flex items-center space-x-2">
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              >
+                <MessageCircle className="h-5 w-5" />
+              </motion.div>
+              <span className="font-semibold">Help</span>
+            </div>
+            
+            {/* Sparkle effects */}
+            <motion.div
+              className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full"
+              animate={{ 
+                scale: [0, 1, 0],
+                rotate: [0, 180, 360]
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity,
+                delay: 0.5
+              }}
+            />
+            <motion.div
+              className="absolute -bottom-1 -left-1 w-2 h-2 bg-pink-300 rounded-full"
+              animate={{ 
+                scale: [0, 1, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{ 
+                duration: 1.5, 
+                repeat: Infinity,
+                delay: 1
+              }}
+            />
           </Button>
         </motion.div>
       </motion.div>
+      {/* Enhanced Help Dialog */}
       {showHelp && (
         <AlertDialog open onOpenChange={setShowHelp}>
-          <AlertDialogContent className="max-w-sm mx-auto">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Customer Support</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3 text-sm">
-                <p>If you need assistance, please contact us:</p>
-                <p>
-                  <strong>Email:</strong>{" "}
-                  <a
-                    href="mailto:connect@globalmindsindia@gmail.com"
-                    className="text-blue-600"
+          <AlertDialogContent className="max-w-md w-[95vw] sm:w-[90vw] lg:w-full mx-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 50 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <AlertDialogHeader className="text-center pb-6">
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                  className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg relative"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                   >
-                    connect@globalmindsindia@gmail.com
-                  </a>
-                </p>
-                <p>
-                  <strong>Phone:</strong>{" "}
-                  <a href="tel:+917353446655" className="text-blue-600">
-                    +91 7353446655
-                  </a>
-                </p>
-              </div>
-            </AlertDialogDescription>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowHelp(false)}>
-                Close
-              </AlertDialogAction>
-            </AlertDialogFooter>
+                    <MessageCircle className="h-8 w-8 text-white" />
+                  </motion.div>
+                  
+                  {/* Floating particles */}
+                  <motion.div
+                    className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full"
+                    animate={{ 
+                      y: [-5, 5, -5],
+                      x: [-2, 2, -2],
+                      scale: [0.8, 1.2, 0.8]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute -bottom-2 -left-2 w-3 h-3 bg-pink-400 rounded-full"
+                    animate={{ 
+                      y: [5, -5, 5],
+                      scale: [1, 0.7, 1]
+                    }}
+                    transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
+                  />
+                </motion.div>
+                
+                <AlertDialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  🎯 Customer Support
+                </AlertDialogTitle>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-gray-600 mt-2"
+                >
+                  We're here to help you succeed!
+                </motion.p>
+              </AlertDialogHeader>
+
+              <AlertDialogDescription asChild>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-blue-100 shadow-sm">
+                    <motion.p 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="text-center text-gray-700 mb-6 font-medium"
+                    >
+                      Need assistance? Our support team is ready to help!
+                    </motion.p>
+                    
+                    <div className="space-y-4">
+                      <motion.a
+                        href="mailto:connect@globalmindsindia.com"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="group flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-300 shadow-sm hover:shadow-md"
+                      >
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <Mail className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-800">Email Support</p>
+                          <p className="text-sm text-blue-600 font-medium break-all">connect@globalmindsindia.com</p>
+                        </div>
+                        <motion.div
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          <ArrowRight className="h-5 w-5 text-blue-500" />
+                        </motion.div>
+                      </motion.a>
+                      
+                      <motion.a
+                        href="tel:+917353446655"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.7 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="group flex items-center space-x-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 transition-all duration-300 shadow-sm hover:shadow-md"
+                      >
+                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <Phone className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-800">Phone Support</p>
+                          <p className="text-sm text-green-600 font-medium">+91 7353446655</p>
+                        </div>
+                        <motion.div
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Phone className="h-5 w-5 text-green-500" />
+                        </motion.div>
+                      </motion.a>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Tips */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 }}
+                    className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-200"
+                  >
+                    <div className="flex items-center mb-3">
+                      <Sparkles className="h-5 w-5 text-purple-600 mr-2" />
+                      <h4 className="font-semibold text-purple-800">Quick Tips</h4>
+                    </div>
+                    <ul className="space-y-2 text-sm text-purple-700">
+                      <motion.li 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.9 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                        Response time: Within 2-4 hours
+                      </motion.li>
+                      <motion.li 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.0 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                        Available: Monday to Saturday, 9 AM - 7 PM
+                      </motion.li>
+                    </ul>
+                  </motion.div>
+                </motion.div>
+              </AlertDialogDescription>
+              
+              <AlertDialogFooter className="mt-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.1 }}
+                  className="w-full"
+                >
+                  <AlertDialogAction
+                    onClick={() => setShowHelp(false)}
+                    className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  >
+                    <motion.span
+                      className="flex items-center justify-center"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Got it, Thanks!
+                    </motion.span>
+                  </AlertDialogAction>
+                </motion.div>
+              </AlertDialogFooter>
+            </motion.div>
           </AlertDialogContent>
         </AlertDialog>
       )}
