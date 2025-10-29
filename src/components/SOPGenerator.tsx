@@ -86,8 +86,8 @@ type Step =
   | "university"
   | "resume"
   | "questions"
-  | "quality_check"
   | "review"
+  | "quality_check"
   | "payment"
   | "result";
 
@@ -97,8 +97,8 @@ export default function SOPGenerator() {
     "university",
     "resume",
     "questions",
-    "quality_check", // Added this step
     "review",
+    "quality_check", // Added this step
     "payment",
     "result",
   ];
@@ -158,8 +158,10 @@ export default function SOPGenerator() {
 
   // Package configurations
   const originalPrice = 1299;
-  const discountedPrice = couponApplied ? Math.round(originalPrice * 0.9) : originalPrice;
-  
+  const discountedPrice = couponApplied
+    ? Math.round(originalPrice * 0.9)
+    : originalPrice;
+
   const packages = {
     expert: {
       name: "SOP Expert",
@@ -197,13 +199,12 @@ export default function SOPGenerator() {
     answersFromQuestionnaire: Record<string, string>
   ) {
     try {
-      // Merge Additional Questions into answers map, matching requested keys
       setLoading(true);
       const fullAnswers = {
         ...answersFromQuestionnaire,
-        "Preffered length": formData.preffered_length || "450", // exact key as requested
+        "Preffered length": formData.preffered_length || "450",
         "specific requirements":
-          formData.specific_requirements || "Not Specified", // exact key as requested
+          formData.specific_requirements || "Not Specified",
       };
 
       setFormData((prev) => ({ ...prev, answers: fullAnswers }));
@@ -220,16 +221,23 @@ export default function SOPGenerator() {
       };
 
       const fd = new FormData();
-      fd.append("data", JSON.stringify(payload)); // JSON as string field
-      if (formData.resume) fd.append("resume", formData.resume); // file field
+      fd.append("data", JSON.stringify(payload));
+      if (formData.resume) fd.append("resume", formData.resume);
 
-      // Step 1: Submit SOP
-      const { id } = await sopService.submitSop(fd); // POST /api/v1/sop/submit
+      // Step 1: Submit SOP - but DON'T trigger quality check yet
+      const { id } = await sopService.submitSop(fd);
       setSopId(id);
 
-      // Step 2: Run quality check
-      setPolling(true);
-      pollQualityCheck(id);
+      // ✅ REMOVED: setPolling(true) and pollQualityCheck(id)
+      // Quality check will be triggered AFTER review is confirmed
+
+      // Move to review step instead of quality check
+      setCurrentStep("review");
+
+      toast({
+        title: "Questionnaire Submitted! ✓",
+        description: "Please review your application before proceeding.",
+      });
     } catch (e) {
       handleError(e, toast);
     } finally {
@@ -257,7 +265,6 @@ export default function SOPGenerator() {
         setImprovementAnswers(initAns);
 
         setCurrentStep("quality_check");
-        // console.log("Quality check complete:", res.data.quality_result);
         return;
       }
 
@@ -267,10 +274,36 @@ export default function SOPGenerator() {
       } else {
         setPolling(false);
         console.error("Max attempts reached, stopping polling.");
+        toast({
+          title: "Quality Check Timeout",
+          description: "Please refresh and try again.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       setPolling(false);
       handleError(err, toast);
+    }
+  }
+
+  async function handleReviewConfirm() {
+    if (!sopId) {
+      toast({
+        title: "Error",
+        description: "SOP ID not found. Please restart the process.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setReviewCompleted(true);
+
+      // ✅ NOW trigger quality check after review is confirmed
+      setPolling(true);
+      pollQualityCheck(sopId);
+    } catch (e) {
+      handleError(e, toast);
     }
   }
 
@@ -301,6 +334,17 @@ export default function SOPGenerator() {
 
   const handleNext = () => {
     const currentIndex = steps.indexOf(currentStep);
+
+    // Prevent navigation if quality check is not completed
+    if (currentStep === "review" && !qualityCheckCompleted) {
+      toast({
+        title: "Complete Quality Check First",
+        description: "Please complete the quality check before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
     }
@@ -322,7 +366,11 @@ export default function SOPGenerator() {
 
   const processFile = (file: File) => {
     // Validate file type
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Invalid file type",
@@ -374,7 +422,7 @@ export default function SOPGenerator() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-    
+
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       processFile(files[0]);
@@ -384,25 +432,45 @@ export default function SOPGenerator() {
   const handleSubmitImprovements = async () => {
     if (!sopId) return;
 
-    setLoading(true); // Show loader
+    setLoading(true);
 
     try {
       const res = await sopService.improvementSuggestions(sopId, {
         improvement_answers: improvementAnswers,
       });
 
-      // Simulate polling or additional processing if needed
       if (res?.message === "Final SOP generated successfully") {
         setGeneratedSOP(res.sop_path);
-        setQualityCheckCompleted(true); // ✅ Mark quality check as completed
-        setCurrentStep("review");
+        setQualityCheckCompleted(true);
+
+        // Show success toast
+        toast({
+          title: "Quality Check Complete! ✨",
+          description: "Moving to payment step...",
+        });
+
+        // Auto-navigate to payment after a brief delay
+        setTimeout(() => {
+          setCurrentStep("payment");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }, 1500);
       } else {
         console.error("Failed to generate final SOP:", res);
+        toast({
+          title: "Error",
+          description: "Failed to process improvements. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error("Error submitting improvements:", err);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing improvements.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false); // Hide loader
+      setLoading(false);
     }
   };
 
@@ -430,7 +498,7 @@ export default function SOPGenerator() {
           { label: "Country", value: formData.country },
           { label: "University", value: formData.university },
           { label: "Course", value: formData.course },
-        ]
+        ],
       },
       {
         title: "Resume",
@@ -440,8 +508,13 @@ export default function SOPGenerator() {
         borderColor: "border-green-200",
         editStep: "resume" as Step,
         content: [
-          { label: "File", value: formData.resume ? formData.resume.name : "No resume uploaded" }
-        ]
+          {
+            label: "File",
+            value: formData.resume
+              ? formData.resume.name
+              : "No resume uploaded",
+          },
+        ],
       },
       {
         title: "Questionnaire Responses",
@@ -450,26 +523,38 @@ export default function SOPGenerator() {
         bgColor: "from-purple-50 to-pink-50",
         borderColor: "border-purple-200",
         editStep: "questions" as Step,
-        content: formData.answers ? Object.entries(formData.answers).map(([key, value]) => ({
-          label: key,
-          value: typeof value === 'string' ? (value.length > 100 ? value.substring(0, 100) + '...' : value) : 'Not provided'
-        })) : [{ label: "Responses", value: "No responses available" }]
+        content: formData.answers
+          ? Object.entries(formData.answers).map(([key, value]) => ({
+              label: key,
+              value:
+                typeof value === "string"
+                  ? value.length > 100
+                    ? value.substring(0, 100) + "..."
+                    : value
+                  : "Not provided",
+            }))
+          : [{ label: "Responses", value: "No responses available" }],
       },
-      {
-        title: "Quality Assessment",
-        icon: Sparkles,
-        color: "from-orange-500 to-red-600",
-        bgColor: "from-orange-50 to-red-50",
-        borderColor: "border-orange-200",
-        editStep: "quality_check" as Step,
-        content: [
-          { label: "Quality Score", value: qualityScore ? `${qualityScore}/100` : "Assessment completed" }
-        ]
-      }
+      // {
+      //   title: "Quality Assessment",
+      //   icon: Sparkles,
+      //   color: "from-orange-500 to-red-600",
+      //   bgColor: "from-orange-50 to-red-50",
+      //   borderColor: "border-orange-200",
+      //   editStep: "quality_check" as Step,
+      //   content: [
+      //     {
+      //       label: "Quality Score",
+      //       value: qualityScore
+      //         ? `${qualityScore}/100`
+      //         : "Assessment completed",
+      //     },
+      //   ],
+      // },
     ];
 
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -485,8 +570,12 @@ export default function SOPGenerator() {
           <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
             <Check className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Review Your Application</h2>
-          <p className="text-gray-600">Please review all information before proceeding to payment</p>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            Review Your Application
+          </h2>
+          <p className="text-gray-600">
+            Please review all information before proceeding to payment
+          </p>
         </motion.div>
 
         {/* Review Sections */}
@@ -504,10 +593,14 @@ export default function SOPGenerator() {
                 {/* Section Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <div className={`w-10 h-10 bg-gradient-to-r ${section.color} rounded-full flex items-center justify-center mr-3 shadow-md`}>
+                    <div
+                      className={`w-10 h-10 bg-gradient-to-r ${section.color} rounded-full flex items-center justify-center mr-3 shadow-md`}
+                    >
                       <IconComponent className="h-5 w-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">{section.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {section.title}
+                    </h3>
                   </div>
                   <Button
                     variant="outline"
@@ -557,26 +650,39 @@ export default function SOPGenerator() {
             <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3">
               <Check className="h-5 w-5 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Application Summary</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Application Summary
+            </h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             {[
-              { label: "Personal Info", completed: !!(formData.name && formData.email && formData.phone) },
+              {
+                label: "Personal Info",
+                completed: !!(
+                  formData.name &&
+                  formData.email &&
+                  formData.phone
+                ),
+              },
               { label: "Resume", completed: !!formData.resume },
               { label: "Questionnaire", completed: !!formData.answers },
-              { label: "Quality Check", completed: !!qualityScore }
+              { label: "Quality Check", completed: !!qualityScore },
             ].map((item, index) => (
               <div key={index} className="bg-white/70 rounded-xl p-3">
-                <div className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                  item.completed ? "bg-green-500" : "bg-gray-300"
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                    item.completed ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                >
                   {item.completed ? (
                     <Check className="h-4 w-4 text-white" />
                   ) : (
                     <span className="text-white text-sm">!</span>
                   )}
                 </div>
-                <p className="text-xs font-medium text-gray-700">{item.label}</p>
+                <p className="text-xs font-medium text-gray-700">
+                  {item.label}
+                </p>
               </div>
             ))}
           </div>
@@ -595,7 +701,7 @@ export default function SOPGenerator() {
             size="lg"
           >
             <Check className="h-5 w-5 mr-2" />
-            Confirm & Proceed to Payment
+            Confirm & Proceed to Quality Check
           </Button>
         </motion.div>
       </motion.div>
@@ -779,8 +885,8 @@ export default function SOPGenerator() {
     university: "Choose Your Destination 🎓",
     resume: "Upload Your Resume 📄",
     questions: "Tell Us About Yourself ✨",
-    quality_check: "Additional Questions ❓",
     review: "Review your Application ❓",
+    quality_check: "Additional Questions ❓",
     payment: "Secure Payment 💳",
     result: "Thank You 📚",
   };
@@ -800,16 +906,15 @@ export default function SOPGenerator() {
       case "resume":
         return formData.resume !== null;
       case "questions":
-        // This should be handled by the questionnaire component completion
-        return sopId !== null; // If sopId exists, questionnaire is complete
-      case "quality_check":
-        return qualityCheckCompleted; // Use the new state variable
+        return sopId !== null; // SOP submitted successfully
       case "review":
-        return reviewCompleted;
+        return reviewCompleted; // ✅ Review must be confirmed
+      case "quality_check":
+        return qualityCheckCompleted; // Quality check must be completed
       case "payment":
         return paymentCompleted;
       case "result":
-        return paymentCompleted; // Only complete when payment is done
+        return paymentCompleted;
       default:
         return false;
     }
@@ -822,8 +927,8 @@ export default function SOPGenerator() {
     { key: "university", label: "Personal Info.", index: 1 },
     { key: "resume", label: "Resume", index: 2 },
     { key: "questions", label: "Questionnaire", index: 3 },
-    { key: "quality_check", label: "Quality Check", index: 4 },
-    { key: "review", label: "Review", index: 5 }, // <- fix
+    { key: "review", label: "Review", index: 4 }, // <- fix
+    { key: "quality_check", label: "Quality Check", index: 5 },
     { key: "payment", label: "Payment", index: 6 },
     { key: "result", label: "SOP", index: 7 },
   ];
@@ -850,7 +955,10 @@ export default function SOPGenerator() {
                 <AlertDialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   📋 Important Guidelines
                 </AlertDialogTitle>
-                <p className="text-sm sm:text-base text-gray-600 mt-2">Please read these instructions carefully to ensure the best SOP quality</p>
+                <p className="text-sm sm:text-base text-gray-600 mt-2">
+                  Please read these instructions carefully to ensure the best
+                  SOP quality
+                </p>
               </AlertDialogHeader>
 
               <AlertDialogDescription asChild>
@@ -874,13 +982,16 @@ export default function SOPGenerator() {
                         "Avoid one-word or generic answers — the more detail, the better",
                         "Be honest and authentic while describing your experiences",
                         "Use correct grammar and spelling for best results",
-                        "Review your answers carefully before final submission"
+                        "Review your answers carefully before final submission",
                       ].map((item, index) => (
                         <motion.li
                           key={index}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
+                          transition={{
+                            delay: 0.4 + index * 0.1,
+                            duration: 0.3,
+                          }}
                           className="flex items-start"
                         >
                           <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
@@ -898,17 +1009,20 @@ export default function SOPGenerator() {
                   >
                     <div className="flex items-start">
                       <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <span className="text-red-600 font-bold text-sm">!</span>
+                        <span className="text-red-600 font-bold text-sm">
+                          !
+                        </span>
                       </div>
                       <p className="text-sm font-medium text-red-700">
-                        Your Statement of Purpose will be generated entirely based on your inputs by our SOP Experts. 
-                        Please provide complete, accurate, and meaningful responses.
+                        Your Statement of Purpose will be generated entirely
+                        based on your inputs by our SOP Experts. Please provide
+                        complete, accurate, and meaningful responses.
                       </p>
                     </div>
                   </motion.div>
                 </motion.div>
               </AlertDialogDescription>
-              
+
               {/* Consent Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -919,7 +1033,8 @@ export default function SOPGenerator() {
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
                   <p className="text-sm text-gray-700 mb-4 flex items-center">
                     <Check className="h-4 w-4 text-green-600 mr-2" />
-                    Provide genuine and thoughtful responses that accurately reflect your experiences and aspirations.
+                    Provide genuine and thoughtful responses that accurately
+                    reflect your experiences and aspirations.
                   </p>
                   <motion.div
                     whileHover={{ scale: 1.02 }}
@@ -927,11 +1042,13 @@ export default function SOPGenerator() {
                     className="flex items-center space-x-3 cursor-pointer"
                     onClick={() => setAgreed(!agreed)}
                   >
-                    <div className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
-                      agreed 
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-500' 
-                        : 'border-gray-300 bg-white hover:border-green-400'
-                    }`}>
+                    <div
+                      className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
+                        agreed
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500 border-green-500"
+                          : "border-gray-300 bg-white hover:border-green-400"
+                      }`}
+                    >
                       {agreed && (
                         <motion.div
                           initial={{ scale: 0, opacity: 0 }}
@@ -974,7 +1091,9 @@ export default function SOPGenerator() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Email</p>
-                        <p className="text-xs sm:text-sm font-medium text-gray-700 break-all">connect@globalmindsindia.com</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-700 break-all">
+                          connect@globalmindsindia.com
+                        </p>
                       </div>
                     </motion.a>
                     <motion.a
@@ -988,7 +1107,9 @@ export default function SOPGenerator() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Phone</p>
-                        <p className="text-sm font-medium text-gray-700">7357446655</p>
+                        <p className="text-sm font-medium text-gray-700">
+                          7357446655
+                        </p>
                       </div>
                     </motion.a>
                   </div>
@@ -1007,8 +1128,8 @@ export default function SOPGenerator() {
                     disabled={!agreed}
                     className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
                       agreed
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     }`}
                   >
                     {agreed ? (
@@ -1021,7 +1142,7 @@ export default function SOPGenerator() {
                         Let's Get Started!
                       </motion.span>
                     ) : (
-                      'Please agree to continue'
+                      "Please agree to continue"
                     )}
                   </AlertDialogAction>
                 </motion.div>
@@ -1044,14 +1165,14 @@ export default function SOPGenerator() {
         </>
       )}
 
-      <div 
+      <div
         className="min-h-screen bg-gradient-soft py-4 sm:py-6 md:py-12 px-4 sm:px-6 relative"
         style={{
           backgroundImage: `url(${SOPBackgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundAttachment: "fixed",
         }}
       >
         {/* Background overlay for better readability */}
@@ -1077,7 +1198,9 @@ export default function SOPGenerator() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <Home className="h-5 w-5 mr-3 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
-                    <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors duration-300">Back to Home</span>
+                    <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors duration-300">
+                      Back to Home
+                    </span>
                     <motion.div
                       className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
                       initial={{ x: -10 }}
@@ -1105,7 +1228,9 @@ export default function SOPGenerator() {
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <Home className="h-5 w-5 mr-3 text-orange-600 group-hover:text-red-600 transition-colors duration-300" />
-                        <span className="font-medium text-orange-700 group-hover:text-red-700 transition-colors duration-300">Back to Home</span>
+                        <span className="font-medium text-orange-700 group-hover:text-red-700 transition-colors duration-300">
+                          Back to Home
+                        </span>
                         <motion.div
                           className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
                           initial={{ x: -10 }}
@@ -1122,18 +1247,18 @@ export default function SOPGenerator() {
                           <Home className="h-8 w-8 text-white" />
                         </div>
                       </div>
-                      
+
                       <AlertDialogHeader className="text-center">
                         <AlertDialogTitle className="text-xl font-bold text-gray-800 mb-2">
                           ⚠️ Application in Progress
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-600">
-                          You have unsaved progress in your SOP application. Are you
-                          sure you want to go back to the home page? Your current
-                          progress will be lost.
+                          You have unsaved progress in your SOP application. Are
+                          you sure you want to go back to the home page? Your
+                          current progress will be lost.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      
+
                       {/* Contact Section */}
                       <div className="my-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
                         <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-center">
@@ -1150,7 +1275,9 @@ export default function SOPGenerator() {
                             </div>
                             <div>
                               <p className="text-xs text-gray-500">Email</p>
-                              <p className="text-sm font-medium text-gray-700 break-all">connect@globalmindsindia.com</p>
+                              <p className="text-sm font-medium text-gray-700 break-all">
+                                connect@globalmindsindia.com
+                              </p>
                             </div>
                           </a>
                           <a
@@ -1162,12 +1289,14 @@ export default function SOPGenerator() {
                             </div>
                             <div>
                               <p className="text-xs text-gray-500">Phone</p>
-                              <p className="text-sm font-medium text-gray-700">7353446655</p>
+                              <p className="text-sm font-medium text-gray-700">
+                                7353446655
+                              </p>
                             </div>
                           </a>
                         </div>
                       </div>
-                      
+
                       <AlertDialogFooter className="flex-col sm:flex-row gap-3">
                         <AlertDialogCancel className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 border-0 font-medium transition-all duration-200 hover:scale-105">
                           Continue Application
@@ -1187,7 +1316,7 @@ export default function SOPGenerator() {
             </div>
 
             {/* Enhanced Progress Steps */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -1198,11 +1327,16 @@ export default function SOPGenerator() {
                   {progressSteps.map((step, index) => {
                     const isActive = currentStep === step.key;
                     const isCompleted = isStepComplete(step.key as Step);
-                    const isPast = progressSteps.findIndex((s) => s.key === currentStep) > index;
-                    
+                    const isPast =
+                      progressSteps.findIndex((s) => s.key === currentStep) >
+                      index;
+
                     return (
-                      <div key={step.key} className="flex items-start flex-1 relative">
-                        <motion.div 
+                      <div
+                        key={step.key}
+                        className="flex items-start flex-1 relative"
+                      >
+                        <motion.div
                           className="flex flex-col items-center w-full"
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
@@ -1241,7 +1375,7 @@ export default function SOPGenerator() {
                           </motion.div>
 
                           {/* Step Label */}
-                          <motion.div 
+                          <motion.div
                             className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${
                               isActive
                                 ? "text-blue-600"
@@ -1263,7 +1397,10 @@ export default function SOPGenerator() {
                             className="absolute top-3 sm:top-4 md:top-5 left-full w-full flex items-center justify-start z-0 -ml-3 sm:-ml-4 md:-ml-5"
                             initial={{ scaleX: 0 }}
                             animate={{ scaleX: 1 }}
-                            transition={{ delay: index * 0.1 + 0.3, duration: 0.4 }}
+                            transition={{
+                              delay: index * 0.1 + 0.3,
+                              duration: 0.4,
+                            }}
                           >
                             <div className="w-6 sm:w-8 md:w-10 h-0.5 sm:h-1 bg-gray-200 rounded-full" />
                             <motion.div
@@ -1273,7 +1410,7 @@ export default function SOPGenerator() {
                                   : "bg-gray-200 w-0"
                               }`}
                               animate={{
-                                width: isCompleted ? "100%" : "0%"
+                                width: isCompleted ? "100%" : "0%",
                               }}
                               transition={{ duration: 0.6, delay: 0.2 }}
                             />
@@ -1308,13 +1445,36 @@ export default function SOPGenerator() {
                       <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-3">
                         <FileText className="h-5 w-5 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800">Personal Information</h3>
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Personal Information
+                      </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {[
-                        { id: "name", label: "Full Name", type: "text", placeholder: "Enter your full name", value: formData.name, key: "name" },
-                        { id: "email", label: "Email Address", type: "email", placeholder: "Enter your email address", value: formData.email, key: "email" },
-                        { id: "phone", label: "Phone Number", type: "tel", placeholder: "Enter your phone number", value: formData.phone, key: "phone" }
+                        {
+                          id: "name",
+                          label: "Full Name",
+                          type: "text",
+                          placeholder: "Enter your full name",
+                          value: formData.name,
+                          key: "name",
+                        },
+                        {
+                          id: "email",
+                          label: "Email Address",
+                          type: "email",
+                          placeholder: "Enter your email address",
+                          value: formData.email,
+                          key: "email",
+                        },
+                        {
+                          id: "phone",
+                          label: "Phone Number",
+                          type: "tel",
+                          placeholder: "Enter your phone number",
+                          value: formData.phone,
+                          key: "phone",
+                        },
                       ].map((field, index) => (
                         <motion.div
                           key={field.id}
@@ -1323,15 +1483,24 @@ export default function SOPGenerator() {
                           transition={{ delay: index * 0.1, duration: 0.3 }}
                           className="space-y-2"
                         >
-                          <Label htmlFor={field.id} className="text-sm font-medium text-gray-700">
-                            {field.label} <span className="text-red-500">*</span>
+                          <Label
+                            htmlFor={field.id}
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            {field.label}{" "}
+                            <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id={field.id}
                             type={field.type}
                             placeholder={field.placeholder}
                             value={field.value}
-                            onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                [field.key]: e.target.value,
+                              })
+                            }
                             className="rounded-xl border-2 border-gray-200 focus:border-blue-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg"
                             required
                           />
@@ -1345,7 +1514,9 @@ export default function SOPGenerator() {
                       <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
                         <Sparkles className="h-5 w-5 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800">Academic Details</h3>
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Academic Details
+                      </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <motion.div
@@ -1354,19 +1525,31 @@ export default function SOPGenerator() {
                         transition={{ delay: 0.4, duration: 0.3 }}
                         className="space-y-2"
                       >
-                        <Label htmlFor="country" className="text-sm font-medium text-gray-700">
+                        <Label
+                          htmlFor="country"
+                          className="text-sm font-medium text-gray-700"
+                        >
                           Country <span className="text-red-500">*</span>
                         </Label>
                         <Select
                           value={formData.country}
-                          onValueChange={(value) => setFormData({ ...formData, country: value, university: "", course: "" })}
+                          onValueChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              country: value,
+                              university: "",
+                              course: "",
+                            })
+                          }
                         >
                           <SelectTrigger className="rounded-xl border-2 border-gray-200 focus:border-purple-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md">
                             <SelectValue placeholder="Select a country" />
                           </SelectTrigger>
                           <SelectContent>
                             {countries.map((country) => (
-                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -1378,15 +1561,26 @@ export default function SOPGenerator() {
                         transition={{ delay: 0.5, duration: 0.3 }}
                         className="space-y-2"
                       >
-                        <Label htmlFor="university" className="text-sm font-medium text-gray-700">
+                        <Label
+                          htmlFor="university"
+                          className="text-sm font-medium text-gray-700"
+                        >
                           University
                         </Label>
                         <div className="relative">
                           <CreatableCombobox
                             disabled={!formData.country}
                             value={formData.university}
-                            onChange={(val) => setFormData({ ...formData, university: val })}
-                            options={formData.country ? universityData[formData.country as keyof typeof universityData].universities : []}
+                            onChange={(val) =>
+                              setFormData({ ...formData, university: val })
+                            }
+                            options={
+                              formData.country
+                                ? universityData[
+                                    formData.country as keyof typeof universityData
+                                  ].universities
+                                : []
+                            }
                             placeholder="Search or enter university"
                           />
                         </div>
@@ -1398,14 +1592,25 @@ export default function SOPGenerator() {
                         transition={{ delay: 0.6, duration: 0.3 }}
                         className="space-y-2 md:col-span-2"
                       >
-                        <Label htmlFor="course" className="text-sm font-medium text-gray-700">
+                        <Label
+                          htmlFor="course"
+                          className="text-sm font-medium text-gray-700"
+                        >
                           Course/Program
                         </Label>
                         <CreatableCombobox
                           disabled={!formData.country}
                           value={formData.course}
-                          onChange={(val) => setFormData({ ...formData, course: val })}
-                          options={formData.country ? universityData[formData.country as keyof typeof universityData].courses : []}
+                          onChange={(val) =>
+                            setFormData({ ...formData, course: val })
+                          }
+                          options={
+                            formData.country
+                              ? universityData[
+                                  formData.country as keyof typeof universityData
+                                ].courses
+                              : []
+                          }
                           placeholder="Search or enter course"
                         />
                       </motion.div>
@@ -1431,8 +1636,12 @@ export default function SOPGenerator() {
                       <div className="mx-auto w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
                         <Upload className="h-10 w-10 text-white" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800 mb-2">Upload Your Resume</h3>
-                      <p className="text-gray-600 mb-6">Share your professional background with us</p>
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                        Upload Your Resume
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Share your professional background with us
+                      </p>
                     </motion.div>
 
                     <motion.div
@@ -1440,11 +1649,11 @@ export default function SOPGenerator() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4, duration: 0.4 }}
                       className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
-                        formData.resume 
-                          ? 'border-green-400 bg-green-50/50' 
+                        formData.resume
+                          ? "border-green-400 bg-green-50/50"
                           : isDragOver
-                          ? 'border-blue-500 bg-blue-50/50 scale-105'
-                          : 'border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30'
+                          ? "border-blue-500 bg-blue-50/50 scale-105"
+                          : "border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30"
                       }`}
                       onDragOver={handleDragOver}
                       onDragEnter={handleDragEnter}
@@ -1463,20 +1672,29 @@ export default function SOPGenerator() {
                               animate={isDragOver ? { scale: [1, 1.1, 1] } : {}}
                               transition={{ duration: 0.3 }}
                             >
-                              <Upload className={`mx-auto h-16 w-16 transition-colors duration-300 ${
-                                isDragOver ? 'text-blue-500' : 'text-gray-400'
-                              }`} />
+                              <Upload
+                                className={`mx-auto h-16 w-16 transition-colors duration-300 ${
+                                  isDragOver ? "text-blue-500" : "text-gray-400"
+                                }`}
+                              />
                             </motion.div>
                             <div>
-                              <p className={`text-lg font-medium transition-colors duration-300 ${
-                                isDragOver ? 'text-blue-700' : 'text-gray-700'
-                              }`}>
-                                {isDragOver ? 'Drop your resume here!' : 'Drag & drop your resume here'}
+                              <p
+                                className={`text-lg font-medium transition-colors duration-300 ${
+                                  isDragOver ? "text-blue-700" : "text-gray-700"
+                                }`}
+                              >
+                                {isDragOver
+                                  ? "Drop your resume here!"
+                                  : "Drag & drop your resume here"}
                               </p>
-                              <p className="text-sm text-gray-500 mt-1">or click to browse • PDF, DOC, or DOCX up to 10MB</p>
+                              <p className="text-sm text-gray-500 mt-1">
+                                or click to browse • PDF, DOC, or DOCX up to
+                                10MB
+                              </p>
                             </div>
                           </div>
-                          
+
                           {/* Animated drag indicator */}
                           {isDragOver && (
                             <motion.div
@@ -1493,7 +1711,7 @@ export default function SOPGenerator() {
                               </motion.div>
                             </motion.div>
                           )}
-                          
+
                           <input
                             type="file"
                             accept=".pdf,.doc,.docx"
@@ -1501,12 +1719,14 @@ export default function SOPGenerator() {
                             className="hidden"
                             id="resume-upload"
                           />
-                          
+
                           <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-center">
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                document.getElementById("resume-upload")?.click();
+                                document
+                                  .getElementById("resume-upload")
+                                  ?.click();
                               }}
                               className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
                             >
@@ -1527,8 +1747,12 @@ export default function SOPGenerator() {
                             <Check className="h-8 w-8 text-green-600" />
                           </div>
                           <div>
-                            <p className="text-lg font-semibold text-green-700">Resume Uploaded Successfully!</p>
-                            <p className="text-sm text-green-600 mt-1">{formData.resume.name}</p>
+                            <p className="text-lg font-semibold text-green-700">
+                              Resume Uploaded Successfully!
+                            </p>
+                            <p className="text-sm text-green-600 mt-1">
+                              {formData.resume.name}
+                            </p>
                           </div>
                           <Button
                             onClick={(e) => {
@@ -1559,14 +1783,20 @@ export default function SOPGenerator() {
                     >
                       <div className="flex items-start space-x-3">
                         <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-blue-600 text-sm font-bold">💡</span>
+                          <span className="text-blue-600 text-sm font-bold">
+                            💡
+                          </span>
                         </div>
                         <div className="text-sm text-blue-700">
-                          <p className="font-medium mb-1">Tips for best results:</p>
+                          <p className="font-medium mb-1">
+                            Tips for best results:
+                          </p>
                           <ul className="space-y-1 text-blue-600">
                             <li>• Use a recent, updated resume</li>
                             <li>• Ensure all sections are clearly formatted</li>
-                            <li>• Include relevant work experience and skills</li>
+                            <li>
+                              • Include relevant work experience and skills
+                            </li>
                           </ul>
                         </div>
                       </div>
@@ -1601,12 +1831,17 @@ export default function SOPGenerator() {
                       <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center mr-3">
                         <Sparkles className="h-6 w-6 text-white" />
                       </div>
-                      <h2 className="text-2xl font-bold text-gray-800">Quality Assessment</h2>
+                      <h2 className="text-2xl font-bold text-gray-800">
+                        Quality Assessment
+                      </h2>
                     </div>
-                    
+
                     <div className="flex items-center justify-center mb-6">
                       <div className="relative w-32 h-32">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <svg
+                          className="w-full h-full transform -rotate-90"
+                          viewBox="0 0 100 100"
+                        >
                           <circle
                             className="text-gray-200"
                             strokeWidth="8"
@@ -1618,11 +1853,16 @@ export default function SOPGenerator() {
                           />
                           <motion.circle
                             className={`${
-                              qualityScore && qualityScore >= 80 ? 'text-green-500' :
-                              qualityScore && qualityScore >= 60 ? 'text-yellow-500' : 'text-red-500'
+                              qualityScore && qualityScore >= 80
+                                ? "text-green-500"
+                                : qualityScore && qualityScore >= 60
+                                ? "text-yellow-500"
+                                : "text-red-500"
                             }`}
                             strokeWidth="8"
-                            strokeDasharray={`${qualityScore ? qualityScore * 2.51 : 0}, 251.2`}
+                            strokeDasharray={`${
+                              qualityScore ? qualityScore * 2.51 : 0
+                            }, 251.2`}
                             strokeDashoffset="0"
                             strokeLinecap="round"
                             stroke="currentColor"
@@ -1631,30 +1871,63 @@ export default function SOPGenerator() {
                             cx="50"
                             cy="50"
                             initial={{ strokeDasharray: "0, 251.2" }}
-                            animate={{ strokeDasharray: `${qualityScore ? qualityScore * 2.51 : 0}, 251.2` }}
+                            animate={{
+                              strokeDasharray: `${
+                                qualityScore ? qualityScore * 2.51 : 0
+                              }, 251.2`,
+                            }}
                             transition={{ duration: 1, delay: 0.5 }}
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-3xl font-bold text-gray-800">{qualityScore}</div>
+                            <div className="text-3xl font-bold text-gray-800">
+                              {qualityScore}
+                            </div>
                             <div className="text-sm text-gray-600">/ 100</div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
-                    <p className="text-lg font-medium text-gray-700 mb-2">Your Response Quality Score</p>
-                    <p className="text-sm text-gray-600">Let's enhance your responses for a stronger SOP</p>
+
+                    <p className="text-lg font-medium text-gray-700 mb-2">
+                      Your Response Quality Score
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Let's enhance your responses for a stronger SOP
+                    </p>
+                  </motion.div>
+
+                  {/* Info Banner - Add this to indicate user is locked in quality check */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.3 }}
+                    className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start space-x-3"
+                  >
+                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">ℹ</span>
+                    </div>
+                    <p className="text-sm text-blue-900">
+                      Please answer all the enhancement questions below to
+                      improve your SOP quality and proceed to payment. You
+                      cannot navigate away from this step until all answers are
+                      submitted.
+                    </p>
                   </motion.div>
 
                   {/* Improvement Questions */}
                   <div className="space-y-6">
                     <div className="text-center">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Enhancement Questions</h3>
-                      <p className="text-gray-600">Please provide detailed answers to improve your SOP quality</p>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                        Enhancement Questions
+                      </h3>
+                      <p className="text-gray-600">
+                        Please provide detailed answers to improve your SOP
+                        quality
+                      </p>
                     </div>
-                    
+
                     {qualityQuestions.map((q, index) => (
                       <motion.div
                         key={q}
@@ -1665,7 +1938,9 @@ export default function SOPGenerator() {
                       >
                         <div className="flex items-start space-x-4">
                           <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-white font-bold text-sm">{index + 1}</span>
+                            <span className="text-white font-bold text-sm">
+                              {index + 1}
+                            </span>
                           </div>
                           <div className="flex-1 space-y-3">
                             <Label className="text-base font-medium text-gray-800 leading-relaxed">
@@ -1673,7 +1948,12 @@ export default function SOPGenerator() {
                             </Label>
                             <Textarea
                               value={improvementAnswers[q] || ""}
-                              onChange={(e) => setImprovementAnswers((m) => ({ ...m, [q]: e.target.value }))}
+                              onChange={(e) =>
+                                setImprovementAnswers((m) => ({
+                                  ...m,
+                                  [q]: e.target.value,
+                                }))
+                              }
                               className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                               rows={4}
                               placeholder="Share your detailed thoughts and experiences here..."
@@ -1693,7 +1973,11 @@ export default function SOPGenerator() {
                   >
                     <Button
                       onClick={handleSubmitImprovements}
-                      disabled={!Object.values(improvementAnswers).every((v) => v?.trim()) || loading}
+                      disabled={
+                        !Object.values(improvementAnswers).every((v) =>
+                          v?.trim()
+                        ) || loading
+                      }
                       className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {loading ? (
@@ -1719,12 +2003,12 @@ export default function SOPGenerator() {
                     setCurrentStep(step);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  onConfirm={() => setCurrentStep("payment")}
+                  onConfirm={handleReviewConfirm} // ✅ Pass the new function here
                 />
               )}
 
               {currentStep === "payment" && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
@@ -1756,7 +2040,7 @@ export default function SOPGenerator() {
                     className="relative max-w-2xl mx-auto"
                   >
                     {/* Most Popular Badge */}
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5, duration: 0.3 }}
@@ -1774,18 +2058,26 @@ export default function SOPGenerator() {
                           <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-3">
                             <Sparkles className="h-6 w-6 text-white" />
                           </div>
-                          <h3 className="text-2xl font-bold text-gray-800">{packages.expert.name}</h3>
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {packages.expert.name}
+                          </h3>
                         </div>
-                        
+
                         {/* Pricing */}
                         <div className="flex items-center justify-center space-x-3 mb-6">
                           {couponApplied && (
                             <>
-                              <span className="text-2xl font-bold text-gray-400 line-through">₹{originalPrice.toLocaleString()}</span>
+                              <span className="text-2xl font-bold text-gray-400 line-through">
+                                ₹{originalPrice.toLocaleString()}
+                              </span>
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+                                transition={{
+                                  delay: 0.6,
+                                  type: "spring",
+                                  stiffness: 200,
+                                }}
                                 className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold"
                               >
                                 10% OFF
@@ -1800,20 +2092,27 @@ export default function SOPGenerator() {
 
                       {/* Features */}
                       <div className="mb-8">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">What's Included</h4>
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                          What's Included
+                        </h4>
                         <div className="space-y-4">
                           {packages.expert.features.map((feature, index) => (
                             <motion.div
                               key={index}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.7 + index * 0.1, duration: 0.3 }}
+                              transition={{
+                                delay: 0.7 + index * 0.1,
+                                duration: 0.3,
+                              }}
                               className="flex items-start bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm"
                             >
                               <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
                                 <Check className="h-4 w-4 text-white" />
                               </div>
-                              <span className="text-gray-700 font-medium">{feature}</span>
+                              <span className="text-gray-700 font-medium">
+                                {feature}
+                              </span>
                             </motion.div>
                           ))}
                         </div>
@@ -1826,8 +2125,10 @@ export default function SOPGenerator() {
                         transition={{ delay: 1.0, duration: 0.4 }}
                         className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-200 mb-6"
                       >
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">Have a Coupon Code?</h4>
-                        
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                          Have a Coupon Code?
+                        </h4>
+
                         {!couponApplied ? (
                           <div className="space-y-4">
                             <div className="flex gap-2">
@@ -1849,9 +2150,11 @@ export default function SOPGenerator() {
                               </Button>
                             </div>
                             {couponError && (
-                              <p className="text-red-500 text-sm text-center">{couponError}</p>
+                              <p className="text-red-500 text-sm text-center">
+                                {couponError}
+                              </p>
                             )}
-                            <div 
+                            <div
                               className="text-center p-3 bg-white/70 rounded-xl border border-yellow-300 cursor-pointer hover:bg-yellow-50 transition-colors duration-200"
                               onClick={() => {
                                 setCouponCode("GMI10");
@@ -1859,20 +2162,29 @@ export default function SOPGenerator() {
                                 setCouponApplied(true);
                                 toast({
                                   title: "Coupon Applied! 🎉",
-                                  description: "10% discount has been applied to your order.",
+                                  description:
+                                    "10% discount has been applied to your order.",
                                 });
                               }}
                             >
-                              <p className="text-sm text-gray-600 mb-1">Try our coupon:</p>
-                              <p className="text-lg font-bold text-yellow-700 hover:text-yellow-800">GMI10</p>
-                              <p className="text-xs text-gray-500">Click to apply 10% discount</p>
+                              <p className="text-sm text-gray-600 mb-1">
+                                Try our coupon:
+                              </p>
+                              <p className="text-lg font-bold text-yellow-700 hover:text-yellow-800">
+                                GMI10
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Click to apply 10% discount
+                              </p>
                             </div>
                           </div>
                         ) : (
                           <div className="text-center space-y-3">
                             <div className="flex items-center justify-center space-x-2">
                               <Check className="h-5 w-5 text-green-600" />
-                              <span className="text-green-700 font-semibold">Coupon "GMI10" Applied!</span>
+                              <span className="text-green-700 font-semibold">
+                                Coupon "GMI10" Applied!
+                              </span>
                             </div>
                             <Button
                               onClick={handleCouponRemove}
@@ -1895,13 +2207,24 @@ export default function SOPGenerator() {
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm text-gray-600">Total Amount</p>
-                            <p className="text-xs text-gray-500">(Inclusive of GST)</p>
+                            <p className="text-sm text-gray-600">
+                              Total Amount
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              (Inclusive of GST)
+                            </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-blue-900">₹{discountedPrice.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-blue-900">
+                              ₹{discountedPrice.toLocaleString()}
+                            </p>
                             {couponApplied && (
-                              <p className="text-sm text-green-600 font-medium">You save ₹{(originalPrice - discountedPrice).toLocaleString()}</p>
+                              <p className="text-sm text-green-600 font-medium">
+                                You save ₹
+                                {(
+                                  originalPrice - discountedPrice
+                                ).toLocaleString()}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -1941,7 +2264,8 @@ export default function SOPGenerator() {
                             ) : (
                               <>
                                 <CreditCard className="mr-3 h-6 w-6" />
-                                Pay ₹{discountedPrice.toLocaleString()} & Generate My SOP
+                                Pay ₹{discountedPrice.toLocaleString()} &
+                                Generate My SOP
                               </>
                             )}
                           </Button>
@@ -1959,7 +2283,8 @@ export default function SOPGenerator() {
                               Payment Successful! 🎉
                             </h3>
                             <p className="text-green-600">
-                              Your SOP generation has started. You'll receive it within 24-48 hours.
+                              Your SOP generation has started. You'll receive it
+                              within 24-48 hours.
                             </p>
                           </motion.div>
                         )}
@@ -1975,9 +2300,21 @@ export default function SOPGenerator() {
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
                   >
                     {[
-                      { icon: Shield, title: "Secure Payment", desc: "Bank-level security" },
-                      { icon: Check, title: "Expert Writers", desc: "Professional SOP crafting" },
-                      { icon: Sparkles, title: "24-48 Hours", desc: "Quick delivery" }
+                      {
+                        icon: Shield,
+                        title: "Secure Payment",
+                        desc: "Bank-level security",
+                      },
+                      {
+                        icon: Check,
+                        title: "Expert Writers",
+                        desc: "Professional SOP crafting",
+                      },
+                      {
+                        icon: Sparkles,
+                        title: "24-48 Hours",
+                        desc: "Quick delivery",
+                      },
                     ].map((item, index) => (
                       <motion.div
                         key={index}
@@ -1989,7 +2326,9 @@ export default function SOPGenerator() {
                         <div className="w-10 h-10 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
                           <item.icon className="h-5 w-5 text-gray-600" />
                         </div>
-                        <h4 className="font-semibold text-gray-800 text-sm">{item.title}</h4>
+                        <h4 className="font-semibold text-gray-800 text-sm">
+                          {item.title}
+                        </h4>
                         <p className="text-xs text-gray-600">{item.desc}</p>
                       </motion.div>
                     ))}
@@ -2056,34 +2395,43 @@ export default function SOPGenerator() {
               )}
 
               {/* ✅ Fixed: Updated Navigation Buttons Logic - Hide during questionnaire */}
-              {currentStep !== "result" && currentStep !== "questions" && (
-                <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 md:pt-8 gap-2 sm:gap-0">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentStep === "university"}
-                    className="rounded-xl w-full sm:w-auto"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Previous
-                  </Button>
-
-                  {/* ✅ Special handling for payment step */}
-                  {currentStep === "payment" ? (
-                    // Don't show Next button on payment step, let payment completion handle navigation
-                    <div></div>
-                  ) : (
+              {currentStep !== "result" &&
+                currentStep !== "questions" &&
+                currentStep !== "quality_check" && (
+                  <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 md:pt-8 gap-2 sm:gap-0">
                     <Button
-                      onClick={handleNext}
-                      disabled={!isStepComplete(currentStep)}
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={currentStep === "university"}
                       className="rounded-xl w-full sm:w-auto"
                     >
-                      Next
-                      <ArrowRight className="h-4 w-4 ml-2" />
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Previous
                     </Button>
-                  )}
-                </div>
-              )}
+
+                    {currentStep === "payment" ? (
+                      <div></div>
+                    ) : (
+                      <Button
+                        onClick={handleNext}
+                        disabled={!isStepComplete(currentStep) || polling}
+                        className="rounded-xl w-full sm:w-auto"
+                      >
+                        {polling ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            Next
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                )}
             </CardContent>
           </Card>
         </div>
@@ -2097,15 +2445,15 @@ export default function SOPGenerator() {
         className="fixed bottom-6 right-6 z-50"
       >
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, -8, 0],
-            rotate: [0, 5, -5, 0]
+            rotate: [0, 5, -5, 0],
           }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity, 
+          transition={{
+            duration: 3,
+            repeat: Infinity,
             ease: "easeInOut",
-            times: [0, 0.5, 1]
+            times: [0, 0.5, 1],
           }}
           whileHover={{ scale: 1.1, rotate: 10 }}
           whileTap={{ scale: 0.95 }}
@@ -2122,19 +2470,19 @@ export default function SOPGenerator() {
                 background: [
                   "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)",
                   "linear-gradient(45deg, #8b5cf6, #ec4899, #06b6d4)",
-                  "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)"
-                ]
+                  "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)",
+                ],
               }}
               transition={{ duration: 3, repeat: Infinity }}
             />
-            
+
             {/* Pulse effect */}
             <motion.div
               className="absolute inset-0 rounded-full bg-white/20"
               animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            
+
             {/* Content */}
             <div className="relative flex items-center space-x-2">
               <motion.div
@@ -2145,30 +2493,30 @@ export default function SOPGenerator() {
               </motion.div>
               <span className="font-semibold">Help</span>
             </div>
-            
+
             {/* Sparkle effects */}
             <motion.div
               className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full"
-              animate={{ 
+              animate={{
                 scale: [0, 1, 0],
-                rotate: [0, 180, 360]
+                rotate: [0, 180, 360],
               }}
-              transition={{ 
-                duration: 2, 
+              transition={{
+                duration: 2,
                 repeat: Infinity,
-                delay: 0.5
+                delay: 0.5,
               }}
             />
             <motion.div
               className="absolute -bottom-1 -left-1 w-2 h-2 bg-pink-300 rounded-full"
-              animate={{ 
+              animate={{
                 scale: [0, 1, 0],
-                opacity: [0, 1, 0]
+                opacity: [0, 1, 0],
               }}
-              transition={{ 
-                duration: 1.5, 
+              transition={{
+                duration: 1.5,
                 repeat: Infinity,
-                delay: 1
+                delay: 1,
               }}
             />
           </Button>
@@ -2193,35 +2541,39 @@ export default function SOPGenerator() {
                 >
                   <motion.div
                     animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                   >
                     <MessageCircle className="h-8 w-8 text-white" />
                   </motion.div>
-                  
+
                   {/* Floating particles */}
                   <motion.div
                     className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full"
-                    animate={{ 
+                    animate={{
                       y: [-5, 5, -5],
                       x: [-2, 2, -2],
-                      scale: [0.8, 1.2, 0.8]
+                      scale: [0.8, 1.2, 0.8],
                     }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <motion.div
                     className="absolute -bottom-2 -left-2 w-3 h-3 bg-pink-400 rounded-full"
-                    animate={{ 
+                    animate={{
                       y: [5, -5, 5],
-                      scale: [1, 0.7, 1]
+                      scale: [1, 0.7, 1],
                     }}
                     transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
                   />
                 </motion.div>
-                
+
                 <AlertDialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   🎯 Customer Support
                 </AlertDialogTitle>
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
@@ -2239,7 +2591,7 @@ export default function SOPGenerator() {
                   className="space-y-6"
                 >
                   <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-blue-100 shadow-sm">
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
@@ -2247,7 +2599,7 @@ export default function SOPGenerator() {
                     >
                       Need assistance? Our support team is ready to help!
                     </motion.p>
-                    
+
                     <div className="space-y-4">
                       <motion.a
                         href="mailto:connect@globalmindsindia.com"
@@ -2262,8 +2614,12 @@ export default function SOPGenerator() {
                           <Mail className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">Email Support</p>
-                          <p className="text-sm text-blue-600 font-medium break-all">connect@globalmindsindia.com</p>
+                          <p className="text-sm font-semibold text-gray-800">
+                            Email Support
+                          </p>
+                          <p className="text-sm text-blue-600 font-medium break-all">
+                            connect@globalmindsindia.com
+                          </p>
                         </div>
                         <motion.div
                           animate={{ x: [0, 5, 0] }}
@@ -2272,7 +2628,7 @@ export default function SOPGenerator() {
                           <ArrowRight className="h-5 w-5 text-blue-500" />
                         </motion.div>
                       </motion.a>
-                      
+
                       <motion.a
                         href="tel:+917353446655"
                         initial={{ opacity: 0, x: -20 }}
@@ -2286,8 +2642,12 @@ export default function SOPGenerator() {
                           <Phone className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">Phone Support</p>
-                          <p className="text-sm text-green-600 font-medium">+91 7353446655</p>
+                          <p className="text-sm font-semibold text-gray-800">
+                            Phone Support
+                          </p>
+                          <p className="text-sm text-green-600 font-medium">
+                            +91 7353446655
+                          </p>
                         </div>
                         <motion.div
                           animate={{ rotate: [0, 10, -10, 0] }}
@@ -2298,7 +2658,7 @@ export default function SOPGenerator() {
                       </motion.a>
                     </div>
                   </div>
-                  
+
                   {/* Quick Tips */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -2308,10 +2668,12 @@ export default function SOPGenerator() {
                   >
                     <div className="flex items-center mb-3">
                       <Sparkles className="h-5 w-5 text-purple-600 mr-2" />
-                      <h4 className="font-semibold text-purple-800">Quick Tips</h4>
+                      <h4 className="font-semibold text-purple-800">
+                        Quick Tips
+                      </h4>
                     </div>
                     <ul className="space-y-2 text-sm text-purple-700">
-                      <motion.li 
+                      <motion.li
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.9 }}
@@ -2320,7 +2682,7 @@ export default function SOPGenerator() {
                         <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
                         Response time: Within 2-4 hours
                       </motion.li>
-                      <motion.li 
+                      <motion.li
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.0 }}
@@ -2333,7 +2695,7 @@ export default function SOPGenerator() {
                   </motion.div>
                 </motion.div>
               </AlertDialogDescription>
-              
+
               <AlertDialogFooter className="mt-8">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
