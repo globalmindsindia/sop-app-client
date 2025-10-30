@@ -608,12 +608,7 @@ export default function SOPGenerator() {
         content: formData.answers
           ? Object.entries(formData.answers).map(([key, value]) => ({
             label: key,
-            value:
-              typeof value === "string"
-                ? value.length > 100
-                  ? value.substring(0, 100) + "..."
-                  : value
-                : "Not provided",
+            value: typeof value === "string" ? value : "Not provided",
           }))
           : [{ label: "Responses", value: "No responses available" }],
       },

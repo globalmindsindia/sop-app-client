@@ -2,6 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import SOPStep1Video from "@/assets/SOP_Step_1.mov";
+import SOPStep2Video from "@/assets/SOP_Step_1.mov";
+import SOPStep3Video from "@/assets/SOP_Step_1.mov";
+import SOPStep4Video from "@/assets/SOP_Step_1.mov";
+import SOPStep5Video from "@/assets/SOP_Step_1.mov";
+import SOPStep6Video from "@/assets/SOP_Step_1.mov";
+import SOPStep7Video from "@/assets/SOP_Step_1.mov";
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -14,31 +20,28 @@ const steps = [
   },
   {
     label: "2. Resume Upload",
-    video: "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
+    video:  SOPStep2Video,
   },
   {
     label: "3. Questionnaires",
-    video:
-      "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
+    video: SOPStep3Video,
   },
   {
     label: "4. Review & Edit",
-    video: "https://filesamples.com/samples/video/mp4/sample_640x360.mp4",
+    video: SOPStep4Video,
   },
   {
     label: "5. Quality Check",
-    video:
-      "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
+    video: SOPStep5Video,
   },
   {
     label: "6. Payment",
-    video:
-      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    video: SOPStep6Video,
+      
   },
   {
     label: "7. SOP",
-    video:
-      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    video: SOPStep7Video,
   },
 ];
 
@@ -96,6 +99,10 @@ export default function Hero({ onGetStarted }: HeroProps) {
             loop
             muted
             className="w-full rounded-xl shadow-lg border-2 border-gray-200"
+            style={{
+              objectFit: 'cover',
+              objectPosition: '0 -10px'
+            }}
           />
         </div>
       </div>
