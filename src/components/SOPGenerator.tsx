@@ -154,6 +154,9 @@ export default function SOPGenerator() {
     email?: string;
     phone?: string;
   }>({});
+  const [resumeValidated, setResumeValidated] = useState(false);
+  const [resumeValidationError, setResumeValidationError] = useState("");
+  const [isValidatingResume, setIsValidatingResume] = useState(false);
 
   // Validation functions
   const validateName = (name: string): string | null => {
@@ -215,12 +218,43 @@ export default function SOPGenerator() {
     } else if (field === "name") {
       processedValue = value.replace(/\d/g, "");
       error = validateName(processedValue);
+      // Reset resume validation when name changes
+      if (formData.resume) {
+        setResumeValidated(false);
+        setResumeValidationError("");
+      }
     } else if (field === "email") {
       error = validateEmail(value);
     }
 
     setFormData({ ...formData, [field]: processedValue });
     setValidationErrors((prev) => ({ ...prev, [field]: error }));
+  };
+
+  const validateResumeWithName = async () => {
+    if (!formData.name || !formData.resume) return false;
+    
+    setIsValidatingResume(true);
+    setResumeValidationError("");
+    
+    try {
+      const result = await sopService.validateResume(formData.name, formData.resume);
+      
+      if (result.key) {
+        setResumeValidated(true);
+        return true;
+      } else {
+        setResumeValidationError(result.message || "Resume name validation failed. Please ensure the name on your resume matches the name entered in the form.");
+        setResumeValidated(false);
+        return false;
+      }
+    } catch (error: any) {
+      setResumeValidationError("Validation Failure: Te name in resume and the name entered are not matching!!");
+      setResumeValidated(false);
+      return false;
+    } finally {
+      setIsValidatingResume(false);
+    }
   };
 
   useEffect(() => {
@@ -412,8 +446,25 @@ export default function SOPGenerator() {
 
   const universityData = courseData;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const currentIndex = steps.indexOf(currentStep);
+
+    // Resume validation before proceeding to questions
+    if (currentStep === "resume") {
+      if (!formData.name || !formData.resume) {
+        toast({
+          title: "Missing Information",
+          description: "Please ensure both name and resume are provided.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!resumeValidated) {
+        const isValid = await validateResumeWithName();
+        if (!isValid) return;
+      }
+    }
 
     // Prevent navigation if quality check is not completed
     if (currentStep === "review" && !qualityCheckCompleted) {
@@ -454,7 +505,7 @@ export default function SOPGenerator() {
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a PDF, DOC, or DOCX file.",
+        description: "Please upload PDF only.",
         variant: "destructive",
       });
       return;
@@ -470,6 +521,10 @@ export default function SOPGenerator() {
       return;
     }
 
+    // Reset validation when new file is uploaded
+    setResumeValidated(false);
+    setResumeValidationError("");
+    
     setFormData({ ...formData, resume: file });
     toast({
       title: "Resume uploaded! 📄",
@@ -2001,6 +2056,59 @@ export default function SOPGenerator() {
                       )}
                     </motion.div>
 
+                    {/* Resume Validation Status */}
+                    {formData.resume && formData.name && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5, duration: 0.3 }}
+                        className="mt-6"
+                      >
+                        {isValidatingResume && (
+                          <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+                            <div className="flex items-center space-x-3">
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
+                              <p className="text-yellow-700 font-medium">
+                                Validating resume name match...
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!isValidatingResume && resumeValidated && (
+                          <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                            <div className="flex items-center space-x-3">
+                              <Check className="h-5 w-5 text-green-600" />
+                              <p className="text-green-700 font-medium">
+                                Resume validated successfully! Name matches.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!isValidatingResume && resumeValidationError && (
+                          <div className="bg-red-50 rounded-xl p-4 border border-red-200">
+                            <div className="flex items-start space-x-3">
+                              <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-red-600 text-xs font-bold">!</span>
+                              </div>
+                              <div>
+                                <p className="text-red-700 font-medium mb-2">
+                                  Validation Failed
+                                </p>
+                                <p className="text-red-600 text-sm">
+                                  {resumeValidationError}
+                                </p>
+                                <p className="text-red-600 text-sm mt-2">
+                                  Please upload a different resume or correct the name in the form.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -2023,6 +2131,7 @@ export default function SOPGenerator() {
                             <li>
                               • Include relevant work experience and skills
                             </li>
+                            <li>• Make sure the name on your resume matches the name entered above</li>
                           </ul>
                         </div>
                       </div>
@@ -2666,13 +2775,18 @@ export default function SOPGenerator() {
                     ) : (
                       <Button
                         onClick={handleNext}
-                        disabled={!isStepComplete(currentStep) || polling}
+                        disabled={!isStepComplete(currentStep) || polling || isValidatingResume}
                         className="rounded-xl w-full sm:w-auto"
                       >
                         {polling ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                             Loading...
+                          </>
+                        ) : isValidatingResume ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Validating...
                           </>
                         ) : (
                           <>

@@ -2,6 +2,15 @@
 import { getApi } from "@/api/api";
 
 export const sopService = {
+  // Validate resume name match
+  async validateResume(name: string, resume: File) {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("resume", resume);
+    const { data } = await getApi().post("/api/v1/sop/validate_resume", formData);
+    return data as { key: boolean; message?: string };
+  },
+
   // Send FormData with "payload" (JSON string) and "resume" (File)
   async submitSop(appData: FormData) {
     const { data } = await getApi().post("/api/v1/sop/submit", appData);
