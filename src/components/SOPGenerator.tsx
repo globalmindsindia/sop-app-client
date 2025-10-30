@@ -367,7 +367,6 @@ export default function SOPGenerator() {
   }
 
   async function handleReviewConfirm() {
-    setShowConfirmDialog(true);
     if (!sopId) {
       toast({
         title: "Error",
@@ -637,157 +636,190 @@ export default function SOPGenerator() {
     ];
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-5xl mx-auto space-y-8"
-      >
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="text-center mb-8"
-        >
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
-            <Check className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            Review Your Application
-          </h2>
-          <p className="text-gray-600">
-            Please review all information before proceeding to payment
-          </p>
-        </motion.div>
-
-        {/* Review Sections */}
-        <div className="space-y-6">
-          {reviewSections.map((section, index) => {
-            const IconComponent = section.icon;
-            return (
-              <motion.div
-                key={section.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
-                className={`bg-gradient-to-br ${section.bgColor} rounded-2xl p-6 border ${section.borderColor} shadow-sm hover:shadow-md transition-all duration-200`}
-              >
-                {/* Section Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div
-                      className={`w-10 h-10 bg-gradient-to-r ${section.color} rounded-full flex items-center justify-center mr-3 shadow-md`}
-                    >
-                      <IconComponent className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {section.title}
-                    </h3>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEdit(section.editStep)}
-                    className="rounded-xl border-2 hover:scale-105 transition-all duration-200"
-                  >
-                    <FileText className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                </div>
-
-                {/* Section Content */}
-                <div className="space-y-3">
-                  {section.content.map((item, itemIndex) => (
-                    <motion.div
-                      key={itemIndex}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.4 + itemIndex * 0.05 }}
-                      className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/50"
-                    >
-                      <div className="flex flex-col space-y-2">
-                        <span className="text-sm font-medium text-gray-600">
-                          Q: {item.label}
-                        </span>
-                        <span className="text-sm text-gray-800 break-words pl-2 border-l-2 border-gray-200">
-                          Ans: {item.value || "Not provided"}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Summary Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-          className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200"
-        >
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3">
-              <Check className="h-5 w-5 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800">
-              Application Summary
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {[
-              {
-                label: "Personal Info",
-                completed: !!(
-                  formData.name &&
-                  formData.email &&
-                  formData.phone
-                ),
-              },
-              { label: "Resume", completed: !!formData.resume },
-              { label: "Questionnaire", completed: !!formData.answers },
-              { label: "Quality Check", completed: !!qualityScore },
-            ].map((item, index) => (
-              <div key={index} className="bg-white/70 rounded-xl p-3">
-                <div
-                  className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                    item.completed ? "bg-green-500" : "bg-gray-300"
-                  }`}
+      <>
+        {showConfirmDialog && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h2 className="text-xl font-semibold mb-2 text-red-600">
+                Confirm Submission
+              </h2>
+              <p className="mb-4 text-gray-700">
+                Once you submit your application, you{" "}
+                <b>cannot make any further changes</b>.<br />
+                Are you sure you want to proceed?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                  onClick={() => setShowConfirmDialog(false)}
                 >
-                  {item.completed ? (
-                    <Check className="h-4 w-4 text-white" />
-                  ) : (
-                    <span className="text-white text-sm">!</span>
-                  )}
-                </div>
-                <p className="text-xs font-medium text-gray-700">
-                  {item.label}
-                </p>
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700"
+                  onClick={() => {
+                    setShowConfirmDialog(false);
+                    onConfirm();
+                  }}
+                >
+                  Yes, Submit
+                </button>
               </div>
-            ))}
+            </div>
           </div>
-        </motion.div>
-
-        {/* Confirmation Button */}
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.4 }}
-          className="text-center"
+          transition={{ duration: 0.5 }}
+          className="max-w-5xl mx-auto space-y-8"
         >
-          <Button
-            onClick={onConfirm}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
-            size="lg"
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="text-center mb-8"
           >
-            <Check className="h-5 w-5 mr-2" />
-            Confirm & Proceed to Quality Check
-          </Button>
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <Check className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              Review Your Application
+            </h2>
+            <p className="text-gray-600">
+              Please review all information before proceeding to payment
+            </p>
+          </motion.div>
+
+          {/* Review Sections */}
+          <div className="space-y-6">
+            {reviewSections.map((section, index) => {
+              const IconComponent = section.icon;
+              return (
+                <motion.div
+                  key={section.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                  className={`bg-gradient-to-br ${section.bgColor} rounded-2xl p-6 border ${section.borderColor} shadow-sm hover:shadow-md transition-all duration-200`}
+                >
+                  {/* Section Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div
+                        className={`w-10 h-10 bg-gradient-to-r ${section.color} rounded-full flex items-center justify-center mr-3 shadow-md`}
+                      >
+                        <IconComponent className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {section.title}
+                      </h3>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEdit(section.editStep)}
+                      className="rounded-xl border-2 hover:scale-105 transition-all duration-200"
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
+
+                  {/* Section Content */}
+                  <div className="space-y-3">
+                    {section.content.map((item, itemIndex) => (
+                      <motion.div
+                        key={itemIndex}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 + itemIndex * 0.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/50"
+                      >
+                        <div className="flex flex-col space-y-2">
+                          <span className="text-sm font-medium text-gray-600">
+                            Q: {item.label}
+                          </span>
+                          <span className="text-sm text-gray-800 break-words pl-2 border-l-2 border-gray-200">
+                            Ans: {item.value || "Not provided"}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Summary Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+            className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200"
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3">
+                <Check className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Application Summary
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              {[
+                {
+                  label: "Personal Info",
+                  completed: !!(
+                    formData.name &&
+                    formData.email &&
+                    formData.phone
+                  ),
+                },
+                { label: "Resume", completed: !!formData.resume },
+                { label: "Questionnaire", completed: !!formData.answers },
+                { label: "Quality Check", completed: !!qualityScore },
+              ].map((item, index) => (
+                <div key={index} className="bg-white/70 rounded-xl p-3">
+                  <div
+                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                      item.completed ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  >
+                    {item.completed ? (
+                      <Check className="h-4 w-4 text-white" />
+                    ) : (
+                      <span className="text-white text-sm">!</span>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium text-gray-700">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Confirmation Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.4 }}
+            className="text-center"
+          >
+            <Button
+              onClick={() => setShowConfirmDialog(true)}
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+              size="lg"
+            >
+              <Check className="h-5 w-5 mr-2" />
+              Confirm & Proceed to Quality Check
+            </Button>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </>
     );
   }
 
