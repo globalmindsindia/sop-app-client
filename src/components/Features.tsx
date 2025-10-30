@@ -135,6 +135,7 @@ export default function Features() {
 
   return (
     <section
+      id="features"
       className="pt-6 md:pt-8 pb-1 md:pb-0 bg-gradient-to-br from-blue-100 via-white to-blue-50 relative"
       // style={{
       //   backgroundImage: 'url(/src/assets/SOP_Background.jpg)',
