@@ -249,7 +249,7 @@ export default function SOPGenerator() {
         return false;
       }
     } catch (error: any) {
-      setResumeValidationError("Validation Failure: Te name in resume and the name entered are not matching!!");
+      setResumeValidationError("Validation Failure: The name in resume and the name entered are not matching!!");
       setResumeValidated(false);
       return false;
     } finally {
@@ -1970,7 +1970,7 @@ export default function SOPGenerator() {
                                   : "Drag & drop your resume here"}
                               </p>
                               <p className="text-sm text-gray-500 mt-1">
-                                or click to browse • PDF, DOC, or DOCX up to
+                                or click to browse • PDF only up to
                                 10MB
                               </p>
                             </div>
