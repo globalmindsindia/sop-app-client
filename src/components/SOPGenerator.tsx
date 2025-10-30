@@ -168,21 +168,29 @@ export default function SOPGenerator() {
 
   const validatePhone = (phone: string): string | null => {
     const cleanPhone = phone.replace(/^\+91\s*/, "");
-    
-    if (cleanPhone.length !== 10) return "Phone number must be exactly 10 digits";
-    if (!/^[6-9]/.test(cleanPhone)) return "Phone number must start with 6, 7, 8, or 9";
-    if (!/^\d+$/.test(cleanPhone)) return "Phone number should contain only digits";
-    
+
+    if (cleanPhone.length !== 10)
+      return "Phone number must be exactly 10 digits";
+    if (!/^[6-9]/.test(cleanPhone))
+      return "Phone number must start with 6, 7, 8, or 9";
+    if (!/^\d+$/.test(cleanPhone))
+      return "Phone number should contain only digits";
+
     // Check for 5 or more consecutive same digits
     for (let i = 0; i <= cleanPhone.length - 5; i++) {
       const digit = cleanPhone[i];
       let count = 1;
-      for (let j = i + 1; j < cleanPhone.length && cleanPhone[j] === digit; j++) {
+      for (
+        let j = i + 1;
+        j < cleanPhone.length && cleanPhone[j] === digit;
+        j++
+      ) {
         count++;
       }
-      if (count >= 5) return "Phone number cannot have 5 or more consecutive same digits";
+      if (count >= 5)
+        return "Phone number cannot have 5 or more consecutive same digits";
     }
-    
+
     return null;
   };
 
@@ -192,14 +200,14 @@ export default function SOPGenerator() {
 
     if (field === "phone") {
       let cleanValue = value.replace(/[^\d+]/g, "");
-      
+
       if (cleanValue && !cleanValue.startsWith("+91")) {
         cleanValue = "+91 " + cleanValue;
       } else if (cleanValue.startsWith("+91")) {
         const digits = cleanValue.substring(3);
         cleanValue = "+91 " + digits;
       }
-      
+
       processedValue = cleanValue;
       error = validatePhone(processedValue);
     } else if (field === "name") {
@@ -210,7 +218,7 @@ export default function SOPGenerator() {
     }
 
     setFormData({ ...formData, [field]: processedValue });
-    setValidationErrors(prev => ({ ...prev, [field]: error }));
+    setValidationErrors((prev) => ({ ...prev, [field]: error }));
   };
 
   useEffect(() => {
@@ -509,30 +517,32 @@ export default function SOPGenerator() {
         improvement_answers: improvementAnswers,
       });
 
-      if (res?.message === "Final SOP generated successfully") {
-        setGeneratedSOP(res.sop_path);
+      // Check if API response indicates success
+      if (res?.success || res?.message === "Final SOP generated successfully") {
         setQualityCheckCompleted(true);
 
-        // Show success toast
         toast({
           title: "Quality Check Complete! ✨",
           description: "Moving to payment step...",
         });
 
-        // Auto-navigate to payment after a brief delay
+        // Move to next step (payment)
         setTimeout(() => {
           setCurrentStep("payment");
           window.scrollTo({ top: 0, behavior: "smooth" });
         }, 1500);
       } else {
+        // Handle unsuccessful response
         console.error("Failed to generate final SOP:", res);
         toast({
           title: "Error",
-          description: "Failed to process improvements. Please try again.",
+          description:
+            res?.message || "Failed to process improvements. Please try again.",
           variant: "destructive",
         });
       }
     } catch (err) {
+      // Handle any thrown errors
       console.error("Error submitting improvements:", err);
       toast({
         title: "Error",
@@ -784,7 +794,7 @@ export default function SOPGenerator() {
     const selectedPkg = packages[selectedPackage];
     const amount = selectedPkg.price;
 
-    // Validate required form data
+    // ✅ Validate required fields
     if (!formData.name || !formData.email || !formData.phone) {
       toast({
         title: "Missing Information",
@@ -796,7 +806,7 @@ export default function SOPGenerator() {
     }
 
     try {
-      // Load Razorpay SDK
+      // ✅ Load Razorpay SDK
       const res = await loadRazorpayScript();
       if (!res) {
         toast({
@@ -808,7 +818,7 @@ export default function SOPGenerator() {
         return;
       }
 
-      // Create Razorpay order via backend
+      // ✅ Create Razorpay order from backend
       const order = await paymentService.createOrder({
         name: formData.name,
         email: formData.email,
@@ -827,7 +837,7 @@ export default function SOPGenerator() {
         return;
       }
 
-      // Razorpay checkout options
+      // ✅ Razorpay checkout options
       const options: RazorpayOptions = {
         key: order.key,
         amount: order.amount,
@@ -844,10 +854,9 @@ export default function SOPGenerator() {
 
         handler: async function (response: PaymentResponse) {
           try {
-            // ✅ Show loading while verifying payment
             setPaymentProcessing(true);
 
-            // Verify payment on backend
+            // ✅ Verify payment with backend
             const verify = await paymentService.verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -855,8 +864,8 @@ export default function SOPGenerator() {
               internal_receipt_id: order.internal_receipt_id,
             });
 
-            if (verify.success) {
-              // Create lead/order record after successful verification
+            // ✅ Proceed only if success === true
+            if (verify?.success === true) {
               const date = new Date();
               const formatted = date.toLocaleString("en-US", {
                 weekday: "long",
@@ -882,66 +891,55 @@ export default function SOPGenerator() {
                 domainUrl: window.location.origin,
               };
 
-              // ✅ Create lead entry (loading screen is already showing)
+              // ✅ Create lead entry
               const { lead } = await leadService.createLeads(payload);
 
               if (lead) {
-                // Call your existing SOP verification API
-                const output_pdf = generatedSOP;
-                await sopService.verifyPayment(sopId!, output_pdf);
+                // ✅ Update SOP payment verification
+                await sopService.verifyPayment(sopId!);
 
+                // ✅ Mark payment as complete
                 setPaymentCompleted(true);
+                setPaymentProcessing(false);
 
-                // Show success message
                 toast({
                   title: "Payment Successful! ✅",
                   description:
-                    "Payment confirmed. Your SOP will be ready within 24-48 hours.",
+                    "Payment confirmed. Your SOP will be ready within 24–48 hours.",
                 });
 
-                // ✅ Hide loading before navigation
-                setPaymentProcessing(false);
-
-                // Auto-navigate to result after successful payment
+                // ✅ Move to next step (result)
                 setTimeout(() => {
                   setCurrentStep("result");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }, 2000);
               } else {
-                setPaymentProcessing(false); // ✅ Fixed: Use consistent state variable
-                toast({
-                  title: "Error",
-                  description: "Failed to create lead. Please contact support.",
-                  variant: "destructive",
-                });
+                throw new Error("Failed to create lead.");
               }
             } else {
-              setPaymentProcessing(false); // ✅ Fixed: Use consistent state variable
-              toast({
-                title: "Payment Verification Failed",
-                description:
-                  "Please contact support with your payment details.",
-                variant: "destructive",
-              });
+              throw new Error("Payment verification failed.");
             }
           } catch (error: any) {
-            setPaymentProcessing(false); // ✅ Fixed: Use consistent state variable
+            console.error("Payment processing error:", error);
+            setPaymentProcessing(false);
             toast({
-              title: "Payment Error",
+              title: "Error",
               description:
-                error.message || "Something went wrong during verification.",
+                error.message ||
+                "Something went wrong during payment processing.",
               variant: "destructive",
             });
           }
         },
       };
 
-      // Open Razorpay modal
+      // ✅ Open Razorpay modal
       const razorpay = new window.Razorpay(options);
       razorpay.open();
 
-      // ✅ Reset payment loading state after modal opens
       setIsPaymentLoading(false);
     } catch (error: any) {
+      console.error("Payment Error:", error);
       toast({
         title: "Payment Failed",
         description: error.message || "Something went wrong. Please try again.",
@@ -958,7 +956,9 @@ export default function SOPGenerator() {
     review: "Review your Application ",
     quality_check: "Additional Questions ",
     payment: "Secure Payment ",
-    result: <img src={GMILogo} alt="Global Minds India" className="h-12 mx-auto" />,
+    result: (
+      <img src={GMILogo} alt="Global Minds India" className="h-12 mx-auto" />
+    ),
   };
 
   // ✅ Fixed: Updated isStepComplete function to handle all steps properly
@@ -1470,11 +1470,11 @@ export default function SOPGenerator() {
 
                         {/* Step Connector - From right edge of current step to left edge of next step */}
                         {index < progressSteps.length - 1 && (
-                          <div 
+                          <div
                             className="absolute top-3 sm:top-4 md:top-5 flex items-center z-0 pointer-events-none"
                             style={{
-                              left: 'calc(50% + 25px)', // Start exactly at the right edge of current step rectangle
-                              width: 'calc(100% - 50px)', // Span to the left edge of next step rectangle
+                              left: "calc(50% + 25px)", // Start exactly at the right edge of current step rectangle
+                              width: "calc(100% - 50px)", // Span to the left edge of next step rectangle
                             }}
                           >
                             <motion.div
@@ -1578,23 +1578,37 @@ export default function SOPGenerator() {
                           <Input
                             id={field.id}
                             type={field.type}
-                            placeholder={field.id === "phone" ? "+91 Enter your phone number" : field.placeholder}
+                            placeholder={
+                              field.id === "phone"
+                                ? "+91 Enter your phone number"
+                                : field.placeholder
+                            }
                             value={field.value}
-                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange(field.key, e.target.value)
+                            }
                             className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${
-                              validationErrors[field.key as keyof typeof validationErrors]
+                              validationErrors[
+                                field.key as keyof typeof validationErrors
+                              ]
                                 ? "border-red-500 focus:border-red-500"
                                 : "border-gray-200 focus:border-blue-500"
                             }`}
                             required
                           />
-                          {validationErrors[field.key as keyof typeof validationErrors] && (
+                          {validationErrors[
+                            field.key as keyof typeof validationErrors
+                          ] && (
                             <motion.p
                               initial={{ opacity: 0, y: -10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className="text-red-500 text-sm mt-1"
                             >
-                              {validationErrors[field.key as keyof typeof validationErrors]}
+                              {
+                                validationErrors[
+                                  field.key as keyof typeof validationErrors
+                                ]
+                              }
                             </motion.p>
                           )}
                         </motion.div>
@@ -2131,7 +2145,6 @@ export default function SOPGenerator() {
                     transition={{ delay: 0.3, duration: 0.4 }}
                     className="relative max-w-2xl mx-auto"
                   >
-                    
                     {/* 
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
@@ -2430,77 +2443,92 @@ export default function SOPGenerator() {
               )}
 
               {currentStep === "result" && (
-  <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
-    <Card className="relative bg-gradient-to-br from-blue-50 via-white to-gray-100 dark:from-blue-950 dark:via-gray-900 dark:to-gray-950 rounded-2xl border border-blue-100 dark:border-gray-800 shadow-2xl overflow-hidden">
-      {/* Floating animated bubble background */}
-      <div className="absolute -top-8 -right-8 w-32 h-32 bg-blue-200/[0.20] blur-2xl rounded-full animate-pulse pointer-events-none z-0" />
-      <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-pink-200/[0.10] blur-xl rounded-full animate-blob pointer-events-none z-0" />
-      {/* Animated checkmark circle */}
-      <div className="flex justify-center mt-8 z-10 relative">
-        <div className="flex items-center justify-center bg-gradient-to-br from-blue-400 via-green-300 to-green-500 w-20 h-20 rounded-full shadow-lg animate-bounce-slow">
-          <svg className="w-12 h-12 text-white drop-shadow-lg" fill="none" stroke="currentColor" strokeWidth={4} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-          </svg>
-        </div>
-      </div>
-      <CardHeader className="text-center z-10 relative">
-        <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-900 dark:text-blue-100 mt-6">
-          We’ve received your request
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6 text-center z-10 relative">
-        <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300">
-          SOP is Being Tailored by Our Experts! Customizing it to match your profile and requirements.
-        </p>
-        <p className="text-base sm:text-lg text-blue-700 dark:text-blue-200">
-          You will receive your professionally written SOP via email within <span className="font-bold text-green-600 dark:text-green-400 animate-pulse">1–2 working days</span>.
-        </p>
-        <div className="flex flex-col items-center gap-4 sm:gap-6 mt-6">
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            For any queries, feel free to contact us:
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 hover:bg-blue-100 dark:hover:bg-blue-950 transition-all w-full sm:w-auto py-2 font-medium border-blue-300 shadow hover:scale-105"
-              asChild
-            >
-              <a href="mailto:connect@globalmindsindia@gmail.com">
-                <Mail className="w-5 h-5" />
-                Email Us @ connect@globalmindsindia@gmail.com
-              </a>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-950 transition-all w-full sm:w-auto py-2 font-medium border-green-300 shadow hover:scale-105"
-              asChild
-            >
-              <a href="tel:+917353446655">
-                <Phone className="w-5 h-5" />
-                +91 7353446655
-              </a>
-            </Button>
-          </div>
-          <Button
-            variant="default"
-            className="mt-4 sm:mt-6 w-full sm:w-auto px-8 bg-gradient-to-r from-blue-600 to-green-500 text-white font-bold shadow-xl hover:scale-105 transition-transform"
-            onClick={() => (window.location.href = "/")}
-          >
-            Home
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-    {/* Custom keyframes for slow bounce and blob animation, can be added in your global CSS or Tailwind config */}
-    <style>{`
+                <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
+                  <Card className="relative bg-gradient-to-br from-blue-50 via-white to-gray-100 dark:from-blue-950 dark:via-gray-900 dark:to-gray-950 rounded-2xl border border-blue-100 dark:border-gray-800 shadow-2xl overflow-hidden">
+                    {/* Floating animated bubble background */}
+                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-blue-200/[0.20] blur-2xl rounded-full animate-pulse pointer-events-none z-0" />
+                    <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-pink-200/[0.10] blur-xl rounded-full animate-blob pointer-events-none z-0" />
+                    {/* Animated checkmark circle */}
+                    <div className="flex justify-center mt-8 z-10 relative">
+                      <div className="flex items-center justify-center bg-gradient-to-br from-blue-400 via-green-300 to-green-500 w-20 h-20 rounded-full shadow-lg animate-bounce-slow">
+                        <svg
+                          className="w-12 h-12 text-white drop-shadow-lg"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={4}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <CardHeader className="text-center z-10 relative">
+                      <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-900 dark:text-blue-100 mt-6">
+                        We’ve received your request
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-4 sm:space-y-6 text-center z-10 relative">
+                      <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300">
+                        SOP is Being Tailored by Our Experts! Customizing it to
+                        match your profile and requirements.
+                      </p>
+                      <p className="text-base sm:text-lg text-blue-700 dark:text-blue-200">
+                        You will receive your professionally written SOP via
+                        email within{" "}
+                        <span className="font-bold text-green-600 dark:text-green-400 animate-pulse">
+                          1–2 working days
+                        </span>
+                        .
+                      </p>
+                      <div className="flex flex-col items-center gap-4 sm:gap-6 mt-6">
+                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                          For any queries, feel free to contact us:
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                          <Button
+                            variant="outline"
+                            className="flex items-center gap-2 hover:bg-blue-100 dark:hover:bg-blue-950 transition-all w-full sm:w-auto py-2 font-medium border-blue-300 shadow hover:scale-105"
+                            asChild
+                          >
+                            <a href="mailto:connect@globalmindsindia@gmail.com">
+                              <Mail className="w-5 h-5" />
+                              Email Us @ connect@globalmindsindia@gmail.com
+                            </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-950 transition-all w-full sm:w-auto py-2 font-medium border-green-300 shadow hover:scale-105"
+                            asChild
+                          >
+                            <a href="tel:+917353446655">
+                              <Phone className="w-5 h-5" />
+                              +91 7353446655
+                            </a>
+                          </Button>
+                        </div>
+                        <Button
+                          variant="default"
+                          className="mt-4 sm:mt-6 w-full sm:w-auto px-8 bg-gradient-to-r from-blue-600 to-green-500 text-white font-bold shadow-xl hover:scale-105 transition-transform"
+                          onClick={() => (window.location.href = "/")}
+                        >
+                          Home
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* Custom keyframes for slow bounce and blob animation, can be added in your global CSS or Tailwind config */}
+                  <style>{`
       @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
       .animate-bounce-slow { animation: bounce-slow 2.5s infinite; }
       @keyframes blob { 0%,100% { transform: scale(1) translate(0,0);} 33% { transform: scale(1.1) translate(-8px, 8px);} 66% { transform: scale(0.9) translate(8px, -4px);} }
       .animate-blob { animation: blob 6s infinite; }
     `}</style>
-  </div>
-)}
-
+                </div>
+              )}
 
               {/* ✅ Fixed: Updated Navigation Buttons Logic - Hide during questionnaire */}
               {currentStep !== "result" &&
