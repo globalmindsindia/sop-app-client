@@ -36,15 +36,15 @@ export const sopService = {
     );
     return data as {
       message: string;
-      sop_path: string;
-      email_sent: boolean;
+      sop_id: string;
+      success: boolean;
     };
   },
 
-  async verifyPayment(sop_id: number, output_pdf: string) {
+  async verifyPayment(sop_id: number) {
     const { data } = await getApi().post(
-      `/api/v1/sop/verify-payment/${sop_id}${output_pdf}`
+      `/api/v1/sop/verify-payment/${sop_id}`
     );
-    return data as { message: string };
+    return data as { message: string; success: boolean };
   },
 };
