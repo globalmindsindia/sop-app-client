@@ -40,6 +40,7 @@ import {
   Mail,
   Phone,
   MessageCircle,
+  GraduationCap,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Questionnaire from "./Questionnaire";
@@ -123,6 +124,7 @@ export default function SOPGenerator() {
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
   const [sopId, setSopId] = useState<number | null>(null);
@@ -258,10 +260,10 @@ export default function SOPGenerator() {
     setCouponError("");
     if (couponCode.toUpperCase() === "GMI10") {
       setCouponApplied(true);
-      toast({
-        title: "Coupon Applied! 🎉",
-        description: "10% discount has been applied to your order.",
-      });
+      // toast({
+      //   title: "Coupon Applied! 🎉",
+      //   description: "10% discount has been applied to your order.",
+      // });
     } else {
       setCouponError("Invalid coupon code");
     }
@@ -312,10 +314,10 @@ export default function SOPGenerator() {
       // Move to review step instead of quality check
       setCurrentStep("review");
 
-      toast({
-        title: "Questionnaire Submitted! ✓",
-        description: "Please review your application before proceeding.",
-      });
+      // toast({
+      //   title: "Questionnaire Submitted! ✓",
+      //   description: "Please review your application before proceeding.",
+      // });
     } catch (e) {
       handleError(e, toast);
     } finally {
@@ -365,6 +367,7 @@ export default function SOPGenerator() {
   }
 
   async function handleReviewConfirm() {
+    setShowConfirmDialog(true);
     if (!sopId) {
       toast({
         title: "Error",
@@ -521,10 +524,10 @@ export default function SOPGenerator() {
       if (res?.success || res?.message === "Final SOP generated successfully") {
         setQualityCheckCompleted(true);
 
-        toast({
-          title: "Quality Check Complete! ✨",
-          description: "Moving to payment step...",
-        });
+        // toast({
+        //   title: "Quality Check Complete! ✨",
+        //   description: "Moving to payment step...",
+        // });
 
         // Move to next step (payment)
         setTimeout(() => {
@@ -953,9 +956,9 @@ export default function SOPGenerator() {
     university: "Choose Your Destination ",
     resume: "Upload Your Resume ",
     questions: "Tell Us About Yourself ",
-    review: "Review your Application ",
-    quality_check: "Additional Questions ",
-    payment: "Secure Payment ",
+    review: " ",
+    quality_check: "",
+    payment: "",
     result: (
       <img src={GMILogo} alt="Global Minds India" className="h-12 mx-auto" />
     ),
@@ -1026,7 +1029,7 @@ export default function SOPGenerator() {
                   <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </motion.div>
                 <AlertDialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  📋 Important Guidelines
+                  Important Guidelines
                 </AlertDialogTitle>
                 <p className="text-sm sm:text-base text-gray-600 mt-2">
                   Please read these instructions carefully to ensure the best
@@ -1043,7 +1046,7 @@ export default function SOPGenerator() {
                 >
                   <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                      <Sparkles className="h-4 w-4 text-yellow-500 mr-2" />
+                      {/* <Sparkles className="h-4 w-4 text-yellow-500 mr-2" /> */}
                       Key Requirements
                     </h4>
                     <ul className="space-y-2 text-sm text-gray-700">
@@ -1211,7 +1214,7 @@ export default function SOPGenerator() {
                         animate={{ opacity: 1 }}
                         className="flex items-center justify-center"
                       >
-                        <Sparkles className="h-4 w-4 mr-2" />
+                        {/* <Sparkles className="h-4 w-4 mr-2" /> */}
                         Let's Get Started!
                       </motion.span>
                     ) : (
@@ -1619,7 +1622,7 @@ export default function SOPGenerator() {
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
                     <div className="flex items-center mb-4">
                       <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
-                        <Sparkles className="h-5 w-5 text-white" />
+                        <GraduationCap className="h-5 w-5 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-800">
                         Academic Details
@@ -2266,11 +2269,11 @@ export default function SOPGenerator() {
                                 setCouponCode("GMI10");
                                 setCouponError("");
                                 setCouponApplied(true);
-                                toast({
-                                  title: "Coupon Applied! 🎉",
-                                  description:
-                                    "10% discount has been applied to your order.",
-                                });
+                                // toast({
+                                //   title: "Coupon Applied! 🎉",
+                                //   description:
+                                //     "10% discount has been applied to your order.",
+                                // });
                               }}
                             >
                               <p className="text-sm text-gray-600 mb-1">
