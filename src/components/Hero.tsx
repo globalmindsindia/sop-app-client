@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import SOPStep1Video from "@/assets/SOP_Step_1.mov";
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -9,7 +10,7 @@ interface HeroProps {
 const steps = [
   {
     label: "1. Personal Info",
-    video: "https://www.w3schools.com/html/mov_bbb.mp4",
+    video: SOPStep1Video,
   },
   {
     label: "2. Resume Upload",
