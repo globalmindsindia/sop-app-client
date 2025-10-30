@@ -633,35 +633,133 @@ export default function SOPGenerator() {
     return (
       <>
         {showConfirmDialog && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h2 className="text-xl font-semibold mb-2 text-red-600">
-                Confirm Submission
-              </h2>
-              <p className="mb-4 text-gray-700">
-                Once you submit your application, you{" "}
-                <b>cannot make any further changes</b>.<br />
-                Are you sure you want to proceed?
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 50 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="bg-gradient-to-br from-white via-orange-50/30 to-red-50/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-orange-200/50 backdrop-blur-sm"
+            >
+              {/* Warning Icon with Animation */}
+              <motion.div 
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="flex justify-center mb-6"
+              >
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <span className="text-white text-2xl font-bold">⚠️</span>
+                    </motion.div>
+                  </div>
+                  {/* Pulsing ring effect */}
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-4 border-orange-400/30"
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.7, 0, 0.7] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </div>
+              </motion.div>
+
+              {/* Title */}
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
+              >
+                Final Confirmation Required
+              </motion.h2>
+
+              {/* Main Message */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mb-6 text-gray-700 leading-relaxed"
+              >
+                <p className="mb-4 text-center font-medium">
+                  Your application will now proceed to quality assessment. Once you continue:
+                </p>
+                
+                {/* Bullet Points with Icons */}
+                <div className="space-y-3 bg-white/70 rounded-xl p-4 border border-orange-200/50">
+                  {[
+                    { icon: "🚫", text: "No further changes can be made to your responses" },
+                    { icon: "🔍", text: "Your answers will be analyzed by our quality system" },
+                    { icon: "💡", text: "You'll receive enhancement questions to improve your SOP" },
+                    { icon: "⏰", text: "The process cannot be reversed" }
+                  ].map((item, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                      className="flex items-start space-x-3"
+                    >
+                      <span className="text-lg flex-shrink-0 mt-0.5">{item.icon}</span>
+                      <span className="text-sm font-medium text-gray-700">{item.text}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Final Question */}
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+                className="text-center font-semibold text-gray-800 mb-8 text-lg"
+              >
+                Are you sure you want to proceed to quality check?
+              </motion.p>
+
+              {/* Action Buttons */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0 }}
+                className="flex flex-col sm:flex-row gap-3 justify-center"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-semibold transition-all duration-200 shadow-md hover:shadow-lg border border-gray-300"
                   onClick={() => setShowConfirmDialog(false)}
                 >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 rounded bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700"
+                  <span className="flex items-center justify-center">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Go Back & Review
+                  </span>
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
                   onClick={() => {
                     setShowConfirmDialog(false);
                     onConfirm();
                   }}
                 >
-                  Yes, Submit
-                </button>
-              </div>
-            </div>
-          </div>
+                  <span className="flex items-center justify-center">
+                    <Check className="h-4 w-4 mr-2" />
+                    Yes, Proceed to Quality Check
+                  </span>
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
