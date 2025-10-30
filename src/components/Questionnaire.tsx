@@ -4,15 +4,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 import { AppFormData } from "@/types/types";
-import { 
-  GraduationCap, 
-  Briefcase, 
-  Lightbulb, 
-  Heart, 
+import {
+  GraduationCap,
+  Briefcase,
+  Lightbulb,
+  Heart,
   Target,
   ArrowLeft,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 
 interface Props {
@@ -45,7 +45,7 @@ const QUESTION_GROUPS: Array<{
   {
     title: "Research & Projects",
     items: [
-      { key: "proudProject", label: "Project you’re most proud of" },
+      { key: "proudProject", label: "Project you're most proud of" },
       { key: "yourContribution", label: "Your specific contribution" },
       { key: "skillsDeveloped", label: "Technical/research skills gained" },
     ],
@@ -65,7 +65,7 @@ const QUESTION_GROUPS: Array<{
       },
       {
         key: "communityEngagement",
-        label: "How you’ll engage campus community",
+        label: "How you'll engage campus community",
       },
     ],
   },
@@ -83,6 +83,67 @@ const QUESTION_GROUPS: Array<{
     ],
   },
 ];
+
+// Example answers for placeholders
+const EXAMPLE_ANSWERS: Record<string, string> = {
+  // Academic Background
+  ugMajor: "e.g., Computer Science from MIT, graduated 2023 with honors",
+  impactCourses:
+    "e.g., Advanced AI course where I built a neural network for image classification",
+  honors: "e.g., Dean's List 2021-2023, Presidential Scholarship recipient",
+
+  // Professional Experience
+  roleSummary:
+    "e.g., Software Engineer at Google, developed features used by 10M+ users",
+  challenges:
+    "e.g., Optimized database queries reducing load time by 60%, resolved critical production bugs",
+  teamwork:
+    "e.g., Led team of 4 developers in agile environment, mentored 2 junior engineers",
+
+  // Research & Projects
+  proudProject:
+    "e.g., Built ML model achieving 95% accuracy for fraud detection, deployed to production",
+  yourContribution:
+    "e.g., Designed architecture, implemented backend APIs, deployed to AWS cloud",
+  skillsDeveloped:
+    "e.g., Python, TensorFlow, cloud deployment, system design, API development",
+
+  // Motivation & Fit
+  extraCurricular:
+    "e.g., Robotics club member, hackathon winner, volunteer coding tutor for students",
+  leadershipRoles:
+    "e.g., President of CS Society, organized 10+ technical events and workshops",
+  whyCourse:
+    "e.g., Fascinated by AI's potential to solve real-world problems like healthcare and climate change",
+  backgroundFit:
+    "e.g., My research in NLP and 3 years of ML experience align perfectly with program focus",
+  uniquePerspective:
+    "e.g., Experience in both academia and industry provides balanced practical and theoretical view",
+  whyUniversity:
+    "e.g., World-class AI research facilities, renowned faculty, strong alumni network, excellent placement record",
+  researchAttraction:
+    "e.g., Prof. Johnson's computer vision lab and the robotics research group's work on autonomous systems",
+  communityEngagement:
+    "e.g., Join AI club, mentor undergraduate students, organize technical talks and hackathons",
+
+  // Goals & Reflection
+  shortTermGoals:
+    "e.g., Master deep learning techniques, publish research papers, secure internship at leading AI research lab",
+  longTermImpact:
+    "e.g., Develop AI systems for healthcare accessibility in developing nations, contribute to ethical AI development",
+  programBenefits:
+    "e.g., Cutting-edge curriculum, hands-on research opportunities, industry connections, access to world-class resources",
+  strengths:
+    "e.g., Analytical thinking, perseverance through challenges, collaborative mindset, passion for innovation",
+  resilience:
+    "e.g., Overcame initial research failures, learned from mistakes, and successfully published in top-tier conference",
+  intlExperience:
+    "e.g., Studied abroad in Japan, worked with multicultural remote teams across different time zones",
+  studyAbroadView:
+    "e.g., Gain global perspective on technology, build international professional network, experience cultural diversity",
+  finalReflection:
+    "e.g., My passion for AI combined with proven track record in development and research makes me an ideal candidate",
+};
 
 export default function Questionnaire({
   formData,
@@ -125,10 +186,10 @@ export default function Questionnaire({
   const getSectionColor = (index: number) => {
     const colors = [
       "from-blue-500 to-indigo-600",
-      "from-green-500 to-emerald-600", 
+      "from-green-500 to-emerald-600",
       "from-purple-500 to-pink-600",
       "from-orange-500 to-red-600",
-      "from-teal-500 to-cyan-600"
+      "from-teal-500 to-cyan-600",
     ];
     return colors[index] || "from-gray-500 to-gray-600";
   };
@@ -137,9 +198,9 @@ export default function Questionnaire({
     const backgrounds = [
       "from-blue-50 to-indigo-50",
       "from-green-50 to-emerald-50",
-      "from-purple-50 to-pink-50", 
+      "from-purple-50 to-pink-50",
       "from-orange-50 to-red-50",
-      "from-teal-50 to-cyan-50"
+      "from-teal-50 to-cyan-50",
     ];
     return backgrounds[index] || "from-gray-50 to-gray-100";
   };
@@ -149,8 +210,8 @@ export default function Questionnaire({
       "border-blue-200",
       "border-green-200",
       "border-purple-200",
-      "border-orange-200", 
-      "border-teal-200"
+      "border-orange-200",
+      "border-teal-200",
     ];
     return borders[index] || "border-gray-200";
   };
@@ -158,7 +219,7 @@ export default function Questionnaire({
   const IconComponent = getSectionIcon(subStep);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -175,7 +236,9 @@ export default function Questionnaire({
                 transition={{ duration: 0.2 }}
                 className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
                   i === subStep
-                    ? `bg-gradient-to-r ${getSectionColor(i)} text-white shadow-lg`
+                    ? `bg-gradient-to-r ${getSectionColor(
+                        i
+                      )} text-white shadow-lg`
                     : i < subStep
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-500"
@@ -188,9 +251,11 @@ export default function Questionnaire({
                 )}
               </motion.div>
               {i < QUESTION_GROUPS.length - 1 && (
-                <div className={`w-8 sm:w-12 h-0.5 mx-2 transition-colors duration-300 ${
-                  i < subStep ? "bg-green-500" : "bg-gray-200"
-                }`} />
+                <div
+                  className={`w-8 sm:w-12 h-0.5 mx-2 transition-colors duration-300 ${
+                    i < subStep ? "bg-green-500" : "bg-gray-200"
+                  }`}
+                />
               )}
             </div>
           ))}
@@ -203,20 +268,30 @@ export default function Questionnaire({
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
-        className={`bg-gradient-to-r ${getSectionBg(subStep)} rounded-2xl p-6 border ${getSectionBorder(subStep)}`}
+        className={`bg-gradient-to-r ${getSectionBg(
+          subStep
+        )} rounded-2xl p-6 border ${getSectionBorder(subStep)}`}
       >
         <div className="flex items-center justify-center mb-4">
-          <div className={`w-12 h-12 bg-gradient-to-r ${getSectionColor(subStep)} rounded-full flex items-center justify-center mr-4 shadow-lg`}>
+          <div
+            className={`w-12 h-12 bg-gradient-to-r ${getSectionColor(
+              subStep
+            )} rounded-full flex items-center justify-center mr-4 shadow-lg`}
+          >
             <IconComponent className="h-6 w-6 text-white" />
           </div>
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-800">{group.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">Step {subStep + 1} of {total}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Step {subStep + 1} of {total}
+            </p>
           </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <motion.div 
-            className={`bg-gradient-to-r ${getSectionColor(subStep)} h-2 rounded-full`}
+          <motion.div
+            className={`bg-gradient-to-r ${getSectionColor(
+              subStep
+            )} h-2 rounded-full`}
             initial={{ width: 0 }}
             animate={{ width: `${((subStep + 1) / total) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -233,8 +308,10 @@ export default function Questionnaire({
         className="space-y-6"
       >
         {group.items.map(({ key, label }, index) => {
-          const isAnswered = typeof formData[key] === "string" && formData[key].trim().length > 0;
-          
+          const isAnswered =
+            typeof formData[key] === "string" &&
+            formData[key].trim().length > 0;
+
           return (
             <motion.div
               key={key}
@@ -244,11 +321,15 @@ export default function Questionnaire({
               className="bg-white rounded-2xl p-6 border-2 border-gray-100 hover:border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <div className="flex items-start space-x-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 transition-all duration-200 ${
-                  isAnswered 
-                    ? `bg-gradient-to-r ${getSectionColor(subStep)} text-white` 
-                    : "bg-gray-100 text-gray-400"
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 transition-all duration-200 ${
+                    isAnswered
+                      ? `bg-gradient-to-r ${getSectionColor(
+                          subStep
+                        )} text-white`
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
                   {isAnswered ? (
                     <CheckCircle className="h-4 w-4" />
                   ) : (
@@ -256,19 +337,30 @@ export default function Questionnaire({
                   )}
                 </div>
                 <div className="flex-1 space-y-3">
-                  <Label htmlFor={key} className="text-base font-semibold text-gray-800 leading-relaxed block">
+                  <Label
+                    htmlFor={key}
+                    className="text-base font-semibold text-gray-800 leading-relaxed block"
+                  >
                     {label}
                   </Label>
                   <Textarea
                     id={key}
-                    placeholder="Share your detailed thoughts and experiences here..."
-                    value={typeof formData[key] === "string" ? formData[key] : ""}
+                    placeholder={
+                      EXAMPLE_ANSWERS[key] ||
+                      "Share your detailed thoughts and experiences here..."
+                    }
+                    value={
+                      typeof formData[key] === "string" ? formData[key] : ""
+                    }
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
                     }
                     className={`min-h-32 rounded-xl border-2 transition-all duration-200 bg-gray-50/50 hover:bg-white focus:bg-white resize-none ${
-                      isAnswered 
-                        ? "border-green-300 focus:border-green-500" 
+                      isAnswered
+                        ? "border-green-300 focus:border-green-500"
                         : "border-gray-200 focus:border-blue-500"
                     }`}
                     rows={4}
@@ -306,17 +398,22 @@ export default function Questionnaire({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Previous Section
         </Button>
-        
+
         <div className="text-center">
           <p className="text-sm text-gray-500 mb-1">
-            {group.items.filter(({ key }) => {
-              const value = formData[key];
-              return typeof value === "string" && value.trim().length > 0;
-            }).length} of {group.items.length} questions answered
+            {
+              group.items.filter(({ key }) => {
+                const value = formData[key];
+                return typeof value === "string" && value.trim().length > 0;
+              }).length
+            }{" "}
+            of {group.items.length} questions answered
           </p>
           <div className="flex space-x-1">
             {group.items.map(({ key }, i) => {
-              const isAnswered = typeof formData[key] === "string" && formData[key].trim().length > 0;
+              const isAnswered =
+                typeof formData[key] === "string" &&
+                formData[key].trim().length > 0;
               return (
                 <div
                   key={i}
@@ -334,8 +431,10 @@ export default function Questionnaire({
             onClick={() => isComplete && setSubStep(subStep + 1)}
             disabled={!isComplete}
             className={`rounded-xl px-6 py-3 font-medium transition-all duration-200 hover:scale-105 w-full sm:w-auto ${
-              isComplete 
-                ? `bg-gradient-to-r ${getSectionColor(subStep)} hover:opacity-90 text-white shadow-lg` 
+              isComplete
+                ? `bg-gradient-to-r ${getSectionColor(
+                    subStep
+                  )} hover:opacity-90 text-white shadow-lg`
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
           >
@@ -351,8 +450,10 @@ export default function Questionnaire({
             }}
             disabled={!isComplete}
             className={`rounded-xl px-6 py-3 font-medium transition-all duration-200 hover:scale-105 w-full sm:w-auto ${
-              isComplete 
-                ? `bg-gradient-to-r ${getSectionColor(subStep)} hover:opacity-90 text-white shadow-lg` 
+              isComplete
+                ? `bg-gradient-to-r ${getSectionColor(
+                    subStep
+                  )} hover:opacity-90 text-white shadow-lg`
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
           >
