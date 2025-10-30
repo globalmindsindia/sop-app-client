@@ -21,16 +21,21 @@ const steps = [
       "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
   },
   {
-    label: "4. Quality Check",
+    label: "4. Review & Edit",
     video: "https://filesamples.com/samples/video/mp4/sample_640x360.mp4",
   },
   {
-    label: "5. Payment",
+    label: "5. Quality Check",
     video:
       "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
   },
   {
-    label: "6. Thank You",
+    label: "6. Payment",
+    video:
+      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  },
+  {
+    label: "7. SOP",
     video:
       "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   },
@@ -65,14 +70,14 @@ export default function Hero({ onGetStarted }: HeroProps) {
         </div>
 
         {/* Right: Tabs above Video & Features */}
-        <div className="space-y-6">
+        <div className="space-y-6 w-full max-w-3xl">
           {/* Tabs */}
           <div className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 rounded-lg p-1 flex space-x-1 shadow-lg transition-colors duration-300">
             {steps.map((step, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
-                className={`flex-1 py-2 px-4 text-center rounded text-sm font-medium transition bg-white bg-clip-text text-transparent ${
+                className={`flex-1 py-2 px-2 text-center rounded text-sm font-medium transition bg-white bg-clip-text text-transparent ${
                   activeIndex === idx
                     ? "bg-gradient-to-r from-white to-gray-100 text-gray-800 shadow-md"
                     : "text-white hover:opacity-90"

@@ -53,6 +53,7 @@ import { loadRazorpayScript } from "@/utils/razorpay";
 import { leadService } from "@/services/leadService";
 import { courseData } from "@/data/courseData";
 import SOPBackgroundImage from "@/assets/SOP_Background.jpg";
+import GMILogo from "@/assets/gmi_logo.png";
 
 interface RazorpayOptions {
   key: string;
@@ -146,6 +147,71 @@ export default function SOPGenerator() {
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string;
+    email?: string;
+    phone?: string;
+  }>({});
+
+  // Validation functions
+  const validateName = (name: string): string | null => {
+    if (name.length < 3) return "Name must be at least 3 characters long";
+    if (/\d/.test(name)) return "Name should not contain numbers";
+    return null;
+  };
+
+  const validateEmail = (email: string): string | null => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    return null;
+  };
+
+  const validatePhone = (phone: string): string | null => {
+    const cleanPhone = phone.replace(/^\+91\s*/, "");
+    
+    if (cleanPhone.length !== 10) return "Phone number must be exactly 10 digits";
+    if (!/^[6-9]/.test(cleanPhone)) return "Phone number must start with 6, 7, 8, or 9";
+    if (!/^\d+$/.test(cleanPhone)) return "Phone number should contain only digits";
+    
+    // Check for 5 or more consecutive same digits
+    for (let i = 0; i <= cleanPhone.length - 5; i++) {
+      const digit = cleanPhone[i];
+      let count = 1;
+      for (let j = i + 1; j < cleanPhone.length && cleanPhone[j] === digit; j++) {
+        count++;
+      }
+      if (count >= 5) return "Phone number cannot have 5 or more consecutive same digits";
+    }
+    
+    return null;
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    let processedValue = value;
+    let error: string | null = null;
+
+    if (field === "phone") {
+      let cleanValue = value.replace(/[^\d+]/g, "");
+      
+      if (cleanValue && !cleanValue.startsWith("+91")) {
+        cleanValue = "+91 " + cleanValue;
+      } else if (cleanValue.startsWith("+91")) {
+        const digits = cleanValue.substring(3);
+        cleanValue = "+91 " + digits;
+      }
+      
+      processedValue = cleanValue;
+      error = validatePhone(processedValue);
+    } else if (field === "name") {
+      processedValue = value.replace(/\d/g, "");
+      error = validateName(processedValue);
+    } else if (field === "email") {
+      error = validateEmail(value);
+    }
+
+    setFormData({ ...formData, [field]: processedValue });
+    setValidationErrors(prev => ({ ...prev, [field]: error }));
+  };
 
   useEffect(() => {
     setShowInstructions(true);
@@ -886,13 +952,13 @@ export default function SOPGenerator() {
   };
 
   const stepTitles = {
-    university: "Choose Your Destination 🎓",
-    resume: "Upload Your Resume 📄",
-    questions: "Tell Us About Yourself ✨",
-    review: "Review your Application ❓",
-    quality_check: "Additional Questions ❓",
-    payment: "Secure Payment 💳",
-    result: "Thank You 📚",
+    university: "Choose Your Destination ",
+    resume: "Upload Your Resume ",
+    questions: "Tell Us About Yourself ",
+    review: "Review your Application ",
+    quality_check: "Additional Questions ",
+    payment: "Secure Payment ",
+    result: <img src={GMILogo} alt="Global Minds India" className="h-12 mx-auto" />,
   };
 
   // ✅ Fixed: Updated isStepComplete function to handle all steps properly
@@ -905,7 +971,10 @@ export default function SOPGenerator() {
           formData.phone &&
           formData.country &&
           formData.university &&
-          formData.course
+          formData.course &&
+          !validationErrors.name &&
+          !validationErrors.email &&
+          !validationErrors.phone
         );
       case "resume":
         return formData.resume !== null;
@@ -1201,18 +1270,20 @@ export default function SOPGenerator() {
                     size="sm"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <Home className="h-5 w-5 mr-3 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
-                    <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors duration-300">
-                      Back to Home
-                    </span>
-                    <motion.div
-                      className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
-                      initial={{ x: -10 }}
-                      animate={{ x: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ArrowRight className="h-4 w-4 text-blue-500" />
-                    </motion.div>
+                    <div className="flex items-center">
+                      <Home className="h-5 w-5 mr-3 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
+                      <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors duration-300">
+                        Back to Home
+                      </span>
+                      <motion.div
+                        className="ml-2 opacity-0 group-hover:opacity-100"
+                        initial={{ x: -5 }}
+                        animate={{ x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ArrowRight className="h-4 w-4 text-blue-500" />
+                      </motion.div>
+                    </div>
                   </Button>
                 </motion.div>
               ) : (
@@ -1231,18 +1302,20 @@ export default function SOPGenerator() {
                         size="sm"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <Home className="h-5 w-5 mr-3 text-orange-600 group-hover:text-red-600 transition-colors duration-300" />
-                        <span className="font-medium text-orange-700 group-hover:text-red-700 transition-colors duration-300">
-                          Back to Home
-                        </span>
-                        <motion.div
-                          className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
-                          initial={{ x: -10 }}
-                          animate={{ x: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <ArrowRight className="h-4 w-4 text-red-500" />
-                        </motion.div>
+                        <div className="flex items-center">
+                          <Home className="h-5 w-5 mr-3 text-orange-600 group-hover:text-red-600 transition-colors duration-300" />
+                          <span className="font-medium text-orange-700 group-hover:text-red-700 transition-colors duration-300">
+                            Back to Home
+                          </span>
+                          <motion.div
+                            className="ml-2 opacity-0 group-hover:opacity-100"
+                            initial={{ x: -5 }}
+                            animate={{ x: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <ArrowRight className="h-4 w-4 text-red-500" />
+                          </motion.div>
+                        </div>
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="max-w-lg w-[95vw] sm:w-[90vw] lg:w-full mx-auto bg-gradient-to-br from-white via-red-50/20 to-orange-50/20 border-0 shadow-xl rounded-2xl">
@@ -1505,17 +1578,25 @@ export default function SOPGenerator() {
                           <Input
                             id={field.id}
                             type={field.type}
-                            placeholder={field.placeholder}
+                            placeholder={field.id === "phone" ? "+91 Enter your phone number" : field.placeholder}
                             value={field.value}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                [field.key]: e.target.value,
-                              })
-                            }
-                            className="rounded-xl border-2 border-gray-200 focus:border-blue-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg"
+                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                            className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${
+                              validationErrors[field.key as keyof typeof validationErrors]
+                                ? "border-red-500 focus:border-red-500"
+                                : "border-gray-200 focus:border-blue-500"
+                            }`}
                             required
                           />
+                          {validationErrors[field.key as keyof typeof validationErrors] && (
+                            <motion.p
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-red-500 text-sm mt-1"
+                            >
+                              {validationErrors[field.key as keyof typeof validationErrors]}
+                            </motion.p>
+                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -2050,7 +2131,8 @@ export default function SOPGenerator() {
                     transition={{ delay: 0.3, duration: 0.4 }}
                     className="relative max-w-2xl mx-auto"
                   >
-                    {/* Most Popular Badge */}
+                    
+                    {/* 
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -2061,7 +2143,7 @@ export default function SOPGenerator() {
                         ⭐ Most Popular Choice
                       </div>
                     </motion.div>
-
+                    */}
                     <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl p-8 border-2 border-blue-200 shadow-xl hover:shadow-2xl transition-all duration-300">
                       {/* Package Header */}
                       <div className="text-center mb-6">
