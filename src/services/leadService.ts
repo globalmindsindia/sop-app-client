@@ -1,7 +1,7 @@
 import axios from "axios";
 
-//const BASE_URL = "https://rbacapi.globalmindsindia.in";
-const BASE_URL = "http://localhost:5080";
+const BASE_URL = "https://rbacapi.globalmindsindia.in";
+//const BASE_URL = "http://localhost:5080";
 
 export const leadService = {
   createLeads: async (payload: any) => {
