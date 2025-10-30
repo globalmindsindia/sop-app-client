@@ -607,14 +607,14 @@ export default function SOPGenerator() {
         editStep: "questions" as Step,
         content: formData.answers
           ? Object.entries(formData.answers).map(([key, value]) => ({
-              label: key,
-              value:
-                typeof value === "string"
-                  ? value.length > 100
-                    ? value.substring(0, 100) + "..."
-                    : value
-                  : "Not provided",
-            }))
+            label: key,
+            value:
+              typeof value === "string"
+                ? value.length > 100
+                  ? value.substring(0, 100) + "..."
+                  : value
+                : "Not provided",
+          }))
           : [{ label: "Responses", value: "No responses available" }],
       },
       // {
@@ -784,9 +784,8 @@ export default function SOPGenerator() {
               ].map((item, index) => (
                 <div key={index} className="bg-white/70 rounded-xl p-3">
                   <div
-                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                      item.completed ? "bg-green-500" : "bg-gray-300"
-                    }`}
+                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${item.completed ? "bg-green-500" : "bg-gray-300"
+                      }`}
                   >
                     {item.completed ? (
                       <Check className="h-4 w-4 text-white" />
@@ -1044,7 +1043,7 @@ export default function SOPGenerator() {
   return (
     <>
       {showInstructions && (
-        <AlertDialog open onOpenChange={() => {}}>
+        <AlertDialog open onOpenChange={() => { }}>
           <AlertDialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] lg:w-full mx-auto max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -1085,12 +1084,13 @@ export default function SOPGenerator() {
                       {[
                         "Complete each step before moving on to the next",
                         "Ensure all required fields are filled accurately",
+                        "The name entered in the form must match the name on your resume",
                         "Upload a clear, up-to-date resume in PDF format",
                         "Provide detailed and thoughtful responses to all questions",
                         "Avoid one-word or generic answers — the more detail, the better",
                         "Be honest and authentic while describing your experiences",
                         "Use correct grammar and spelling for best results",
-                        "Review your answers carefully before final submission",
+                        "Review your answers carefully before final submission", ,
                       ].map((item, index) => (
                         <motion.li
                           key={index}
@@ -1151,11 +1151,10 @@ export default function SOPGenerator() {
                     onClick={() => setAgreed(!agreed)}
                   >
                     <div
-                      className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
-                        agreed
+                      className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${agreed
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 border-green-500"
                           : "border-gray-300 bg-white hover:border-green-400"
-                      }`}
+                        }`}
                     >
                       {agreed && (
                         <motion.div
@@ -1234,11 +1233,10 @@ export default function SOPGenerator() {
                   <AlertDialogAction
                     onClick={handleCloseInstructions}
                     disabled={!agreed}
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
-                      agreed
+                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${agreed
                         ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     {agreed ? (
                       <motion.span
@@ -1456,13 +1454,12 @@ export default function SOPGenerator() {
                         >
                           {/* Step Square */}
                           <motion.div
-                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 flex-shrink-0 ${
-                              isActive
+                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 flex-shrink-0 ${isActive
                                 ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-110"
                                 : isCompleted || isPast
-                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
-                                : "bg-gray-200 text-gray-500 hover:bg-gray-300"
-                            }`}
+                                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
+                                  : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+                              }`}
                             whileHover={{ scale: isActive ? 1.1 : 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -1488,13 +1485,12 @@ export default function SOPGenerator() {
 
                           {/* Step Label */}
                           <motion.div
-                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${
-                              isActive
+                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${isActive
                                 ? "text-blue-600"
                                 : isCompleted || isPast
-                                ? "text-green-600"
-                                : "text-gray-500"
-                            }`}
+                                  ? "text-green-600"
+                                  : "text-gray-500"
+                              }`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: index * 0.1 + 0.2 }}
@@ -1523,11 +1519,10 @@ export default function SOPGenerator() {
                             >
                               <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full" />
                               <motion.div
-                                className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
-                                  isCompleted
+                                className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${isCompleted
                                     ? "bg-gradient-to-r from-green-500 to-emerald-600 w-full"
                                     : "bg-gray-200 w-0"
-                                }`}
+                                  }`}
                                 animate={{
                                   width: isCompleted ? "100%" : "0%",
                                 }}
@@ -1622,30 +1617,29 @@ export default function SOPGenerator() {
                             onChange={(e) =>
                               handleInputChange(field.key, e.target.value)
                             }
-                            className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${
-                              validationErrors[
+                            className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${validationErrors[
                                 field.key as keyof typeof validationErrors
                               ]
                                 ? "border-red-500 focus:border-red-500"
                                 : "border-gray-200 focus:border-blue-500"
-                            }`}
+                              }`}
                             required
                           />
                           {validationErrors[
                             field.key as keyof typeof validationErrors
                           ] && (
-                            <motion.p
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-red-500 text-sm mt-1"
-                            >
-                              {
-                                validationErrors[
+                              <motion.p
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-red-500 text-sm mt-1"
+                              >
+                                {
+                                  validationErrors[
                                   field.key as keyof typeof validationErrors
-                                ]
-                              }
-                            </motion.p>
-                          )}
+                                  ]
+                                }
+                              </motion.p>
+                            )}
                         </motion.div>
                       ))}
                     </div>
@@ -1719,8 +1713,8 @@ export default function SOPGenerator() {
                             options={
                               formData.country
                                 ? universityData[
-                                    formData.country as keyof typeof universityData
-                                  ].universities
+                                  formData.country as keyof typeof universityData
+                                ].universities
                                 : []
                             }
                             placeholder="Search or enter university"
@@ -1749,8 +1743,8 @@ export default function SOPGenerator() {
                           options={
                             formData.country
                               ? universityData[
-                                  formData.country as keyof typeof universityData
-                                ].courses
+                                formData.country as keyof typeof universityData
+                              ].courses
                               : []
                           }
                           placeholder="Search or enter course"
@@ -1790,13 +1784,12 @@ export default function SOPGenerator() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4, duration: 0.4 }}
-                      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
-                        formData.resume
+                      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${formData.resume
                           ? "border-green-400 bg-green-50/50"
                           : isDragOver
-                          ? "border-blue-500 bg-blue-50/50 scale-105"
-                          : "border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30"
-                      }`}
+                            ? "border-blue-500 bg-blue-50/50 scale-105"
+                            : "border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30"
+                        }`}
                       onDragOver={handleDragOver}
                       onDragEnter={handleDragEnter}
                       onDragLeave={handleDragLeave}
@@ -1815,16 +1808,14 @@ export default function SOPGenerator() {
                               transition={{ duration: 0.3 }}
                             >
                               <Upload
-                                className={`mx-auto h-16 w-16 transition-colors duration-300 ${
-                                  isDragOver ? "text-blue-500" : "text-gray-400"
-                                }`}
+                                className={`mx-auto h-16 w-16 transition-colors duration-300 ${isDragOver ? "text-blue-500" : "text-gray-400"
+                                  }`}
                               />
                             </motion.div>
                             <div>
                               <p
-                                className={`text-lg font-medium transition-colors duration-300 ${
-                                  isDragOver ? "text-blue-700" : "text-gray-700"
-                                }`}
+                                className={`text-lg font-medium transition-colors duration-300 ${isDragOver ? "text-blue-700" : "text-gray-700"
+                                  }`}
                               >
                                 {isDragOver
                                   ? "Drop your resume here!"
@@ -1994,17 +1985,15 @@ export default function SOPGenerator() {
                             cy="50"
                           />
                           <motion.circle
-                            className={`${
-                              qualityScore && qualityScore >= 80
+                            className={`${qualityScore && qualityScore >= 80
                                 ? "text-green-500"
                                 : qualityScore && qualityScore >= 60
-                                ? "text-yellow-500"
-                                : "text-red-500"
-                            }`}
+                                  ? "text-yellow-500"
+                                  : "text-red-500"
+                              }`}
                             strokeWidth="8"
-                            strokeDasharray={`${
-                              qualityScore ? qualityScore * 2.51 : 0
-                            }, 251.2`}
+                            strokeDasharray={`${qualityScore ? qualityScore * 2.51 : 0
+                              }, 251.2`}
                             strokeDashoffset="0"
                             strokeLinecap="round"
                             stroke="currentColor"
@@ -2014,9 +2003,8 @@ export default function SOPGenerator() {
                             cy="50"
                             initial={{ strokeDasharray: "0, 251.2" }}
                             animate={{
-                              strokeDasharray: `${
-                                qualityScore ? qualityScore * 2.51 : 0
-                              }, 251.2`,
+                              strokeDasharray: `${qualityScore ? qualityScore * 2.51 : 0
+                                }, 251.2`,
                             }}
                             transition={{ duration: 1, delay: 0.5 }}
                           />
