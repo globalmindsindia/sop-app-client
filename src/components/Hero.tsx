@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import SOPStep1Video from "@/assets/SOP_Step_1.mov";
-import SOPStep2Video from "@/assets/SOP_Step_1.mov";
+import SOPStep2Video from "@/assets/SOP_Step_2.mov";
 import SOPStep3Video from "@/assets/SOP_Step_1.mov";
 import SOPStep4Video from "@/assets/SOP_Step_1.mov";
 import SOPStep5Video from "@/assets/SOP_Step_1.mov";
