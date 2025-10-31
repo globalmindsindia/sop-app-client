@@ -3,17 +3,17 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import SOPStep1Video from "@/assets/SOP_Step_1.mov";
 import SOPStep2Video from "@/assets/SOP_Step_2.mov";
-import SOPStep3Video from "@/assets/SOP_Step_1.mov";
-import SOPStep4Video from "@/assets/SOP_Step_1.mov";
-import SOPStep5Video from "@/assets/SOP_Step_1.mov";
-import SOPStep6Video from "@/assets/SOP_Step_1.mov";
-import SOPStep7Video from "@/assets/SOP_Step_1.mov";
+import SOPStep3Video from "@/assets/SOP_Step_3.mov";
+import SOPStep4Video from "@/assets/SOP_Step_4.mov";
+import SOPStep5Video from "@/assets/SOP_Step_5.mov";
+import SOPStep6Video from "@/assets/SOP_Step_6.mov";
+import SOPStep7Video from "@/assets/SOP_Step_7.mov";
 
 interface HeroProps {
   onGetStarted: () => void;
 }
 
-const steps = [
+const steps: Array<{ label: string | JSX.Element; video: string }> = [
   {
     label: "1. Personal Info",
     video: SOPStep1Video,
@@ -40,7 +40,12 @@ const steps = [
       
   },
   {
-    label: "7. SOP",
+    label: (
+      <div className="flex flex-col items-center">
+        <span>7. SOP</span>
+        <span>Ready</span>
+      </div>
+    ),
     video: SOPStep7Video,
   },
 ];
@@ -81,7 +86,7 @@ export default function Hero({ onGetStarted }: HeroProps) {
               <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
-                className={`flex-1 py-2 px-2 text-center rounded text-sm font-medium transition bg-white bg-clip-text text-transparent ${
+                className={`flex-1 py-3 px-2 flex items-center justify-center rounded text-sm font-medium transition bg-white bg-clip-text text-transparent leading-tight ${
                   activeIndex === idx
                     ? "bg-gradient-to-r from-white to-gray-100 text-gray-800 shadow-md"
                     : "text-white hover:opacity-90"
@@ -93,17 +98,19 @@ export default function Hero({ onGetStarted }: HeroProps) {
           </div>
 
           {/* Video */}
-          <video
-            src={steps[activeIndex].video}
-            autoPlay
-            loop
-            muted
-            className="w-full rounded-xl shadow-lg border-2 border-gray-200"
-            style={{
-              objectFit: 'cover',
-              objectPosition: '0 -10px'
-            }}
-          />
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
+            <video
+              src={steps[activeIndex].video}
+              autoPlay
+              loop
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                transform: 'scale(1.1)',
+                objectPosition: 'center center'
+              }}
+            />
+          </div>
         </div>
       </div>
     </section>

@@ -68,8 +68,8 @@ const steps = [
   {
   num: 7,
   icon: FileText,
-  title: "SOP",
-  desc: "Your professionally crafted SOP is drafted and emailed to you to start your study abroad journey.",
+  title: "SOP Ready",
+  desc: "Receive your professionally crafted SOP within 2 working days.",
   color: "#38BDF8",
   border: "border-[#38BDF8]",
   circle: "bg-[#38BDF8]",
