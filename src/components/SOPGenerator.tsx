@@ -249,7 +249,7 @@ export default function SOPGenerator() {
         return false;
       }
     } catch (error: any) {
-      setResumeValidationError("Validation Failure: The name in resume and the name entered are not matching!!");
+      setResumeValidationError("Validation Failure: Please ensure the name provided in your Personal Info matches the name on your resume.!!");
       setResumeValidated(false);
       return false;
     } finally {
