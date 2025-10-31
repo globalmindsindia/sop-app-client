@@ -40,12 +40,7 @@ const steps: Array<{ label: string | JSX.Element; video: string }> = [
       
   },
   {
-    label: (
-      <div className="flex flex-col items-center">
-        <span>7. SOP</span>
-        <span>Ready</span>
-      </div>
-    ),
+    label: "7. SOP Ready",
     video: SOPStep7Video,
   },
 ];
