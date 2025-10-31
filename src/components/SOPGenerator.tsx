@@ -2099,9 +2099,11 @@ export default function SOPGenerator() {
                                 <p className="text-red-600 text-sm">
                                   {resumeValidationError}
                                 </p>
+                                {/*
                                 <p className="text-red-600 text-sm mt-2">
                                   Please upload a different resume or correct the name in the form.
                                 </p>
+                                */}
                               </div>
                             </div>
                           </div>
