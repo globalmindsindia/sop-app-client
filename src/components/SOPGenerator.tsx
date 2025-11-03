@@ -233,23 +233,31 @@ export default function SOPGenerator() {
 
   const validateResumeWithName = async () => {
     if (!formData.name || !formData.resume) return false;
-    
+
     setIsValidatingResume(true);
     setResumeValidationError("");
-    
+
     try {
-      const result = await sopService.validateResume(formData.name, formData.resume);
-      
+      const result = await sopService.validateResume(
+        formData.name,
+        formData.resume
+      );
+
       if (result.key) {
         setResumeValidated(true);
         return true;
       } else {
-        setResumeValidationError(result.message || "Resume name validation failed. Please ensure the name on your resume matches the name entered in the form.");
+        setResumeValidationError(
+          result.message ||
+            "Resume name validation failed. Please ensure the name on your resume matches the name entered in the form."
+        );
         setResumeValidated(false);
         return false;
       }
     } catch (error: any) {
-      setResumeValidationError("Validation Failure: Please ensure the name provided in your Personal Info matches the name on your resume.!!");
+      setResumeValidationError(
+        "Validation Failure: Please ensure the name provided in your Personal Info matches the name on your resume.!!"
+      );
       setResumeValidated(false);
       return false;
     } finally {
@@ -459,7 +467,7 @@ export default function SOPGenerator() {
         });
         return;
       }
-      
+
       if (!resumeValidated) {
         const isValid = await validateResumeWithName();
         if (!isValid) return;
@@ -524,7 +532,7 @@ export default function SOPGenerator() {
     // Reset validation when new file is uploaded
     setResumeValidated(false);
     setResumeValidationError("");
-    
+
     setFormData({ ...formData, resume: file });
     toast({
       title: "Resume uploaded! 📄",
@@ -662,9 +670,9 @@ export default function SOPGenerator() {
         editStep: "questions" as Step,
         content: formData.answers
           ? Object.entries(formData.answers).map(([key, value]) => ({
-            label: key,
-            value: typeof value === "string" ? value : "Not provided",
-          }))
+              label: key,
+              value: typeof value === "string" ? value : "Not provided",
+            }))
           : [{ label: "Responses", value: "No responses available" }],
       },
       // {
@@ -687,135 +695,123 @@ export default function SOPGenerator() {
 
     return (
       <>
-        {showConfirmDialog && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0, y: 50 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 50 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="bg-gradient-to-br from-white via-orange-50/30 to-red-50/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-orange-200/50 backdrop-blur-sm"
+{showConfirmDialog && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+  >
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0, y: 50 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.8, opacity: 0, y: 50 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="bg-gradient-to-br from-white via-green-50/30 to-emerald-50/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-green-200/50 backdrop-blur-sm"
+    >
+      {/* Title */}
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"
+      >
+        Final Confirmation Required
+      </motion.h2>
+
+      {/* Main Message */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mb-6 text-gray-700 leading-relaxed"
+      >
+        <p className="mb-4 text-center font-medium">
+          Your application will now proceed to quality assessment. Once you
+          continue:
+        </p>
+
+        {/* Bullet Points with Icons */}
+        <div className="space-y-3 bg-white/70 rounded-xl p-4 border border-green-200/50">
+          {[
+            {
+              icon: "🚫",
+              text: "No further changes can be made to your responses",
+            },
+            {
+              icon: "🔍",
+              text: "Your answers will be analyzed by our quality system",
+            },
+            {
+              icon: "💡",
+              text: "You'll receive enhancement questions to improve your SOP",
+            },
+            { icon: "⏰", text: "The process cannot be reversed" },
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 + index * 0.1 }}
+              className="flex items-start space-x-3"
             >
-              {/* Warning Icon with Animation */}
-              <motion.div 
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="flex justify-center mb-6"
-              >
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <span className="text-white text-2xl font-bold">⚠️</span>
-                    </motion.div>
-                  </div>
-                  {/* Pulsing ring effect */}
-                  <motion.div
-                    className="absolute inset-0 rounded-full border-4 border-orange-400/30"
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.7, 0, 0.7] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </div>
-              </motion.div>
-
-              {/* Title */}
-              <motion.h2 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
-              >
-                Final Confirmation Required
-              </motion.h2>
-
-              {/* Main Message */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="mb-6 text-gray-700 leading-relaxed"
-              >
-                <p className="mb-4 text-center font-medium">
-                  Your application will now proceed to quality assessment. Once you continue:
-                </p>
-                
-                {/* Bullet Points with Icons */}
-                <div className="space-y-3 bg-white/70 rounded-xl p-4 border border-orange-200/50">
-                  {[
-                    { icon: "🚫", text: "No further changes can be made to your responses" },
-                    { icon: "🔍", text: "Your answers will be analyzed by our quality system" },
-                    { icon: "💡", text: "You'll receive enhancement questions to improve your SOP" },
-                    { icon: "⏰", text: "The process cannot be reversed" }
-                  ].map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + index * 0.1 }}
-                      className="flex items-start space-x-3"
-                    >
-                      <span className="text-lg flex-shrink-0 mt-0.5">{item.icon}</span>
-                      <span className="text-sm font-medium text-gray-700">{item.text}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-
-              {/* Final Question */}
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-                className="text-center font-semibold text-gray-800 mb-8 text-lg"
-              >
-                Are you sure you want to proceed to quality check?
-              </motion.p>
-
-              {/* Action Buttons */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.0 }}
-                className="flex flex-col sm:flex-row gap-3 justify-center"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-semibold transition-all duration-200 shadow-md hover:shadow-lg border border-gray-300"
-                  onClick={() => setShowConfirmDialog(false)}
-                >
-                  <span className="flex items-center justify-center">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Go Back & Review
-                  </span>
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-                  onClick={() => {
-                    setShowConfirmDialog(false);
-                    onConfirm();
-                  }}
-                >
-                  <span className="flex items-center justify-center">
-                    <Check className="h-4 w-4 mr-2" />
-                    Yes, Proceed to Quality Check
-                  </span>
-                </motion.button>
-              </motion.div>
+              <span className="text-lg flex-shrink-0 mt-0.5">{item.icon}</span>
+              <span className="text-sm font-medium text-gray-700">
+                {item.text}
+              </span>
             </motion.div>
-          </motion.div>
-        )}
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Final Question */}
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="text-center font-semibold text-gray-800 mb-8 text-lg"
+      >
+        Are you sure you want to proceed to quality check?
+      </motion.p>
+
+      {/* Action Buttons */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.9 }}
+        className="flex flex-col sm:flex-row gap-3 justify-center"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="px-6 py-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-semibold transition-all duration-200 shadow-md hover:shadow-lg border border-gray-300"
+          onClick={() => setShowConfirmDialog(false)}
+        >
+          <span className="flex items-center justify-center">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go Back & Review
+          </span>
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+          onClick={() => {
+            setShowConfirmDialog(false);
+            onConfirm();
+          }}
+        >
+          <span className="flex items-center justify-center">
+            <Check className="h-4 w-4 mr-2" />
+            Yes, Proceed to Quality Check
+          </span>
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  </motion.div>
+)}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -932,8 +928,9 @@ export default function SOPGenerator() {
               ].map((item, index) => (
                 <div key={index} className="bg-white/70 rounded-xl p-3">
                   <div
-                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${item.completed ? "bg-green-500" : "bg-gray-300"
-                      }`}
+                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                      item.completed ? "bg-green-500" : "bg-gray-300"
+                    }`}
                   >
                     {item.completed ? (
                       <Check className="h-4 w-4 text-white" />
@@ -1191,7 +1188,7 @@ export default function SOPGenerator() {
   return (
     <>
       {showInstructions && (
-        <AlertDialog open onOpenChange={() => { }}>
+        <AlertDialog open onOpenChange={() => {}}>
           <AlertDialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] lg:w-full mx-auto max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -1238,7 +1235,7 @@ export default function SOPGenerator() {
                         "Avoid one-word or generic answers — the more detail, the better",
                         "Be honest and authentic while describing your experiences",
                         "Use correct grammar and spelling for best results",
-                        "Review your answers carefully before final submission", ,
+                        "Review your answers carefully before final submission",
                       ].map((item, index) => (
                         <motion.li
                           key={index}
@@ -1299,10 +1296,11 @@ export default function SOPGenerator() {
                     onClick={() => setAgreed(!agreed)}
                   >
                     <div
-                      className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${agreed
+                      className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
+                        agreed
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 border-green-500"
                           : "border-gray-300 bg-white hover:border-green-400"
-                        }`}
+                      }`}
                     >
                       {agreed && (
                         <motion.div
@@ -1381,10 +1379,11 @@ export default function SOPGenerator() {
                   <AlertDialogAction
                     onClick={handleCloseInstructions}
                     disabled={!agreed}
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${agreed
+                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
+                      agreed
                         ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      }`}
+                    }`}
                   >
                     {agreed ? (
                       <motion.span
@@ -1602,12 +1601,13 @@ export default function SOPGenerator() {
                         >
                           {/* Step Square */}
                           <motion.div
-                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 flex-shrink-0 ${isActive
+                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 flex-shrink-0 ${
+                              isActive
                                 ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-110"
                                 : isCompleted || isPast
-                                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
-                                  : "bg-gray-200 text-gray-500 hover:bg-gray-300"
-                              }`}
+                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
+                                : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+                            }`}
                             whileHover={{ scale: isActive ? 1.1 : 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -1633,12 +1633,13 @@ export default function SOPGenerator() {
 
                           {/* Step Label */}
                           <motion.div
-                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${isActive
+                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${
+                              isActive
                                 ? "text-blue-600"
                                 : isCompleted || isPast
-                                  ? "text-green-600"
-                                  : "text-gray-500"
-                              }`}
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: index * 0.1 + 0.2 }}
@@ -1667,10 +1668,11 @@ export default function SOPGenerator() {
                             >
                               <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full" />
                               <motion.div
-                                className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${isCompleted
+                                className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
+                                  isCompleted
                                     ? "bg-gradient-to-r from-green-500 to-emerald-600 w-full"
                                     : "bg-gray-200 w-0"
-                                  }`}
+                                }`}
                                 animate={{
                                   width: isCompleted ? "100%" : "0%",
                                 }}
@@ -1765,29 +1767,30 @@ export default function SOPGenerator() {
                             onChange={(e) =>
                               handleInputChange(field.key, e.target.value)
                             }
-                            className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${validationErrors[
+                            className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${
+                              validationErrors[
                                 field.key as keyof typeof validationErrors
                               ]
                                 ? "border-red-500 focus:border-red-500"
                                 : "border-gray-200 focus:border-blue-500"
-                              }`}
+                            }`}
                             required
                           />
                           {validationErrors[
                             field.key as keyof typeof validationErrors
                           ] && (
-                              <motion.p
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-red-500 text-sm mt-1"
-                              >
-                                {
-                                  validationErrors[
+                            <motion.p
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-red-500 text-sm mt-1"
+                            >
+                              {
+                                validationErrors[
                                   field.key as keyof typeof validationErrors
-                                  ]
-                                }
-                              </motion.p>
-                            )}
+                                ]
+                              }
+                            </motion.p>
+                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -1861,8 +1864,8 @@ export default function SOPGenerator() {
                             options={
                               formData.country
                                 ? universityData[
-                                  formData.country as keyof typeof universityData
-                                ].universities
+                                    formData.country as keyof typeof universityData
+                                  ].universities
                                 : []
                             }
                             placeholder="Search or enter university"
@@ -1891,8 +1894,8 @@ export default function SOPGenerator() {
                           options={
                             formData.country
                               ? universityData[
-                                formData.country as keyof typeof universityData
-                              ].courses
+                                  formData.country as keyof typeof universityData
+                                ].courses
                               : []
                           }
                           placeholder="Search or enter course"
@@ -1932,12 +1935,13 @@ export default function SOPGenerator() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4, duration: 0.4 }}
-                      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${formData.resume
+                      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
+                        formData.resume
                           ? "border-green-400 bg-green-50/50"
                           : isDragOver
-                            ? "border-blue-500 bg-blue-50/50 scale-105"
-                            : "border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30"
-                        }`}
+                          ? "border-blue-500 bg-blue-50/50 scale-105"
+                          : "border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30"
+                      }`}
                       onDragOver={handleDragOver}
                       onDragEnter={handleDragEnter}
                       onDragLeave={handleDragLeave}
@@ -1956,22 +1960,23 @@ export default function SOPGenerator() {
                               transition={{ duration: 0.3 }}
                             >
                               <Upload
-                                className={`mx-auto h-16 w-16 transition-colors duration-300 ${isDragOver ? "text-blue-500" : "text-gray-400"
-                                  }`}
+                                className={`mx-auto h-16 w-16 transition-colors duration-300 ${
+                                  isDragOver ? "text-blue-500" : "text-gray-400"
+                                }`}
                               />
                             </motion.div>
                             <div>
                               <p
-                                className={`text-lg font-medium transition-colors duration-300 ${isDragOver ? "text-blue-700" : "text-gray-700"
-                                  }`}
+                                className={`text-lg font-medium transition-colors duration-300 ${
+                                  isDragOver ? "text-blue-700" : "text-gray-700"
+                                }`}
                               >
                                 {isDragOver
                                   ? "Drop your resume here!"
                                   : "Drag & drop your resume here"}
                               </p>
                               <p className="text-sm text-gray-500 mt-1">
-                                or click to browse • PDF only up to
-                                10MB
+                                or click to browse • PDF only up to 10MB
                               </p>
                             </div>
                           </div>
@@ -2074,7 +2079,7 @@ export default function SOPGenerator() {
                             </div>
                           </div>
                         )}
-                        
+
                         {!isValidatingResume && resumeValidated && (
                           <div className="bg-green-50 rounded-xl p-4 border border-green-200">
                             <div className="flex items-center space-x-3">
@@ -2085,12 +2090,14 @@ export default function SOPGenerator() {
                             </div>
                           </div>
                         )}
-                        
+
                         {!isValidatingResume && resumeValidationError && (
                           <div className="bg-red-50 rounded-xl p-4 border border-red-200">
                             <div className="flex items-start space-x-3">
                               <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <span className="text-red-600 text-xs font-bold">!</span>
+                                <span className="text-red-600 text-xs font-bold">
+                                  !
+                                </span>
                               </div>
                               <div>
                                 <p className="text-red-700 font-medium mb-2">
@@ -2133,7 +2140,10 @@ export default function SOPGenerator() {
                             <li>
                               • Include relevant work experience and skills
                             </li>
-                            <li>• Make sure the name on your resume matches the name entered above</li>
+                            <li>
+                              • Make sure the name on your resume matches the
+                              name entered above
+                            </li>
                           </ul>
                         </div>
                       </div>
@@ -2189,15 +2199,17 @@ export default function SOPGenerator() {
                             cy="50"
                           />
                           <motion.circle
-                            className={`${qualityScore && qualityScore >= 80
+                            className={`${
+                              qualityScore && qualityScore >= 80
                                 ? "text-green-500"
                                 : qualityScore && qualityScore >= 60
-                                  ? "text-yellow-500"
-                                  : "text-red-500"
-                              }`}
+                                ? "text-yellow-500"
+                                : "text-red-500"
+                            }`}
                             strokeWidth="8"
-                            strokeDasharray={`${qualityScore ? qualityScore * 2.51 : 0
-                              }, 251.2`}
+                            strokeDasharray={`${
+                              qualityScore ? qualityScore * 2.51 : 0
+                            }, 251.2`}
                             strokeDashoffset="0"
                             strokeLinecap="round"
                             stroke="currentColor"
@@ -2207,8 +2219,9 @@ export default function SOPGenerator() {
                             cy="50"
                             initial={{ strokeDasharray: "0, 251.2" }}
                             animate={{
-                              strokeDasharray: `${qualityScore ? qualityScore * 2.51 : 0
-                                }, 251.2`,
+                              strokeDasharray: `${
+                                qualityScore ? qualityScore * 2.51 : 0
+                              }, 251.2`,
                             }}
                             transition={{ duration: 1, delay: 0.5 }}
                           />
@@ -2777,7 +2790,11 @@ export default function SOPGenerator() {
                     ) : (
                       <Button
                         onClick={handleNext}
-                        disabled={!isStepComplete(currentStep) || polling || isValidatingResume}
+                        disabled={
+                          !isStepComplete(currentStep) ||
+                          polling ||
+                          isValidatingResume
+                        }
                         className="rounded-xl w-full sm:w-auto"
                       >
                         {polling ? (
