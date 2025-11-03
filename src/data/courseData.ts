@@ -4746,4 +4746,25 @@ export const courseData = {
       "Philosophy",
     ],
   },
+  Ireland: {
+    universities: [
+      "Trinity College Dublin, The University of Dublin",
+      "University College Dublin",
+      "University College Cork",
+      "University of Galway / Ollscoil na Gaillimhe",
+      "University of Limerick",
+      "Dublin City University",
+      "University of Maynooth",
+      "Technological University of Dublin",
+    ],
+    courses: [
+      "Computer Science",
+      "Engineering",
+      "Business",
+      "Medicine",
+      "Law",
+      "Arts",
+      "Social Sciences",
+    ],
+  },
 };

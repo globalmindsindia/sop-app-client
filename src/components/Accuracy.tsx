@@ -74,7 +74,7 @@ export default function Accuracy() {
     },
     {
       icon: Users,
-      value: "50+",
+      value: "500+",
       label: "Happy Students",
       description: "have used our platform to achieve their dreams",
     },
