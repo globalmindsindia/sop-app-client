@@ -122,11 +122,12 @@ export default function Accuracy() {
   ];
 
   const certifications = [
-    "SOC 2 Type II Certified",
-    "GDPR Compliant",
-    "ISO 27001 Certified",
-    "Educational Technology Standards",
-  ];
+  "Trusted and Secure Platform",
+  "Data Privacy and Protection Assured",
+  "Reliable Performance and Uptime",
+  "Committed to Quality and Compliance",
+];
+
 
   return (
     <section
@@ -205,18 +206,35 @@ export default function Accuracy() {
 
         {/* Certifications & Trust */}
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Certifications */}
+          {/* Security & Reliability */}
           <Card className="border-0 shadow-large-glass bg-gradient-to-bl from-primary/10 via-white/90 to-blue-100/80 backdrop-blur-lg">
             <CardContent className="p-7">
-              <h4 className="font-semibold text-lg text-foreground mb-4 flex items-center">
-                <CheckCircle className="h-5 w-5 text-primary mr-2 inline" />
-                Our Certifications
+              <h4 className="font-semibold text-lg text-foreground mb-4">
+                Security & Reliability
               </h4>
-              <div className="space-y-2">
-                {certifications.map((cert) => (
-                  <div key={cert} className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-secondary mr-2 flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{cert}</span>
+              <div className="space-y-5">
+                {[
+                  {
+                    title: "Trusted Platform",
+                    desc: "Secure and reliable service you can count on.",
+                  },
+                  {
+                    title: "Data Protection",
+                    desc: "Your privacy and data security are our priority.",
+                  },
+                  {
+                    title: "Quality Assurance",
+                    desc: "Committed to maintaining high standards.",
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-start space-x-3">
+                    <div className="bg-pastel-green rounded p-1 mt-1">
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{item.title}</p>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -227,7 +245,7 @@ export default function Accuracy() {
           <Card className="border-0 shadow-large-glass bg-gradient-to-bl from-secondary/10 via-white/90 to-primary/10 backdrop-blur-lg">
             <CardContent className="p-7">
               <h4 className="font-semibold text-lg text-foreground mb-4">
-                Why Universities Trust Us
+                Why Trust Us
               </h4>
               <div className="space-y-5">
                 {[
