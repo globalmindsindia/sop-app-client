@@ -695,123 +695,6 @@ export default function SOPGenerator() {
 
     return (
       <>
-{showConfirmDialog && (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-  >
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0, y: 50 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.8, opacity: 0, y: 50 }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="bg-gradient-to-br from-white via-green-50/30 to-emerald-50/30 rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-green-200/50 backdrop-blur-sm"
-    >
-      {/* Title */}
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"
-      >
-        Final Confirmation Required
-      </motion.h2>
-
-      {/* Main Message */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mb-6 text-gray-700 leading-relaxed"
-      >
-        <p className="mb-4 text-center font-medium">
-          Your application will now proceed to quality assessment. Once you
-          continue:
-        </p>
-
-        {/* Bullet Points with Icons */}
-        <div className="space-y-3 bg-white/70 rounded-xl p-4 border border-green-200/50">
-          {[
-            {
-              icon: "🚫",
-              text: "No further changes can be made to your responses",
-            },
-            {
-              icon: "🔍",
-              text: "Your answers will be analyzed by our quality system",
-            },
-            {
-              icon: "💡",
-              text: "You'll receive enhancement questions to improve your SOP",
-            },
-            { icon: "⏰", text: "The process cannot be reversed" },
-          ].map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 + index * 0.1 }}
-              className="flex items-start space-x-3"
-            >
-              <span className="text-lg flex-shrink-0 mt-0.5">{item.icon}</span>
-              <span className="text-sm font-medium text-gray-700">
-                {item.text}
-              </span>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Final Question */}
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="text-center font-semibold text-gray-800 mb-8 text-lg"
-      >
-        Are you sure you want to proceed to quality check?
-      </motion.p>
-
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        className="flex flex-col sm:flex-row gap-3 justify-center"
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-semibold transition-all duration-200 shadow-md hover:shadow-lg border border-gray-300"
-          onClick={() => setShowConfirmDialog(false)}
-        >
-          <span className="flex items-center justify-center">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Back & Review
-          </span>
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-          onClick={() => {
-            setShowConfirmDialog(false);
-            onConfirm();
-          }}
-        >
-          <span className="flex items-center justify-center">
-            <Check className="h-4 w-4 mr-2" />
-            Yes, Proceed to Quality Check
-          </span>
-        </motion.button>
-      </motion.div>
-    </motion.div>
-  </motion.div>
-)}
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -946,7 +829,7 @@ export default function SOPGenerator() {
             </div>
           </motion.div>
 
-          {/* Confirmation Button */}
+          {/* Proceed Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -954,12 +837,12 @@ export default function SOPGenerator() {
             className="text-center"
           >
             <Button
-              onClick={() => setShowConfirmDialog(true)}
+              onClick={onConfirm}
               className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
               size="lg"
             >
               <Check className="h-5 w-5 mr-2" />
-              Confirm & Proceed to Quality Check
+              Proceed to Quality Check
             </Button>
           </motion.div>
         </motion.div>
@@ -2172,10 +2055,24 @@ export default function SOPGenerator() {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
-                    className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl p-8 border border-orange-200 text-center"
+                    className={`rounded-2xl p-8 border text-center ${
+                      qualityScore >= 75
+                        ? "bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 border-green-300"
+                        : qualityScore <= 15
+                        ? "bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 border-red-200"
+                        : "bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 border-orange-200"
+                    }`}
                   >
                     <div className="flex items-center justify-center mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center mr-3">
+                      <div
+                        className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 ${
+                          qualityScore >= 75
+                            ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                            : qualityScore <= 15
+                            ? "bg-gradient-to-r from-red-500 to-rose-600"
+                            : "bg-gradient-to-r from-orange-500 to-amber-600"
+                        }`}
+                      >
                         <Sparkles className="h-6 w-6 text-white" />
                       </div>
                       <h2 className="text-2xl font-bold text-gray-800">
@@ -2183,6 +2080,7 @@ export default function SOPGenerator() {
                       </h2>
                     </div>
 
+                    {/* Circular Score */}
                     <div className="flex items-center justify-center mb-6">
                       <div className="relative w-32 h-32">
                         <svg
@@ -2200,9 +2098,9 @@ export default function SOPGenerator() {
                           />
                           <motion.circle
                             className={`${
-                              qualityScore && qualityScore >= 80
+                              qualityScore >= 75
                                 ? "text-green-500"
-                                : qualityScore && qualityScore >= 60
+                                : qualityScore >= 60
                                 ? "text-yellow-500"
                                 : "text-red-500"
                             }`}
@@ -2228,7 +2126,15 @@ export default function SOPGenerator() {
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-3xl font-bold text-gray-800">
+                            <div
+                              className={`text-3xl font-bold ${
+                                qualityScore >= 75
+                                  ? "text-green-700"
+                                  : qualityScore <= 15
+                                  ? "text-red-700"
+                                  : "text-gray-800"
+                              }`}
+                            >
                               {qualityScore}
                             </div>
                             <div className="text-sm text-gray-600">/ 100</div>
@@ -2237,109 +2143,151 @@ export default function SOPGenerator() {
                       </div>
                     </div>
 
-                    <p className="text-lg font-medium text-gray-700 mb-2">
-                      Your Response Quality Score
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Let's enhance your responses for a stronger SOP
-                    </p>
-                  </motion.div>
-
-                  {/* Info Banner - Add this to indicate user is locked in quality check */}
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15, duration: 0.3 }}
-                    className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start space-x-3"
-                  >
-                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-white text-xs font-bold">ℹ</span>
-                    </div>
-                    <p className="text-sm text-blue-900">
-                      Please answer all the enhancement questions below to
-                      improve your SOP quality and proceed to payment. You
-                      cannot navigate away from this step until all answers are
-                      submitted.
-                    </p>
-                  </motion.div>
-
-                  {/* Improvement Questions */}
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                        Enhancement Questions
-                      </h3>
-                      <p className="text-gray-600">
-                        Please provide detailed answers to improve your SOP
-                        quality
+                    {/* Message based on score */}
+                    {qualityScore <= 15 ? (
+                      <p className="text-red-700 font-medium text-lg">
+                        Your response was not that good. Please make necessary
+                        changes in your answers, otherwise the SOP will be
+                        generated based on your resume details.
                       </p>
-                    </div>
-
-                    {qualityQuestions.map((q, index) => (
-                      <motion.div
-                        key={q}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
-                        className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
-                      >
-                        <div className="flex items-start space-x-4">
-                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-white font-bold text-sm">
-                              {index + 1}
-                            </span>
-                          </div>
-                          <div className="flex-1 space-y-3">
-                            <Label className="text-base font-medium text-gray-800 leading-relaxed">
-                              {q}
-                            </Label>
-                            <Textarea
-                              value={improvementAnswers[q] || ""}
-                              onChange={(e) =>
-                                setImprovementAnswers((m) => ({
-                                  ...m,
-                                  [q]: e.target.value,
-                                }))
-                              }
-                              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors duration-200 bg-gray-50/50 hover:bg-white"
-                              rows={4}
-                              placeholder="Share your detailed thoughts and experiences here..."
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Submit Button */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.4 }}
-                    className="text-center"
-                  >
-                    <Button
-                      onClick={handleSubmitImprovements}
-                      disabled={
-                        !Object.values(improvementAnswers).every((v) =>
-                          v?.trim()
-                        ) || loading
-                      }
-                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="h-5 w-5 mr-2" />
-                          Submit Improvements
-                        </>
-                      )}
-                    </Button>
+                    ) : qualityScore >= 75 ? (
+                      <p className="text-green-700 font-medium text-lg">
+                        Excellent response! Your SOP quality is impressive. 🎯
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium text-gray-700 mb-2">
+                          Your Response Quality Score
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Let's enhance your responses for a stronger SOP
+                        </p>
+                      </>
+                    )}
                   </motion.div>
+
+                  {/* If score ≤ 15 → only show Proceed button */}
+                  {qualityScore <= 15 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.4 }}
+                      className="text-center"
+                    >
+                      <Button
+                        onClick={handleSubmitImprovements}
+                        className="px-8 py-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                      >
+                        Proceed Anyway
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {/* If 16–74 → show enhancement questions */}
+                  {qualityScore > 15 && qualityScore < 75 && (
+                    <>
+                      {/* Info Banner */}
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15, duration: 0.3 }}
+                        className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start space-x-3"
+                      >
+                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-white text-xs font-bold">
+                            ℹ
+                          </span>
+                        </div>
+                        <p className="text-sm text-blue-900">
+                          Please answer all the enhancement questions below to
+                          improve your SOP quality and proceed to payment. You
+                          cannot navigate away from this step until all answers
+                          are submitted.
+                        </p>
+                      </motion.div>
+
+                      {/* Enhancement Questions */}
+                      <div className="space-y-6">
+                        <div className="text-center">
+                          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                            Enhancement Questions
+                          </h3>
+                          <p className="text-gray-600">
+                            Please provide detailed answers to improve your SOP
+                            quality
+                          </p>
+                        </div>
+
+                        {qualityQuestions.map((q, index) => (
+                          <motion.div
+                            key={q}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              delay: 0.3 + index * 0.1,
+                              duration: 0.4,
+                            }}
+                            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
+                          >
+                            <div className="flex items-start space-x-4">
+                              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span className="text-white font-bold text-sm">
+                                  {index + 1}
+                                </span>
+                              </div>
+                              <div className="flex-1 space-y-3">
+                                <Label className="text-base font-medium text-gray-800 leading-relaxed">
+                                  {q}
+                                </Label>
+                                <Textarea
+                                  value={improvementAnswers[q] || ""}
+                                  onChange={(e) =>
+                                    setImprovementAnswers((m) => ({
+                                      ...m,
+                                      [q]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors duration-200 bg-gray-50/50 hover:bg-white"
+                                  rows={4}
+                                  placeholder="Share your detailed thoughts and experiences here..."
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      {/* Submit Button */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.4 }}
+                        className="text-center"
+                      >
+                        <Button
+                          onClick={handleSubmitImprovements}
+                          disabled={
+                            !Object.values(improvementAnswers).every((v) =>
+                              v?.trim()
+                            ) || loading
+                          }
+                          className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        >
+                          {loading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Check className="h-5 w-5 mr-2" />
+                              Submit Improvements
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
+                    </>
+                  )}
                 </motion.div>
               )}
 
@@ -2771,52 +2719,50 @@ export default function SOPGenerator() {
               )}
 
               {/* ✅ Fixed: Updated Navigation Buttons Logic - Hide during questionnaire */}
-              {currentStep !== "result" &&
-                currentStep !== "questions" &&
-                currentStep !== "quality_check" && (
-                  <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 md:pt-8 gap-2 sm:gap-0">
+              {currentStep !== "result" && currentStep !== "questions" && (
+                <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 md:pt-8 gap-2 sm:gap-0">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentStep === "university"}
+                    className="rounded-xl w-full sm:w-auto"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Previous
+                  </Button>
+
+                  {currentStep === "payment" ? (
+                    <div></div>
+                  ) : (
                     <Button
-                      variant="outline"
-                      onClick={handlePrevious}
-                      disabled={currentStep === "university"}
+                      onClick={handleNext}
+                      disabled={
+                        !isStepComplete(currentStep) ||
+                        polling ||
+                        isValidatingResume
+                      }
                       className="rounded-xl w-full sm:w-auto"
                     >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Previous
+                      {polling ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Loading...
+                        </>
+                      ) : isValidatingResume ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Validating...
+                        </>
+                      ) : (
+                        <>
+                          Next
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </>
+                      )}
                     </Button>
-
-                    {currentStep === "payment" ? (
-                      <div></div>
-                    ) : (
-                      <Button
-                        onClick={handleNext}
-                        disabled={
-                          !isStepComplete(currentStep) ||
-                          polling ||
-                          isValidatingResume
-                        }
-                        className="rounded-xl w-full sm:w-auto"
-                      >
-                        {polling ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Loading...
-                          </>
-                        ) : isValidatingResume ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Validating...
-                          </>
-                        ) : (
-                          <>
-                            Next
-                            <ArrowRight className="h-4 w-4 ml-2" />
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
