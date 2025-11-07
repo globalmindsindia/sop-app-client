@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,82 +18,72 @@ import {
 
 // --- Dictionary API Helper ---
 // Improved meaningful text validation
-async function isMeaningfulSentence(text: string): Promise<boolean> {
-  if (!text || text.trim().length < 3) return false;
 
-  // Reject numbers or symbols
-  if (!/^[A-Za-z0-9\s.,'&()-]+$/.test(text.trim())) return false;
+// --- Text Normalization ---
+function normalizeText(input: string) {
+  return input
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/—|–/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  // Degree abbreviations and institution keywords
-  const allowedAbbreviations = [
-    "BCA",
-    "BBA",
-    "BSc",
-    "B.Tech",
-    "BE",
-    "BA",
-    "MCA",
-    "MBA",
-    "M.Tech",
-    "ME",
-    "MSc",
-    "PhD",
-    "LLB",
-    "LLM",
-    "Diploma",
-    "PGDM",
-  ];
+// --- Better Meaningful Sentence Validator ---
+function isMeaningfulSentence(text: string): boolean {
+  if (!text) return false;
 
-  const institutionKeywords = [
+  const s = normalizeText(text);
+
+  // Too short? reject
+  if (s.length < 10) return false;
+
+  // Allow common technical and punctuation characters
+  if (!/^[A-Za-z0-9\s.,:;!?'"()/+\-&]+$/.test(s)) return false;
+
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length < 3) return false;
+
+  // must contain letters
+  const letterCount = (s.match(/[A-Za-z]/g) || []).length;
+  if (letterCount < 5) return false;
+
+  // Reject gibberish (too many numbers or random chars)
+  const nonLetterRatio = 1 - letterCount / s.length;
+  if (nonLetterRatio > 0.4) return false;
+
+  // Programming and academic keywords
+  const technicalTerms = [
+    "C",
+    "C++",
+    "C#",
+    "Python",
+    "Java",
+    "JavaScript",
+    "Node",
+    "IoT",
+    "AI",
+    "ML",
+    "VLSI",
+    "Embedded",
+    "React",
+    "System",
+    "Project",
+    "Research",
     "University",
-    "College",
     "Institute",
-    "Academy",
-    "School",
-    "Polytechnic",
-    "Campus",
-    "Faculty",
-    "Department",
-    "Institution",
+    "College",
   ];
+  const hasTechTerm = technicalTerms.some((t) =>
+    s.toLowerCase().includes(t.toLowerCase())
+  );
 
-  // Split words
-  const words = text.split(/\s+/).filter((w) => w.trim().length > 0);
+  if (hasTechTerm) return true;
 
-  // Auto-approve if it matches "Degree + Institution" pattern
-  const joined = text.toLowerCase();
-  if (
-    allowedAbbreviations.some((deg) => text.includes(deg)) &&
-    institutionKeywords.some((word) => joined.includes(word.toLowerCase()))
-  ) {
-    return true;
-  }
+  // At least one word >= 4 letters
+  if (words.some((w) => w.length >= 4)) return true;
 
-  // Allow proper nouns (capitalized words like "Surana", "Harvard")
-  const capitalized = words.filter((w) => /^[A-Z][a-z]+$/.test(w));
-  if (capitalized.length >= 1) return true;
-
-  // Dictionary check for lowercase words (skip capitalized or abbreviations)
-  const toCheck = words
-    .filter((w) => !allowedAbbreviations.includes(w) && /^[a-z]+$/.test(w))
-    .slice(0, 3); // sample up to 3 words
-
-  if (toCheck.length === 0) return true;
-
-  try {
-    const results = await Promise.all(
-      toCheck.map(async (word) => {
-        const res = await fetch(
-          `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
-        );
-        return res.ok;
-      })
-    );
-    return results.every(Boolean);
-  } catch {
-    // If dictionary API fails, assume valid to not block user
-    return true;
-  }
+  return false;
 }
 
 interface Props {
@@ -192,14 +182,22 @@ export default function Questionnaire({
     );
   });
 
-  const handleChange = async (key: string, value: string) => {
+  const validationTimers = useRef<Record<string, number | null>>({});
+
+  const handleChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
-    if (value.trim().length > 3) {
-      const valid = await isMeaningfulSentence(value);
-      setInvalidFields((prev) => ({ ...prev, [key]: !valid }));
-    } else {
-      setInvalidFields((prev) => ({ ...prev, [key]: true }));
+
+    // Debounce validation
+    if (validationTimers.current[key]) {
+      clearTimeout(validationTimers.current[key]!);
     }
+
+    validationTimers.current[key] = window.setTimeout(() => {
+      const normalized = normalizeText(value);
+      const valid = normalized.length > 3 && isMeaningfulSentence(normalized);
+      setInvalidFields((prev) => ({ ...prev, [key]: !valid }));
+      validationTimers.current[key] = null;
+    }, 400);
   };
 
   const buildAnswersMap = () => {
