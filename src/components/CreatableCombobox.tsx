@@ -15,15 +15,18 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { ChevronsUpDown, Check, Plus } from "lucide-react";
+import { masterCourseService } from "@/services/mastersCourseService";
 
-// CreatableCombobox.tsx
 type Props = {
   value: string;
   onChange: (val: string) => void;
-  options: readonly string[]; // accept readonly too
+  options: readonly string[];
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  country?: string; // 🟢 Needed to associate with correct country
+  type?: "university" | "course"; // 🟢 Helps decide what to upsert
+  onSearchChange?: (query: string) => void; // 🟢 Debounced search callback
 };
 
 export default function CreatableCombobox({
@@ -33,9 +36,17 @@ export default function CreatableCombobox({
   placeholder = "Search or enter...",
   disabled,
   className,
+  country,
+  type,
+  onSearchChange,
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+
+  // 🔁 Trigger search callback when user types
+  React.useEffect(() => {
+    if (onSearchChange) onSearchChange(query);
+  }, [query]);
 
   const normalized = React.useMemo(
     () => options.map((o) => ({ label: o, value: o })),
@@ -50,16 +61,34 @@ export default function CreatableCombobox({
 
   const selected = value || "";
 
-  function handleSelect(next: string) {
-    onChange(next);
-    setOpen(false);
-    setQuery("");
-  }
-
-  function handleCreate() {
+  async function handleCreate() {
     const custom = query.trim();
     if (!custom) return;
     onChange(custom);
+    setOpen(false);
+    setQuery("");
+
+    // 🟢 Automatically upsert to backend
+    if (country && type) {
+      try {
+        if (type === "university") {
+          await masterCourseService.upsert([
+            { country, universities: [custom], courses: [] },
+          ]);
+        } else if (type === "course") {
+          await masterCourseService.upsert([
+            { country, universities: [], courses: [custom] },
+          ]);
+        }
+        console.log(`✅ Created new ${type}:`, custom);
+      } catch (err) {
+        console.error(`❌ Failed to create ${type}:`, err);
+      }
+    }
+  }
+
+  function handleSelect(next: string) {
+    onChange(next);
     setOpen(false);
     setQuery("");
   }
@@ -81,6 +110,7 @@ export default function CreatableCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-60" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
           <CommandInput
@@ -120,6 +150,7 @@ export default function CreatableCombobox({
                     </div>
                   </CommandItem>
                 ))}
+
                 {!!query.trim() &&
                   !normalized.some(
                     (o) => o.label.toLowerCase() === query.trim().toLowerCase()

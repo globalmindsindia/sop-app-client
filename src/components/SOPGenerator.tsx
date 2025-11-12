@@ -52,7 +52,7 @@ import CreatableCombobox from "./CreatableCombobox";
 import { paymentService } from "@/services/paymentService";
 import { loadRazorpayScript } from "@/utils/razorpay";
 import { leadService } from "@/services/leadService";
-import { courseData } from "@/data/courseData";
+import { masterCourseService } from "@/services/mastersCourseService";
 import SOPBackgroundImage from "@/assets/SOP_Background.jpg";
 import GMILogo from "@/assets/gmi_logo.png";
 
@@ -108,7 +108,7 @@ export default function SOPGenerator() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>("university");
   const [formData, setFormData] = useState<AppFormData>({
-    country: "Germany",
+    country: undefined,
     university: "",
     course: "",
     name: "",
@@ -157,6 +157,17 @@ export default function SOPGenerator() {
   const [resumeValidated, setResumeValidated] = useState(false);
   const [resumeValidationError, setResumeValidationError] = useState("");
   const [isValidatingResume, setIsValidatingResume] = useState(false);
+  // Pagination & loading states
+  const [countries, setCountries] = useState<string[]>([]);
+  const [universities, setUniversities] = useState<string[]>([]);
+  const [courses, setCourses] = useState<string[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingUniversities, setLoadingUniversities] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [hasMoreCountries, setHasMoreCountries] = useState(true);
+  const [countryPage, setCountryPage] = useState(1);
+  const [uniPage, setUniPage] = useState(1);
+  const [coursePage, setCoursePage] = useState(1);
 
   // Validation functions
   const validateName = (name: string): string | null => {
@@ -452,7 +463,84 @@ export default function SOPGenerator() {
     window.location.href = "/";
   };
 
-  const universityData = courseData;
+  const loadCountries = async (page = 1, search = "") => {
+    if (loadingCountries) return;
+    setLoadingCountries(true);
+    try {
+      const res = await masterCourseService.getPaginated(page, 25, search);
+      if (res.success) {
+        const newCountries = res.data.map((d: any) => d.country);
+        setCountries((prev) =>
+          page === 1 ? newCountries : [...prev, ...newCountries]
+        );
+        setHasMoreCountries(page < res.pagination.totalPages);
+        setCountryPage(page + 1);
+      }
+    } catch (err) {
+      console.error("❌ Error loading countries:", err);
+    } finally {
+      setLoadingCountries(false);
+    }
+  };
+
+  // initial load
+  useEffect(() => {
+    loadCountries(1);
+  }, []);
+
+  useEffect(() => {
+    if (formData.country) {
+      loadUniversities(formData.country, 1);
+      loadCourses(formData.country, 1);
+    } else {
+      setUniversities([]);
+      setCourses([]);
+    }
+  }, [formData.country]);
+
+  const loadUniversities = async (country: string, page = 1, search = "") => {
+    if (loadingUniversities) return;
+    setLoadingUniversities(true);
+    try {
+      const res = await masterCourseService.getUniversities(
+        country,
+        page,
+        25,
+        search
+      );
+      if (res.success) {
+        setUniversities((prev) =>
+          page === 1 ? res.data : [...prev, ...res.data]
+        );
+        setUniPage(page + 1);
+      }
+    } catch (err) {
+      console.error("❌ Error loading universities:", err);
+    } finally {
+      setLoadingUniversities(false);
+    }
+  };
+
+  const loadCourses = async (country: string, page = 1, search = "") => {
+    if (loadingCourses) return;
+    setLoadingCourses(true);
+    try {
+      const res = await masterCourseService.getCourses(
+        country,
+        page,
+        25,
+        search
+      );
+      if (res.success) {
+        setCourses((prev) => (page === 1 ? res.data : [...prev, ...res.data]));
+        setCoursePage(page + 1);
+      }
+    } catch (err) {
+      console.error("❌ Error loading courses:", err);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
 
   const handleNext = async () => {
     const currentIndex = steps.indexOf(currentStep);
@@ -1054,8 +1142,6 @@ export default function SOPGenerator() {
         return false;
     }
   };
-
-  const countries = Object.keys(universityData);
 
   // ✅ Fixed: Updated progress step display to match actual steps
   const progressSteps = [
@@ -1702,25 +1788,51 @@ export default function SOPGenerator() {
                           Country <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                          value={formData.country}
-                          onValueChange={(value) =>
+                          value={formData.country || undefined} // must be undefined to show placeholder
+                          onValueChange={(value) => {
                             setFormData({
                               ...formData,
                               country: value,
                               university: "",
                               course: "",
-                            })
-                          }
+                            });
+                          }}
                         >
                           <SelectTrigger className="rounded-xl border-2 border-gray-200 focus:border-purple-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md">
+                            {/* ✅ This will now show properly */}
                             <SelectValue placeholder="Select a country" />
                           </SelectTrigger>
-                          <SelectContent>
-                            {countries.map((country) => (
-                              <SelectItem key={country} value={country}>
-                                {country}
-                              </SelectItem>
-                            ))}
+
+                          <SelectContent
+                            onScroll={(e) => {
+                              const target = e.currentTarget;
+                              if (
+                                target.scrollTop + target.clientHeight >=
+                                  target.scrollHeight - 10 &&
+                                hasMoreCountries &&
+                                !loadingCountries
+                              ) {
+                                loadCountries(countryPage);
+                              }
+                            }}
+                          >
+                            {countries.length === 0 && !loadingCountries ? (
+                              <div className="p-2 text-center text-sm text-gray-400">
+                                No countries available
+                              </div>
+                            ) : (
+                              countries.map((country) => (
+                                <SelectItem key={country} value={country}>
+                                  {country}
+                                </SelectItem>
+                              ))
+                            )}
+
+                            {loadingCountries && (
+                              <div className="p-2 text-center text-sm text-gray-400">
+                                Loading more...
+                              </div>
+                            )}
                           </SelectContent>
                         </Select>
                       </motion.div>
@@ -1741,17 +1853,22 @@ export default function SOPGenerator() {
                           <CreatableCombobox
                             disabled={!formData.country}
                             value={formData.university}
-                            onChange={(val) =>
-                              setFormData({ ...formData, university: val })
-                            }
-                            options={
-                              formData.country
-                                ? universityData[
-                                    formData.country as keyof typeof universityData
-                                  ].universities
-                                : []
-                            }
-                            placeholder="Search or enter university"
+                            onChange={(val) => {
+                              setFormData({ ...formData, university: val });
+
+                              // 🟢 if user created a new university
+                              if (!universities.includes(val)) {
+                                masterCourseService.upsert([
+                                  {
+                                    country: formData.country,
+                                    universities: [...universities, val],
+                                    courses,
+                                  },
+                                ]);
+                                setUniversities((prev) => [...prev, val]);
+                              }
+                            }}
+                            options={universities}
                           />
                         </div>
                       </motion.div>
@@ -1771,17 +1888,22 @@ export default function SOPGenerator() {
                         <CreatableCombobox
                           disabled={!formData.country}
                           value={formData.course}
-                          onChange={(val) =>
-                            setFormData({ ...formData, course: val })
-                          }
-                          options={
-                            formData.country
-                              ? universityData[
-                                  formData.country as keyof typeof universityData
-                                ].courses
-                              : []
-                          }
-                          placeholder="Search or enter course"
+                          onChange={(val) => {
+                            setFormData({ ...formData, course: val });
+
+                            // 🟢 if user created a new course
+                            if (!courses.includes(val)) {
+                              masterCourseService.upsert([
+                                {
+                                  country: formData.country,
+                                  universities,
+                                  courses: [...courses, val],
+                                },
+                              ]);
+                              setCourses((prev) => [...prev, val]);
+                            }
+                          }}
+                          options={courses}
                         />
                       </motion.div>
                     </div>
