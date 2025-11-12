@@ -24,9 +24,11 @@ type Props = {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  country?: string; // 🟢 Needed to associate with correct country
-  type?: "university" | "course"; // 🟢 Helps decide what to upsert
-  onSearchChange?: (query: string) => void; // 🟢 Debounced search callback
+  country?: string;
+  type?: "university" | "course";
+  onSearchChange?: (query: string) => void;
+  onLoadMore?: () => void; // 🆕 called when scrolled to bottom
+  loading?: boolean; // 🆕 show loading indicator
 };
 
 export default function CreatableCombobox({
@@ -39,6 +41,8 @@ export default function CreatableCombobox({
   country,
   type,
   onSearchChange,
+  onLoadMore, // 🆕 add this
+  loading, // 🆕 add this
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -119,7 +123,15 @@ export default function CreatableCombobox({
             onValueChange={setQuery}
             className="h-9"
           />
-          <CommandList className="max-h-64">
+          <CommandList
+            className="max-h-64 overflow-y-auto"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+                if (onLoadMore) onLoadMore(); // 🟢 trigger next 25
+              }
+            }}
+          >
             {filtered.length === 0 ? (
               <>
                 <CommandEmpty>No results found</CommandEmpty>
@@ -161,6 +173,12 @@ export default function CreatableCombobox({
                     </CommandItem>
                   )}
               </CommandGroup>
+            )}
+
+            {loading && (
+              <div className="p-2 text-center text-sm text-gray-400">
+                Loading more...
+              </div>
             )}
           </CommandList>
         </Command>

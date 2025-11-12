@@ -168,6 +168,32 @@ export default function SOPGenerator() {
   const [countryPage, setCountryPage] = useState(1);
   const [uniPage, setUniPage] = useState(1);
   const [coursePage, setCoursePage] = useState(1);
+  const [hasMoreCourses, setHasMoreCourses] = useState(true);
+  const [hasMoreUniversities, setHasMoreUniversities] = useState(true);
+
+  function debounce<T extends (...args: any[]) => void>(func: T, delay = 400) {
+    let timer: NodeJS.Timeout;
+    return (...args: Parameters<T>) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  }
+
+  const debouncedUniSearch = debounce((query: string) => {
+    if (formData.country && query.length > 1) {
+      loadUniversities(formData.country, 1, 25, query);
+    } else if (query.length === 0 && formData.country) {
+      loadUniversities(formData.country, 1); // reset list
+    }
+  }, 400);
+
+  const debouncedCourseSearch = debounce((query: string) => {
+    if (formData.country && query.length > 1) {
+      loadCourses(formData.country, 1, 25, query);
+    } else if (query.length === 0 && formData.country) {
+      loadCourses(formData.country, 1); // reset list
+    }
+  }, 400);
 
   // Validation functions
   const validateName = (name: string): string | null => {
@@ -498,45 +524,57 @@ export default function SOPGenerator() {
     }
   }, [formData.country]);
 
-  const loadUniversities = async (country: string, page = 1, search = "") => {
-    if (loadingUniversities) return;
+  const loadUniversities = async (
+    country: string,
+    page = 1,
+    limit = 25,
+    search = ""
+  ) => {
+    if (!country || loadingUniversities) return;
     setLoadingUniversities(true);
+
     try {
       const res = await masterCourseService.getUniversities(
         country,
         page,
-        25,
+        limit,
         search
       );
-      if (res.success) {
-        setUniversities((prev) =>
-          page === 1 ? res.data : [...prev, ...res.data]
-        );
-        setUniPage(page + 1);
-      }
+      const { data, pagination } = res;
+
+      setUniversities((prev) => (page === 1 ? data : [...prev, ...data]));
+      setUniPage(page + 1);
+      setHasMoreUniversities(pagination.currentPage < pagination.totalPages);
     } catch (err) {
-      console.error("❌ Error loading universities:", err);
+      console.error("❌ Failed to load universities:", err);
     } finally {
       setLoadingUniversities(false);
     }
   };
 
-  const loadCourses = async (country: string, page = 1, search = "") => {
-    if (loadingCourses) return;
+  const loadCourses = async (
+    country: string,
+    page = 1,
+    limit = 25,
+    search = ""
+  ) => {
+    if (!country || loadingCourses) return;
     setLoadingCourses(true);
+
     try {
       const res = await masterCourseService.getCourses(
         country,
         page,
-        25,
+        limit,
         search
       );
-      if (res.success) {
-        setCourses((prev) => (page === 1 ? res.data : [...prev, ...res.data]));
-        setCoursePage(page + 1);
-      }
+      const { data, pagination } = res;
+
+      setCourses((prev) => (page === 1 ? data : [...prev, ...data]));
+      setCoursePage(page + 1);
+      setHasMoreCourses(pagination.currentPage < pagination.totalPages);
     } catch (err) {
-      console.error("❌ Error loading courses:", err);
+      console.error("❌ Failed to load courses:", err);
     } finally {
       setLoadingCourses(false);
     }
@@ -1851,24 +1889,26 @@ export default function SOPGenerator() {
                         </Label>
                         <div className="relative">
                           <CreatableCombobox
+                            country={formData.country}
+                            type="university"
                             disabled={!formData.country}
                             value={formData.university}
-                            onChange={(val) => {
-                              setFormData({ ...formData, university: val });
-
-                              // 🟢 if user created a new university
-                              if (!universities.includes(val)) {
-                                masterCourseService.upsert([
-                                  {
-                                    country: formData.country,
-                                    universities: [...universities, val],
-                                    courses,
-                                  },
-                                ]);
-                                setUniversities((prev) => [...prev, val]);
+                            onChange={(val) =>
+                              setFormData({ ...formData, university: val })
+                            }
+                            options={universities}
+                            placeholder="Search or create university"
+                            loading={loadingUniversities}
+                            onLoadMore={() => {
+                              if (!loadingUniversities && hasMoreUniversities) {
+                                loadUniversities(formData.country, uniPage); // 🟢 Fetch next 25 universities
                               }
                             }}
-                            options={universities}
+                            onSearchChange={(query) => {
+                              if (formData.country && query.length > 1) {
+                                debouncedUniSearch(query); // 🟢 Debounced backend search
+                              }
+                            }}
                           />
                         </div>
                       </motion.div>
@@ -1886,24 +1926,26 @@ export default function SOPGenerator() {
                           Course/Program
                         </Label>
                         <CreatableCombobox
+                          country={formData.country}
+                          type="course"
                           disabled={!formData.country}
                           value={formData.course}
-                          onChange={(val) => {
-                            setFormData({ ...formData, course: val });
-
-                            // 🟢 if user created a new course
-                            if (!courses.includes(val)) {
-                              masterCourseService.upsert([
-                                {
-                                  country: formData.country,
-                                  universities,
-                                  courses: [...courses, val],
-                                },
-                              ]);
-                              setCourses((prev) => [...prev, val]);
+                          onChange={(val) =>
+                            setFormData({ ...formData, course: val })
+                          }
+                          options={courses}
+                          placeholder="Search or create course"
+                          loading={loadingCourses}
+                          onLoadMore={() => {
+                            if (!loadingCourses && hasMoreCourses) {
+                              loadCourses(formData.country, coursePage); // 🟢 Fetch next 25 courses
                             }
                           }}
-                          options={courses}
+                          onSearchChange={(query) => {
+                            if (formData.country && query.length > 1) {
+                              debouncedCourseSearch(query); // 🟢 Debounced backend search
+                            }
+                          }}
                         />
                       </motion.div>
                     </div>
