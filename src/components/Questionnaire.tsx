@@ -31,59 +31,60 @@ function normalizeText(input: string) {
 
 // --- Better Meaningful Sentence Validator ---
 function isMeaningfulSentence(text: string): boolean {
-  if (!text) return false;
+  return true;
+  // if (!text) return false;
 
-  const s = normalizeText(text);
+  // const s = normalizeText(text);
 
-  // Too short? reject
-  if (s.length < 10) return false;
+  // // Too short? reject
+  // if (s.length < 10) return false;
 
-  // Allow common technical and punctuation characters
-  if (!/^[A-Za-z0-9\s.,:;!?'"()/+\-&]+$/.test(s)) return false;
+  // // Allow common technical and punctuation characters
+  // if (!/^[A-Za-z0-9\s.,:;!?'"()/+\-&]+$/.test(s)) return false;
 
-  const words = s.split(/\s+/).filter(Boolean);
-  if (words.length < 3) return false;
+  // const words = s.split(/\s+/).filter(Boolean);
+  // if (words.length < 3) return false;
 
-  // must contain letters
-  const letterCount = (s.match(/[A-Za-z]/g) || []).length;
-  if (letterCount < 5) return false;
+  // // must contain letters
+  // const letterCount = (s.match(/[A-Za-z]/g) || []).length;
+  // if (letterCount < 5) return false;
 
-  // Reject gibberish (too many numbers or random chars)
-  const nonLetterRatio = 1 - letterCount / s.length;
-  if (nonLetterRatio > 0.4) return false;
+  // // Reject gibberish (too many numbers or random chars)
+  // const nonLetterRatio = 1 - letterCount / s.length;
+  // if (nonLetterRatio > 0.4) return false;
 
-  // Programming and academic keywords
-  const technicalTerms = [
-    "C",
-    "C++",
-    "C#",
-    "Python",
-    "Java",
-    "JavaScript",
-    "Node",
-    "IoT",
-    "AI",
-    "ML",
-    "VLSI",
-    "Embedded",
-    "React",
-    "System",
-    "Project",
-    "Research",
-    "University",
-    "Institute",
-    "College",
-  ];
-  const hasTechTerm = technicalTerms.some((t) =>
-    s.toLowerCase().includes(t.toLowerCase())
-  );
+  // // Programming and academic keywords
+  // const technicalTerms = [
+  //   "C",
+  //   "C++",
+  //   "C#",
+  //   "Python",
+  //   "Java",
+  //   "JavaScript",
+  //   "Node",
+  //   "IoT",
+  //   "AI",
+  //   "ML",
+  //   "VLSI",
+  //   "Embedded",
+  //   "React",
+  //   "System",
+  //   "Project",
+  //   "Research",
+  //   "University",
+  //   "Institute",
+  //   "College",
+  // ];
+  // const hasTechTerm = technicalTerms.some((t) =>
+  //   s.toLowerCase().includes(t.toLowerCase())
+  // );
 
-  if (hasTechTerm) return true;
+  // if (hasTechTerm) return true;
 
-  // At least one word >= 4 letters
-  if (words.some((w) => w.length >= 4)) return true;
+  // // At least one word >= 4 letters
+  // if (words.some((w) => w.length >= 4)) return true;
 
-  return false;
+  // return false;
 }
 
 interface Props {
