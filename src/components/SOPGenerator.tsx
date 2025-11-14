@@ -2314,9 +2314,13 @@ export default function SOPGenerator() {
                         changes in your answers, otherwise the SOP will be
                         generated based on your resume details.
                       </p>
+                    ) : qualityScore >= 85 ? (
+                      <p className="text-green-700 font-medium text-lg">
+                        Excellent response! Your SOP quality is outstanding. 🎯
+                      </p>
                     ) : qualityScore >= 75 ? (
                       <p className="text-green-700 font-medium text-lg">
-                        Excellent response! Your SOP quality is impressive. 🎯
+                        Good response! You may proceed. 🌟
                       </p>
                     ) : (
                       <>
@@ -2330,7 +2334,7 @@ export default function SOPGenerator() {
                     )}
                   </motion.div>
 
-                  {/* If score ≤ 15 → only show Proceed button */}
+                  {/* SCORE ≤ 15 → Proceed Anyway */}
                   {qualityScore <= 15 && (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -2347,7 +2351,24 @@ export default function SOPGenerator() {
                     </motion.div>
                   )}
 
-                  {/* If 16–74 → show enhancement questions */}
+                  {/* SCORE 75+ → Direct Proceed (NO questions) */}
+                  {qualityScore >= 75 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.4 }}
+                      className="text-center"
+                    >
+                      <Button
+                        onClick={handleSubmitImprovements}
+                        className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                      >
+                        Proceed
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {/* SCORE BETWEEN 16–74 → Enhancement Questions */}
                   {qualityScore > 15 && qualityScore < 75 && (
                     <>
                       {/* Info Banner */}
@@ -2364,9 +2385,7 @@ export default function SOPGenerator() {
                         </div>
                         <p className="text-sm text-blue-900">
                           Please answer all the enhancement questions below to
-                          improve your SOP quality and proceed to payment. You
-                          cannot navigate away from this step until all answers
-                          are submitted.
+                          improve your SOP quality and proceed to payment.
                         </p>
                       </motion.div>
 
@@ -2421,7 +2440,7 @@ export default function SOPGenerator() {
                         ))}
                       </div>
 
-                      {/* Submit Button */}
+                      {/* Submit Improvements */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
