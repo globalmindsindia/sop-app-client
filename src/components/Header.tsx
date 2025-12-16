@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import companyLogo from "@/assets/gmi_logo.png";
 
 interface HeaderProps {
@@ -9,114 +10,155 @@ interface HeaderProps {
 }
 
 export default function Header({ onGetStarted }: HeaderProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const navItems = [
-    { name: "Features", href: "#features" },
-    { name: "How It Works", href: "#how-it-works" },
-    { name: "Accuracy", href: "#accuracy" },
-    { name: "Testimonials", href: "#testimonials" },
+    { name: "Features", path: "#features" },
+    { name: "How It Works", path: "#how-it-works" },
+    { name: "Accuracy", path: "#accuracy" },
+    { name: "Testimonials", path: "#testimonials" },
   ];
 
-  const handleNavClick = (href: string) => {
+  const scrollToSection = (sectionId: string) => {
     navigate("/");
+
     setTimeout(() => {
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
+      const element = document.querySelector(sectionId);
+      if (element) element.scrollIntoView({ behavior: "smooth" });
+    }, 120);
+
+    setMobileMenuOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-300 shadow-md transition-colors duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="flex items-center h-16 justify-between">
-          {/* Logo on extreme left */}
-          <div className="flex-shrink-0">
-            <Link to="/" aria-label="Home" className="inline-flex items-center">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      {/* Animate INNER wrapper (safe) */}
+      <motion.div
+        initial={{ y: -80 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
+        <nav className="container-app">
+          <div className="flex h-16 items-center justify-between relative">
+            {/* Logo */}
+            <Link
+              to="/"
+              className="flex items-center gap-2 font-heading font-bold text-xl text-primary"
+            >
               <img
                 src={companyLogo}
                 alt="Company Logo"
-                className="h-14 w-auto object-contain" // Increased height to 56px (14 * 4)
+                className="h-12 w-auto"
               />
             </Link>
-          </div>
 
-          {/* Nav menu centered absolutely */}
-          <nav className="hidden md:flex space-x-12 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            {navItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => handleNavClick(item.href)}
-                className="relative text-gray-700 text-base font-semibold hover:text-blue-600 transition-colors duration-300 px-3 py-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center justify-center flex-1 mx-8">
+              <div className="flex items-center gap-1 bg-muted/50 rounded-full px-2 py-1 backdrop-blur-sm">
+                {navItems.map((item, index) => (
+                  <motion.button
+                    key={item.name}
+                    onClick={() => scrollToSection(item.path)}
+                    className="relative px-4 py-2 font-body text-sm font-semibold text-foreground/80 hover:text-primary transition-all duration-300 rounded-full group"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <span className="relative z-10">{item.name}</span>
+
+                    {/* Hover Background */}
+                    <motion.div
+                      className="absolute inset-0 bg-primary/10 rounded-full"
+                      initial={{ scale: 0, opacity: 0 }}
+                      whileHover={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    />
+
+                    {/* Underline */}
+                    <motion.div
+                      className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-primary rounded-full group-hover:w-3/4 transition-all duration-300"
+                      style={{ transform: "translateX(-50%)" }}
+                    />
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Get Started Button */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Button
+                onClick={onGetStarted}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
-                {item.name}
-                <span className="block absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-blue-600 transition-all duration-300 rounded group-hover:w-full"></span>
-              </button>
-            ))}
-          </nav>
+                Get Started
+              </Button>
+            </motion.div>
 
-          {/* "Get Started" button on extreme right */}
-          <div className="flex-shrink-0">
-            <Button
-              onClick={onGetStarted}
-              className="rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl text-white font-semibold px-6 py-2 transition duration-300"
-            >
-              Get Started
-            </Button>
-          </div>
-
-          {/* Mobile menu button centered */}
-          <div className="md:hidden absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            {/* Mobile Menu Toggle */}
             <button
-              aria-label="Toggle menu"
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden text-foreground"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6 animate-fade-in" />
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
               ) : (
-                <Menu className="h-6 w-6 animate-fade-in" />
+                <Menu className="h-6 w-6" />
               )}
             </button>
           </div>
-        </div>
 
-        {/* Mobile Menu */}
-        <div
-          className={`md:hidden origin-top transform transition-all duration-300 ${
-            isMobileMenuOpen
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 scale-95 pointer-events-none"
-          }`}
-        >
-          <nav className="flex flex-col space-y-3 mt-4 px-4 pb-6 bg-white rounded-lg shadow-lg border border-gray-200">
-            {navItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => {
-                  handleNavClick(item.href);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-base font-medium text-gray-700 hover:text-blue-600 text-left transition-colors duration-300 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          {/* Mobile Navigation */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="md:hidden py-4"
               >
-                {item.name}
-              </button>
-            ))}
-            <Button
-              onClick={() => {
-                onGetStarted();
-                setIsMobileMenuOpen(false);
-              }}
-              className="rounded-2xl mt-5 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition duration-300"
-            >
-              Get Started Free
-            </Button>
-          </nav>
-        </div>
-      </div>
+                <div className="flex flex-col gap-2 bg-muted/30 rounded-lg p-4 backdrop-blur-sm">
+                  {navItems.map((item, index) => (
+                    <motion.button
+                      key={item.name}
+                      onClick={() => scrollToSection(item.path)}
+                      className="relative font-body text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 text-left p-3 rounded-lg hover:bg-primary/10 group"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <span className="relative z-10">{item.name}</span>
+
+                      <motion.div
+                        className="absolute left-0 top-1/2 w-1 h-0 bg-primary rounded-full group-hover:h-1/2 transition-all duration-300"
+                        style={{ transform: "translateY(-50%)" }}
+                      />
+                    </motion.button>
+                  ))}
+
+                  <Button
+                    onClick={() => {
+                      onGetStarted();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold w-full mt-2 shadow-lg"
+                  >
+                    Get Started
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </nav>
+      </motion.div>
     </header>
   );
 }

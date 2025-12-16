@@ -1,165 +1,137 @@
-import { Mail, MapPin, Phone, Facebook, Linkedin, Instagram, Youtube } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  Facebook,
+  Linkedin,
+  Instagram,
+  Youtube,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import companyLogo from "@/assets/gmi_logo.png";
+import indiaFlag from "@/assets/india-flag.png";
+import germanyFlag from "@/assets/German-Flag.png";
 
 export default function Footer() {
   const navigate = useNavigate();
 
-  const supportItems = [
-    "FAQ",
-    "Contact Us @ +91 7353446655",
-    "Terms and Conditions",
-    "Privacy Policy",
-    "Refund Policy",
-  ];
-
   const handleFAQClick = () => {
     navigate("/");
     setTimeout(() => {
-      const element = document.querySelector("#faq");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
+      const el = document.querySelector("#faq");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 150);
   };
 
-  // External Services Links
   const services = [
-    { name: "Foreign Language Training", url: "https://languages.globalmindsindia.in" },
-    { name: "IELTS Training", url: "https://globalmindsindia.in" },
+    {
+      name: "Foreign Language Training",
+      url: "https://languages.globalmindsindia.in",
+    },
+    { name: "IELTS Training", url: "https://globalmindsindia.co.in" },
     { name: "APS Certificate", url: "https://aps.globalmindsindia.in" },
     { name: "Cost Calculator", url: "https://calculator.globalmindsindia.com" },
     { name: "Grade Calculator", url: "https://grade.globalmindsgermany.com" },
   ];
 
-  // Social Media Links
-  const socialLinks = [
+  const supportItems = [
+    { label: "FAQ", onClick: handleFAQClick },
+    { label: "Contact Us @ +91 7353446655", url: "tel:+917353446655" },
+    { label: "Terms & Conditions", link: "/terms-and-conditions" },
+    { label: "Privacy Policy", link: "/privacy-policy" },
+    { label: "Refund Policy", link: "/refund-policy" },
+  ];
+
+  const socials = [
     {
-      name: "YouTube",
-      icon: <Youtube className="h-5 w-5" />,
-      url: "https://www.youtube.com/@GlobalMindsIndia-1",
-    },
-    {
-      name: "Facebook",
       icon: <Facebook className="h-5 w-5" />,
       url: "https://www.facebook.com/people/Global-Minds-India/61573595922348/",
     },
     {
-      name: "LinkedIn",
-      icon: <Linkedin className="h-5 w-5" />,
-      url: "https://www.linkedin.com/company/global-minds-india/",
+      icon: <Youtube className="h-5 w-5" />,
+      url: "https://www.youtube.com/@GlobalMindsIndia-1",
     },
     {
-      name: "Instagram",
       icon: <Instagram className="h-5 w-5" />,
       url: "https://www.instagram.com/globalminds_india/",
+    },
+    {
+      icon: <Linkedin className="h-5 w-5" />,
+      url: "https://www.linkedin.com/company/global-minds-india/",
     },
   ];
 
   return (
-    <footer className="bg-gradient-card border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <img
-                src={companyLogo}
-                alt="Company Logo"
-                className="h-10 w-auto object-contain mb-4"
-              />
+    <motion.footer
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="bg-primary text-primary-foreground"
+    >
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* GRID */}
+        <div className="grid md:grid-cols-4 gap-10">
+          {/* LOGO + DESCRIPTION */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <img src={companyLogo} alt="GMI" className="h-16 w-auto" />
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="font-body text-sm text-primary-foreground/80 leading-relaxed">
               Empowering students worldwide to craft compelling statements of
               purpose that open doors to their dream universities and future
               careers.
             </p>
-            <div className="flex space-x-4 mt-4">
-              {socialLinks.map(({ name, icon, url }) => (
-                <a
-                  key={name}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-8 h-8 bg-accent rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-colors cursor-pointer"
-                  aria-label={name}
-                >
-                  {icon}
-                </a>
-              ))}
-            </div>
           </div>
 
-          {/* Services */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+          {/* SERVICES */}
+          <div>
+            <h3 className="font-heading font-semibold text-lg mb-4">
               Services
             </h3>
-            <ul className="space-y-2">
-              {services.map((service) => (
-                <li key={service.name}>
+            <ul className="space-y-2 font-body text-sm">
+              {services.map((s) => (
+                <li key={s.name}>
                   <a
-                    href={service.url}
+                    href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="hover:text-accent transition-colors"
                   >
-                    {service.name}
+                    {s.name}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Support */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Support
-            </h3>
-            <ul className="space-y-2">
+          {/* SUPPORT */}
+          <div>
+            <h3 className="font-heading font-semibold text-lg mb-4">Support</h3>
+            <ul className="space-y-2 font-body text-sm">
               {supportItems.map((item) => (
-                <li key={item}>
-                  {item === "Terms and Conditions" ? (
-                    <Link
-                      to="/terms-and-conditions"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {item}
-                    </Link>
-                  ) : item === "Refund Policy" ? (
-                    <Link
-                      to="/refund-policy"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {item}
-                    </Link>
-                  ) : item === "Privacy Policy" ? (
-                    <Link
-                      to="/privacy-policy"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {item}
-                    </Link>
-                  ) : item === "FAQ" ? (
+                <li key={item.label}>
+                  {item.onClick ? (
                     <button
-                      onClick={handleFAQClick}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      onClick={item.onClick}
+                      className="hover:text-accent transition-colors"
                     >
-                      {item}
+                      {item.label}
                     </button>
-                  ) : item === "Contact Us @ +91 7353446655" ? (
-                    <a
-                      href="tel:+917353446655"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  ) : item.link ? (
+                    <Link
+                      to={item.link}
+                      className="hover:text-accent transition-colors"
                     >
-                      {item}
-                    </a>
+                      {item.label}
+                    </Link>
                   ) : (
                     <a
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      href={item.url}
+                      className="hover:text-accent transition-colors"
                     >
-                      {item}
+                      {item.label}
                     </a>
                   )}
                 </li>
@@ -167,62 +139,91 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Contact
+          {/* CONTACT */}
+          <div>
+            <h3 className="font-heading font-semibold text-lg mb-4">
+              Contact Us
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  <a href="mailto:connect@globalmindsindia.com" className="hover:underline">
-                    connect@globalmindsindia.com
-                  </a>
+            <ul className="space-y-3 font-body text-sm">
+              <li className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                <a
+                  href="mailto:connect@globalmindsindia.com"
+                  className="hover:text-accent transition-colors"
+                >
+                  connect@globalmindsindia.com
+                </a>
+              </li>
+
+              <li className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <a
+                  href="tel:+917353446655"
+                  className="hover:text-accent transition-colors"
+                >
+                  +91 7353446655
+                </a>
+              </li>
+
+              <li className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span className="flex items-center gap-2">
+                  <img
+                    src={indiaFlag}
+                    className="h-4 w-6 rounded object-cover"
+                  />
+                  23, CJ VenkataDas road, Padmanabhanagar, Bangalore
                 </span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm text-muted-foreground">+91 7353446655</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-primary" />
-                <div className="text-sm text-muted-foreground">
-                  23, CJ VenkataDas road,
-                  <br />
-                  Padmanabhanagar, Bangalore
-                  <br />
-                  <a href="tel:+917353446655" className="hover:underline text-primary">
-                    +91 7353446655
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-primary" />
-                <div className="text-sm text-muted-foreground">
-                  Overseas Office - Germany
-                  <br />
+              </li>
+
+              <li className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span className="flex items-center gap-2">
+                  <img
+                    src={germanyFlag}
+                    className="h-4 w-6 rounded object-cover"
+                  />
                   Koenigsheideweg Berlin, Germany
-                  <br />
-                  <a href="tel:+4917645728219" className="hover:underline text-primary">
-                    +49 17645728219
-                  </a>
-                </div>
-              </div>
-            </div>
+                </span>
+              </li>
+
+              <li className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <a
+                  href="tel:+4917645728219"
+                  className="hover:text-accent transition-colors"
+                >
+                  +49 17645728219
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Footer Bottom */}
-        <div className="mt-8 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            © 2025 Global Minds India. All rights reserved.
-          </p>
-          <p className="text-sm text-muted-foreground mt-2 md:mt-0">
-            Made with ❤️ for students worldwide
-          </p>
+        {/* BOTTOM SECTION */}
+        <div className="border-t border-primary-foreground/20 mt-10 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="font-body text-sm text-primary-foreground/80">
+              © {new Date().getFullYear()} Global Minds India. All rights
+              reserved.
+            </p>
+
+            <div className="flex gap-4">
+              {socials.map((s, i) => (
+                <a
+                  key={i}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-accent transition-colors"
+                >
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,7 @@ import {
   Phone,
   MessageCircle,
   GraduationCap,
+  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Questionnaire from "./Questionnaire";
@@ -105,7 +106,6 @@ export default function SOPGenerator() {
     "result",
   ];
 
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>("university");
   const [formData, setFormData] = useState<AppFormData>({
     country: undefined,
@@ -118,6 +118,8 @@ export default function SOPGenerator() {
     preffered_length: "",
     specific_requirements: "",
   });
+
+  const isProceedingRef = useRef(false);
   const [generatedSOP, setGeneratedSOP] = useState("");
   const [reviewCompleted, setReviewCompleted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -311,6 +313,7 @@ export default function SOPGenerator() {
   }, [currentStep]);
 
   const handleCloseInstructions = () => {
+    isProceedingRef.current = true; // ✅ mark as valid proceed
     setShowInstructions(false);
     // sessionStorage.setItem("instructionsShown", "true");
   };
@@ -827,60 +830,63 @@ export default function SOPGenerator() {
           transition={{ duration: 0.5 }}
           className="max-w-5xl mx-auto space-y-8"
         >
-          {/* Header */}
+          {/* HEADER */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
             className="text-center mb-8"
           >
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <Check className="h-8 w-8 text-white" />
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
+              <Check className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+
+            <h2 className="font-heading text-3xl font-bold text-foreground mb-2">
               Review Your Application
             </h2>
-            <p className="text-gray-600">
+
+            <p className="font-body text-muted-foreground">
               Please review all information before proceeding to payment
             </p>
           </motion.div>
 
-          {/* Review Sections */}
+          {/* REVIEW SECTIONS */}
           <div className="space-y-6">
             {reviewSections.map((section, index) => {
               const IconComponent = section.icon;
+
               return (
                 <motion.div
                   key={section.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
-                  className={`bg-gradient-to-br ${section.bgColor} rounded-2xl p-6 border ${section.borderColor} shadow-sm hover:shadow-md transition-all duration-200`}
+                  className="bg-card rounded-2xl p-6 border border-muted shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  {/* Section Header */}
+                  {/* SECTION HEADER */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <div
-                        className={`w-10 h-10 bg-gradient-to-r ${section.color} rounded-full flex items-center justify-center mr-3 shadow-md`}
-                      >
-                        <IconComponent className="h-5 w-5 text-white" />
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                        <IconComponent className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800">
+
+                      <h3 className="font-heading text-lg font-semibold text-foreground">
                         {section.title}
                       </h3>
                     </div>
+
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => onEdit(section.editStep)}
-                      className="rounded-xl border-2 hover:scale-105 transition-all duration-200"
+                      className="rounded-xl border-muted font-body hover:scale-105 transition-all duration-200"
                     >
                       <FileText className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
                   </div>
 
-                  {/* Section Content */}
+                  {/* SECTION CONTENT */}
                   <div className="space-y-3">
                     {section.content.map((item, itemIndex) => (
                       <motion.div
@@ -888,13 +894,14 @@ export default function SOPGenerator() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 + itemIndex * 0.05 }}
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/50"
+                        className="bg-muted rounded-xl p-4 border border-muted"
                       >
                         <div className="flex flex-col space-y-2">
-                          <span className="text-sm font-medium text-gray-600">
+                          <span className="font-body text-sm font-medium text-muted-foreground">
                             Q: {item.label}
                           </span>
-                          <span className="text-sm text-gray-800 break-words pl-2 border-l-2 border-gray-200">
+
+                          <span className="font-body text-sm text-foreground break-words pl-2 border-l-2 border-muted">
                             Ans: {item.value || "Not provided"}
                           </span>
                         </div>
@@ -906,21 +913,23 @@ export default function SOPGenerator() {
             })}
           </div>
 
-          {/* Summary Card */}
+          {/* SUMMARY CARD */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.4 }}
-            className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200"
+            className="bg-card rounded-2xl p-6 border border-muted shadow-md"
           >
             <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3">
-                <Check className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                <Check className="h-5 w-5 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">
+
+              <h3 className="font-heading text-lg font-semibold text-foreground">
                 Application Summary
               </h3>
             </div>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               {[
                 {
@@ -935,19 +944,23 @@ export default function SOPGenerator() {
                 { label: "Questionnaire", completed: !!formData.answers },
                 { label: "Quality Check", completed: !!qualityScore },
               ].map((item, index) => (
-                <div key={index} className="bg-white/70 rounded-xl p-3">
+                <div
+                  key={index}
+                  className="bg-muted rounded-xl p-4 border border-muted"
+                >
                   <div
                     className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                      item.completed ? "bg-green-500" : "bg-gray-300"
+                      item.completed ? "bg-primary" : "bg-muted"
                     }`}
                   >
                     {item.completed ? (
-                      <Check className="h-4 w-4 text-white" />
+                      <Check className="h-4 w-4 text-primary-foreground" />
                     ) : (
-                      <span className="text-white text-sm">!</span>
+                      <span className="text-muted-foreground text-sm">!</span>
                     )}
                   </div>
-                  <p className="text-xs font-medium text-gray-700">
+
+                  <p className="font-body text-xs font-medium text-foreground">
                     {item.label}
                   </p>
                 </div>
@@ -955,7 +968,7 @@ export default function SOPGenerator() {
             </div>
           </motion.div>
 
-          {/* Proceed Button */}
+          {/* PROCEED BUTTON */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -964,8 +977,8 @@ export default function SOPGenerator() {
           >
             <Button
               onClick={onConfirm}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
               size="lg"
+              className="px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-heading font-semibold transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
             >
               <Check className="h-5 w-5 mr-2" />
               Proceed to Quality Check
@@ -1192,34 +1205,60 @@ export default function SOPGenerator() {
     { key: "result", label: "SOP", index: 7 },
   ];
 
+  const navigate = useNavigate();
+
+  const handleCloseAndRedirect = () => {
+    setAgreed(false);
+    setShowInstructions(false);
+    window.location.replace("/");
+  };
+
   return (
     <>
       {showInstructions && (
-        <AlertDialog open onOpenChange={() => {}}>
-          <AlertDialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] lg:w-full mx-auto max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl backdrop-blur-sm">
+        <AlertDialog
+          open={showInstructions}
+          onOpenChange={(open) => {
+            if (!open && !isProceedingRef.current) {
+              handleCloseAndRedirect(); // ❌ only for forced close
+            }
+          }}
+        >
+          <AlertDialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] lg:w-full mx-auto max-h-[90vh] overflow-y-auto bg-card border border-muted shadow-2xl">
+            <button
+              onClick={handleCloseAndRedirect}
+              aria-label="Close"
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow transition"
+            >
+              <X className="h-5 w-5 text-gray-700" />
+            </button>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
+              {/* HEADER */}
               <AlertDialogHeader className="text-center pb-6">
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.3 }}
-                  className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-3 sm:mb-4 shadow-lg"
+                  className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md"
                 >
-                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </motion.div>
-                <AlertDialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+
+                <AlertDialogTitle className="font-heading text-xl sm:text-2xl font-bold text-foreground">
                   Important Guidelines
                 </AlertDialogTitle>
-                <p className="text-sm sm:text-base text-gray-600 mt-2">
+
+                <p className="font-body text-sm sm:text-base text-muted-foreground mt-2">
                   Please read these instructions carefully to ensure the best
                   SOP quality
                 </p>
               </AlertDialogHeader>
 
+              {/* CONTENT */}
               <AlertDialogDescription asChild>
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -1227,75 +1266,78 @@ export default function SOPGenerator() {
                   transition={{ delay: 0.3, duration: 0.4 }}
                   className="space-y-4"
                 >
-                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
-                    <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                      {/* <Sparkles className="h-4 w-4 text-yellow-500 mr-2" /> */}
+                  {/* KEY REQUIREMENTS */}
+                  <div className="bg-muted rounded-xl p-4 border border-muted shadow-sm">
+                    <h4 className="font-heading font-semibold text-foreground mb-4">
                       Key Requirements
                     </h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
+
+                    <ul className="space-y-3">
                       {[
                         "Complete each step before moving on to the next",
                         "Ensure all required fields are filled accurately",
-                        "The name entered in the form must match the name on your resume",
+                        "The name entered must match the resume",
                         "Upload a clear, up-to-date resume in PDF format",
-                        "Provide detailed and thoughtful responses to all questions",
-                        "Avoid one-word or generic answers — the more detail, the better",
-                        "Be honest and authentic while describing your experiences",
-                        "Use correct grammar and spelling for best results",
-                        "Review your answers carefully before final submission",
+                        "Provide detailed and thoughtful responses",
+                        "Avoid one-word or generic answers",
+                        "Be honest and authentic",
+                        "Use correct grammar and spelling",
+                        "Review answers before final submission",
                       ].map((item, index) => (
                         <motion.li
                           key={index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           transition={{
-                            delay: 0.4 + index * 0.1,
+                            delay: 0.4 + index * 0.08,
                             duration: 0.3,
                           }}
-                          className="flex items-start"
+                          className="flex items-start gap-3 bg-background border border-border rounded-lg p-3 shadow-sm"
                         >
-                          <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                          {item}
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-sm text-primary">{item}</span>
                         </motion.li>
                       ))}
                     </ul>
                   </div>
 
+                  {/* WARNING NOTE */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8, duration: 0.4 }}
-                    className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4"
+                    transition={{ delay: 0.7, duration: 0.4 }}
+                    className="bg-muted border border-muted rounded-xl p-4"
                   >
                     <div className="flex items-start">
-                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <span className="text-red-600 font-bold text-sm">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-primary font-bold text-sm">
                           !
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-red-700">
+
+                      <p className="font-body text-sm text-primary">
                         Your Statement of Purpose will be generated entirely
-                        based on your inputs by our SOP Experts. Please provide
-                        complete, accurate, and meaningful responses.
+                        based on your inputs. Please provide complete, accurate,
+                        and meaningful responses.
                       </p>
                     </div>
                   </motion.div>
                 </motion.div>
               </AlertDialogDescription>
 
-              {/* Consent Section */}
+              {/* CONSENT */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.0, duration: 0.4 }}
-                className="mt-6 border-t border-gray-200 pt-6"
+                transition={{ delay: 0.9, duration: 0.4 }}
+                className="mt-6 border-t border-muted pt-6"
               >
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-sm text-gray-700 mb-4 flex items-center">
-                    <Check className="h-4 w-4 text-green-600 mr-2" />
-                    Provide genuine and thoughtful responses that accurately
-                    reflect your experiences and aspirations.
+                <div className="bg-muted border border-muted rounded-xl p-4">
+                  <p className="font-body text-sm text-muted-foreground mb-4 flex items-center">
+                    <Check className="h-4 w-4 text-primary mr-2" />
+                    Provide genuine and thoughtful responses.
                   </p>
+
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -1303,109 +1345,75 @@ export default function SOPGenerator() {
                     onClick={() => setAgreed(!agreed)}
                   >
                     <div
-                      className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
+                      className={`relative w-5 h-5 rounded border-2 transition-all ${
                         agreed
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500 border-green-500"
-                          : "border-gray-300 bg-white hover:border-green-400"
+                          ? "bg-primary border-primary"
+                          : "border-muted bg-card"
                       }`}
                     >
                       {agreed && (
                         <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.2 }}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
                           className="absolute inset-0 flex items-center justify-center"
                         >
-                          <Check className="h-3 w-3 text-white" />
+                          <Check className="h-3 w-3 text-primary-foreground" />
                         </motion.div>
                       )}
                     </div>
-                    <label className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+
+                    <label className="font-body text-sm font-medium text-foreground cursor-pointer">
                       I agree and confirm.
                     </label>
                   </motion.div>
                 </div>
               </motion.div>
 
-              {/* Contact Section */}
+              {/* CONTACT */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2, duration: 0.4 }}
-                className="mt-6 border-t border-gray-200 pt-6"
+                transition={{ delay: 1.1, duration: 0.4 }}
+                className="mt-6 border-t border-muted pt-6"
               >
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                    <MessageCircle className="h-4 w-4 text-blue-600 mr-2" />
+                <div className="bg-muted border border-muted rounded-xl p-4">
+                  <h4 className="font-heading font-semibold text-foreground mb-3 flex items-center">
+                    <MessageCircle className="h-4 w-4 text-primary mr-2" />
                     Need Help? Contact Us
                   </h4>
-                  <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                    <motion.a
-                      href="mailto:connect@globalmindsindis.com"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex items-center space-x-2 p-2 sm:p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Mail className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Email</p>
-                        <p className="text-xs sm:text-sm font-medium text-gray-700 break-all">
-                          connect@globalmindsindia.com
-                        </p>
-                      </div>
-                    </motion.a>
-                    <motion.a
-                      href="tel:7357446655"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-green-100 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <Phone className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Phone</p>
-                        <p className="text-sm font-medium text-gray-700">
-                          7357446655
-                        </p>
-                      </div>
-                    </motion.a>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <a className="flex items-center space-x-3 p-3 bg-card rounded-lg border border-muted shadow-sm">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <span className="font-body text-sm text-muted-foreground">
+                        connect@globalmindsindia.com
+                      </span>
+                    </a>
+
+                    <a className="flex items-center space-x-3 p-3 bg-card rounded-lg border border-muted shadow-sm">
+                      <Phone className="h-4 w-4 text-primary" />
+                      <span className="font-body text-sm text-muted-foreground">
+                        7357446655
+                      </span>
+                    </a>
                   </div>
                 </div>
               </motion.div>
 
+              {/* ACTION */}
               <AlertDialogFooter className="mt-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.4, duration: 0.4 }}
-                  className="w-full"
+                <AlertDialogAction
+                  type="button" // ✅ THIS FIXES THE REFRESH
+                  onClick={handleCloseInstructions}
+                  disabled={!agreed}
+                  className={`w-full py-3 rounded-xl font-heading font-semibold transition-all ${
+                    agreed
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl"
+                      : "bg-muted text-muted-foreground cursor-not-allowed"
+                  }`}
                 >
-                  <AlertDialogAction
-                    onClick={handleCloseInstructions}
-                    disabled={!agreed}
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
-                      agreed
-                        ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {agreed ? (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex items-center justify-center"
-                      >
-                        {/* <Sparkles className="h-4 w-4 mr-2" /> */}
-                        Let's Get Started!
-                      </motion.span>
-                    ) : (
-                      "Please agree to continue"
-                    )}
-                  </AlertDialogAction>
-                </motion.div>
+                  {agreed ? "Let's Get Started!" : "Please agree to continue"}
+                </AlertDialogAction>
               </AlertDialogFooter>
             </motion.div>
           </AlertDialogContent>
@@ -1425,157 +1433,59 @@ export default function SOPGenerator() {
         </>
       )}
 
-      <div
-        className="min-h-screen bg-gradient-soft py-4 sm:py-6 md:py-12 px-4 sm:px-6 relative"
-        style={{
-          backgroundImage: `url(${SOPBackgroundImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed",
-        }}
-      >
-        {/* Background overlay for better readability */}
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
-        <div className="max-w-4xl mx-auto relative z-10">
+      <div className="min-h-screen py-6 sm:py-10 px-4 sm:px-6 bg-muted relative">
+        {/* Soft overlay */}
+        <div className="absolute inset-0 bg-muted/60 backdrop-blur-sm" />
+
+        <div className="max-w-5xl mx-auto relative z-10 space-y-8">
           {/* Back to Home Button and Progress Steps Container */}
           <div className="mb-8 sm:mb-10 md:mb-12">
             {/* Enhanced Back to Home Button */}
-            <div className="mb-4">
+            <div>
               {currentStep === "university" ? (
-                // Direct back if on first step
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="flex justify-start"
+                <Button
+                  variant="ghost"
+                  onClick={handleBackToHome}
+                  className="font-body flex items-center gap-2 rounded-xl bg-card border border-muted hover:bg-muted transition"
                 >
-                  <Button
-                    variant="ghost"
-                    onClick={handleBackToHome}
-                    className="group relative overflow-hidden rounded-2xl p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-indigo-50 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    size="sm"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="flex items-center">
-                      <Home className="h-5 w-5 mr-3 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
-                      <span className="font-medium text-gray-700 group-hover:text-blue-700 transition-colors duration-300">
-                        Back to Home
-                      </span>
-                      <motion.div
-                        className="ml-2 opacity-0 group-hover:opacity-100"
-                        initial={{ x: -5 }}
-                        animate={{ x: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <ArrowRight className="h-4 w-4 text-blue-500" />
-                      </motion.div>
-                    </div>
-                  </Button>
-                </motion.div>
+                  <Home className="h-4 w-4 text-primary" />
+                  Back to Home
+                </Button>
               ) : (
-                // Show alert if on step 2+
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="flex justify-start"
-                >
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="group relative overflow-hidden rounded-2xl p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 border border-orange-200 hover:border-red-300 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                        size="sm"
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="font-body flex items-center gap-2 rounded-xl bg-card border border-muted hover:bg-muted transition"
+                    >
+                      <Home className="h-4 w-4 text-primary" />
+                      Back to Home
+                    </Button>
+                  </AlertDialogTrigger>
+
+                  <AlertDialogContent className="bg-card border border-muted rounded-2xl shadow-xl max-w-md">
+                    <AlertDialogHeader className="text-center">
+                      <AlertDialogTitle className="font-heading text-xl text-foreground">
+                        Leave Application?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="font-body text-muted-foreground">
+                        Your progress will be lost if you leave now.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter className="gap-2">
+                      <AlertDialogCancel className="rounded-xl">
+                        Continue
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleBackToHome}
+                        className="rounded-xl bg-primary text-primary-foreground"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="flex items-center">
-                          <Home className="h-5 w-5 mr-3 text-orange-600 group-hover:text-red-600 transition-colors duration-300" />
-                          <span className="font-medium text-orange-700 group-hover:text-red-700 transition-colors duration-300">
-                            Back to Home
-                          </span>
-                          <motion.div
-                            className="ml-2 opacity-0 group-hover:opacity-100"
-                            initial={{ x: -5 }}
-                            animate={{ x: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <ArrowRight className="h-4 w-4 text-red-500" />
-                          </motion.div>
-                        </div>
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="max-w-lg w-[95vw] sm:w-[90vw] lg:w-full mx-auto bg-gradient-to-br from-white via-red-50/20 to-orange-50/20 border-0 shadow-xl rounded-2xl">
-                      <div className="text-center mb-4">
-                        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                          <Home className="h-8 w-8 text-white" />
-                        </div>
-                      </div>
-
-                      <AlertDialogHeader className="text-center">
-                        <AlertDialogTitle className="text-xl font-bold text-gray-800 mb-2">
-                          ⚠️ Application in Progress
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-600">
-                          You have unsaved progress in your SOP application. Are
-                          you sure you want to go back to the home page? Your
-                          current progress will be lost.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-
-                      {/* Contact Section */}
-                      <div className="my-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-                        <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-center">
-                          <MessageCircle className="h-4 w-4 text-blue-600 mr-2" />
-                          For any queries, please reach out to us:
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <a
-                            href="mailto:connect@globalmindsindia.com"
-                            className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md group"
-                          >
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                              <Mail className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Email</p>
-                              <p className="text-sm font-medium text-gray-700 break-all">
-                                connect@globalmindsindia.com
-                              </p>
-                            </div>
-                          </a>
-                          <a
-                            href="tel:7353446655"
-                            className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-green-100 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md group"
-                          >
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                              <Phone className="h-4 w-4 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Phone</p>
-                              <p className="text-sm font-medium text-gray-700">
-                                7353446655
-                              </p>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-
-                      <AlertDialogFooter className="flex-col sm:flex-row gap-3">
-                        <AlertDialogCancel className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 border-0 font-medium transition-all duration-200 hover:scale-105">
-                          Continue Application
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleBackToHome}
-                          className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
-                        >
-                          <Home className="h-4 w-4 mr-2" />
-                          Yes, Go Back
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </motion.div>
+                        Leave
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
 
@@ -1586,7 +1496,7 @@ export default function SOPGenerator() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="flex justify-center"
             >
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 sm:p-4 shadow-xl border border-gray-100/50 w-full max-w-5xl">
+              <div className="bg-card rounded-3xl p-3 sm:p-4 shadow-xl border border-muted w-full max-w-5xl">
                 <div className="flex items-start justify-between">
                   {progressSteps.map((step, index) => {
                     const isActive = currentStep === step.key;
@@ -1606,25 +1516,21 @@ export default function SOPGenerator() {
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: index * 0.1, duration: 0.4 }}
                         >
-                          {/* Step Square */}
+                          {/* STEP BOX */}
                           <motion.div
-                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 flex-shrink-0 ${
-                              isActive
-                                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-110"
-                                : isCompleted || isPast
-                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
-                                : "bg-gray-200 text-gray-500 hover:bg-gray-300"
-                            }`}
+                            className={`relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg 
+                  flex items-center justify-center text-xs sm:text-sm font-bold 
+                  transition-all duration-300 flex-shrink-0
+                  ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-md scale-110"
+                      : isCompleted || isPast
+                      ? "bg-primary/15 text-primary shadow-sm"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
                             whileHover={{ scale: isActive ? 1.1 : 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            {isActive && (
-                              <motion.div
-                                className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 to-purple-500 opacity-30"
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                              />
-                            )}
                             {isCompleted || isPast ? (
                               <motion.div
                                 initial={{ scale: 0 }}
@@ -1638,15 +1544,18 @@ export default function SOPGenerator() {
                             )}
                           </motion.div>
 
-                          {/* Step Label */}
+                          {/* STEP LABEL */}
                           <motion.div
-                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs text-center font-medium transition-colors duration-300 leading-tight max-w-[60px] sm:max-w-[80px] ${
-                              isActive
-                                ? "text-blue-600"
-                                : isCompleted || isPast
-                                ? "text-green-600"
-                                : "text-gray-500"
-                            }`}
+                            className={`mt-1 sm:mt-2 text-[8px] sm:text-[10px] md:text-xs 
+                  text-center font-medium transition-colors duration-300 
+                  leading-tight max-w-[60px] sm:max-w-[80px]
+                  ${
+                    isActive
+                      ? "text-primary"
+                      : isCompleted || isPast
+                      ? "text-primary/80"
+                      : "text-muted-foreground"
+                  }`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: index * 0.1 + 0.2 }}
@@ -1655,13 +1564,13 @@ export default function SOPGenerator() {
                           </motion.div>
                         </motion.div>
 
-                        {/* Step Connector - From right edge of current step to left edge of next step */}
+                        {/* CONNECTOR */}
                         {index < progressSteps.length - 1 && (
                           <div
                             className="absolute top-3 sm:top-4 md:top-5 flex items-center z-0 pointer-events-none"
                             style={{
-                              left: "calc(50% + 25px)", // Start exactly at the right edge of current step rectangle
-                              width: "calc(100% - 50px)", // Span to the left edge of next step rectangle
+                              left: "calc(50% + 25px)",
+                              width: "calc(100% - 50px)",
                             }}
                           >
                             <motion.div
@@ -1673,12 +1582,12 @@ export default function SOPGenerator() {
                                 duration: 0.4,
                               }}
                             >
-                              <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full" />
+                              <div className="w-full h-0.5 sm:h-1 bg-muted rounded-full" />
                               <motion.div
                                 className={`absolute top-0 left-0 h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
                                   isCompleted
-                                    ? "bg-gradient-to-r from-green-500 to-emerald-600 w-full"
-                                    : "bg-gray-200 w-0"
+                                    ? "bg-primary w-full"
+                                    : "bg-muted w-0"
                                 }`}
                                 animate={{
                                   width: isCompleted ? "100%" : "0%",
@@ -1712,15 +1621,17 @@ export default function SOPGenerator() {
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                  {/* PERSONAL INFORMATION */}
+                  <div className="bg-card rounded-2xl p-6 border border-muted">
                     <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-3">
-                        <FileText className="h-5 w-5 text-white" />
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                        <FileText className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800">
+                      <h3 className="font-heading text-lg font-semibold text-foreground">
                         Personal Information
                       </h3>
                     </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {[
                         {
@@ -1757,11 +1668,12 @@ export default function SOPGenerator() {
                         >
                           <Label
                             htmlFor={field.id}
-                            className="text-sm font-medium text-gray-700"
+                            className="font-body text-sm font-medium text-foreground"
                           >
                             {field.label}{" "}
-                            <span className="text-red-500">*</span>
+                            <span className="text-destructive">*</span>
                           </Label>
+
                           <Input
                             id={field.id}
                             type={field.type}
@@ -1774,22 +1686,22 @@ export default function SOPGenerator() {
                             onChange={(e) =>
                               handleInputChange(field.key, e.target.value)
                             }
-                            className={`rounded-xl border-2 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md focus:shadow-lg ${
-                              validationErrors[
-                                field.key as keyof typeof validationErrors
-                              ]
-                                ? "border-red-500 focus:border-red-500"
-                                : "border-gray-200 focus:border-blue-500"
-                            }`}
+                            className={`rounded-xl border-2 bg-card transition-all duration-200
+                ${
+                  validationErrors[field.key as keyof typeof validationErrors]
+                    ? "border-destructive focus:border-destructive"
+                    : "border-muted focus:border-primary"
+                }`}
                             required
                           />
+
                           {validationErrors[
                             field.key as keyof typeof validationErrors
                           ] && (
                             <motion.p
                               initial={{ opacity: 0, y: -10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="text-red-500 text-sm mt-1"
+                              className="text-destructive text-sm mt-1"
                             >
                               {
                                 validationErrors[
@@ -1803,30 +1715,31 @@ export default function SOPGenerator() {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                  {/* ACADEMIC DETAILS */}
+                  <div className="bg-card rounded-2xl p-6 border border-muted">
                     <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
-                        <GraduationCap className="h-5 w-5 text-white" />
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                        <GraduationCap className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800">
+                      <h3 className="font-heading text-lg font-semibold text-foreground">
                         Academic Details
                       </h3>
                     </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* COUNTRY */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4, duration: 0.3 }}
                         className="space-y-2"
                       >
-                        <Label
-                          htmlFor="country"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          Country <span className="text-red-500">*</span>
+                        <Label className="font-body text-sm font-medium text-foreground">
+                          Country <span className="text-destructive">*</span>
                         </Label>
+
                         <Select
-                          value={formData.country || undefined} // must be undefined to show placeholder
+                          value={formData.country || undefined}
                           onValueChange={(value) => {
                             setFormData({
                               ...formData,
@@ -1836,8 +1749,7 @@ export default function SOPGenerator() {
                             });
                           }}
                         >
-                          <SelectTrigger className="rounded-xl border-2 border-gray-200 focus:border-purple-500 bg-white/70 backdrop-blur-sm transition-all duration-200 hover:shadow-md">
-                            {/* ✅ This will now show properly */}
+                          <SelectTrigger className="rounded-xl border-2 border-muted focus:border-primary bg-card transition-all duration-200">
                             <SelectValue placeholder="Select a country" />
                           </SelectTrigger>
 
@@ -1855,7 +1767,7 @@ export default function SOPGenerator() {
                             }}
                           >
                             {countries.length === 0 && !loadingCountries ? (
-                              <div className="p-2 text-center text-sm text-gray-400">
+                              <div className="p-2 text-center text-sm text-muted-foreground">
                                 No countries available
                               </div>
                             ) : (
@@ -1867,7 +1779,7 @@ export default function SOPGenerator() {
                             )}
 
                             {loadingCountries && (
-                              <div className="p-2 text-center text-sm text-gray-400">
+                              <div className="p-2 text-center text-sm text-muted-foreground">
                                 Loading more...
                               </div>
                             )}
@@ -1875,56 +1787,52 @@ export default function SOPGenerator() {
                         </Select>
                       </motion.div>
 
+                      {/* UNIVERSITY */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.3 }}
                         className="space-y-2"
                       >
-                        <Label
-                          htmlFor="university"
-                          className="text-sm font-medium text-gray-700"
-                        >
+                        <Label className="font-body text-sm font-medium text-foreground">
                           University
                         </Label>
-                        <div className="relative">
-                          <CreatableCombobox
-                            country={formData.country}
-                            type="university"
-                            disabled={!formData.country}
-                            value={formData.university}
-                            onChange={(val) =>
-                              setFormData({ ...formData, university: val })
+
+                        <CreatableCombobox
+                          country={formData.country}
+                          type="university"
+                          disabled={!formData.country}
+                          value={formData.university}
+                          onChange={(val) =>
+                            setFormData({ ...formData, university: val })
+                          }
+                          options={universities}
+                          placeholder="Search or create university"
+                          loading={loadingUniversities}
+                          onLoadMore={() => {
+                            if (!loadingUniversities && hasMoreUniversities) {
+                              loadUniversities(formData.country, uniPage);
                             }
-                            options={universities}
-                            placeholder="Search or create university"
-                            loading={loadingUniversities}
-                            onLoadMore={() => {
-                              if (!loadingUniversities && hasMoreUniversities) {
-                                loadUniversities(formData.country, uniPage); // 🟢 Fetch next 25 universities
-                              }
-                            }}
-                            onSearchChange={(query) => {
-                              if (formData.country && query.length > 1) {
-                                debouncedUniSearch(query); // 🟢 Debounced backend search
-                              }
-                            }}
-                          />
-                        </div>
+                          }}
+                          onSearchChange={(query) => {
+                            if (formData.country && query.length > 1) {
+                              debouncedUniSearch(query);
+                            }
+                          }}
+                        />
                       </motion.div>
 
+                      {/* COURSE */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.6, duration: 0.3 }}
                         className="space-y-2 md:col-span-2"
                       >
-                        <Label
-                          htmlFor="course"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          Course/Program
+                        <Label className="font-body text-sm font-medium text-foreground">
+                          Course / Program
                         </Label>
+
                         <CreatableCombobox
                           country={formData.country}
                           type="course"
@@ -1938,12 +1846,12 @@ export default function SOPGenerator() {
                           loading={loadingCourses}
                           onLoadMore={() => {
                             if (!loadingCourses && hasMoreCourses) {
-                              loadCourses(formData.country, coursePage); // 🟢 Fetch next 25 courses
+                              loadCourses(formData.country, coursePage);
                             }
                           }}
                           onSearchChange={(query) => {
                             if (formData.country && query.length > 1) {
-                              debouncedCourseSearch(query); // 🟢 Debounced backend search
+                              debouncedCourseSearch(query);
                             }
                           }}
                         />
@@ -1960,40 +1868,43 @@ export default function SOPGenerator() {
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-8 border border-green-200">
+                  <div className="bg-card rounded-2xl p-8 border border-muted">
+                    {/* HEADER */}
                     <motion.div
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.2, duration: 0.4 }}
                       className="text-center"
                     >
-                      <div className="mx-auto w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
-                        <Upload className="h-10 w-10 text-white" />
+                      <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                        <Upload className="h-10 w-10 text-primary" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800 mb-2">
+
+                      <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
                         Upload Your Resume
                       </h3>
-                      <p className="text-gray-600 mb-6">
+                      <p className="font-body text-muted-foreground mb-6">
                         Share your professional background with us
                       </p>
                     </motion.div>
 
+                    {/* DROP ZONE */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4, duration: 0.4 }}
                       className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
                         formData.resume
-                          ? "border-green-400 bg-green-50/50"
+                          ? "border-primary/40 bg-primary/5"
                           : isDragOver
-                          ? "border-blue-500 bg-blue-50/50 scale-105"
-                          : "border-gray-300 bg-white/70 hover:border-green-400 hover:bg-green-50/30"
+                          ? "border-primary bg-primary/10 scale-105"
+                          : "border-muted bg-card hover:border-primary/50"
                       }`}
                       onDragOver={handleDragOver}
                       onDragEnter={handleDragEnter}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
-                      onClick={(e) => {
+                      onClick={() => {
                         if (!isDragOver) {
                           document.getElementById("resume-upload")?.click();
                         }
@@ -2008,37 +1919,42 @@ export default function SOPGenerator() {
                             >
                               <Upload
                                 className={`mx-auto h-16 w-16 transition-colors duration-300 ${
-                                  isDragOver ? "text-blue-500" : "text-gray-400"
+                                  isDragOver
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
                                 }`}
                               />
                             </motion.div>
+
                             <div>
                               <p
                                 className={`text-lg font-medium transition-colors duration-300 ${
-                                  isDragOver ? "text-blue-700" : "text-gray-700"
+                                  isDragOver
+                                    ? "text-primary"
+                                    : "text-foreground"
                                 }`}
                               >
                                 {isDragOver
                                   ? "Drop your resume here!"
                                   : "Drag & drop your resume here"}
                               </p>
-                              <p className="text-sm text-gray-500 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 or click to browse • PDF only up to 10MB
                               </p>
                             </div>
                           </div>
 
-                          {/* Animated drag indicator */}
+                          {/* DRAG OVERLAY */}
                           {isDragOver && (
                             <motion.div
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              className="absolute inset-0 border-2 border-blue-400 rounded-2xl bg-blue-100/20 flex items-center justify-center"
+                              className="absolute inset-0 border-2 border-primary rounded-2xl bg-primary/10 flex items-center justify-center"
                             >
                               <motion.div
                                 animate={{ y: [-10, 10, -10] }}
                                 transition={{ duration: 1, repeat: Infinity }}
-                                className="text-blue-600 font-semibold text-lg"
+                                className="text-primary font-semibold text-lg"
                               >
                                 📄 Drop to upload
                               </motion.div>
@@ -2053,7 +1969,7 @@ export default function SOPGenerator() {
                             id="resume-upload"
                           />
 
-                          <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-center">
+                          <div className="mt-6 flex justify-center">
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -2061,42 +1977,45 @@ export default function SOPGenerator() {
                                   .getElementById("resume-upload")
                                   ?.click();
                               }}
-                              className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                              className="rounded-xl bg-primary text-primary-foreground px-8 py-3 font-medium hover:bg-primary/90 transition-all"
                             >
                               <Upload className="h-4 w-4 mr-2" />
                               Choose File
                             </Button>
-                            {/*<span className="text-sm text-gray-500">or drag and drop</span>*/}
                           </div>
                         </>
                       ) : (
+                        /* UPLOADED STATE */
                         <motion.div
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.3 }}
                           className="space-y-4"
                         >
-                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                            <Check className="h-8 w-8 text-green-600" />
+                          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                            <Check className="h-8 w-8 text-primary" />
                           </div>
+
                           <div>
-                            <p className="text-lg font-semibold text-green-700">
+                            <p className="text-lg font-semibold text-primary">
                               Resume Uploaded Successfully!
                             </p>
-                            <p className="text-sm text-green-600 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               {formData.resume.name}
                             </p>
                           </div>
+
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               document.getElementById("resume-upload")?.click();
                             }}
                             variant="outline"
-                            className="mt-4 rounded-xl border-green-300 text-green-700 hover:bg-green-50"
+                            className="rounded-xl"
                           >
                             Change File
                           </Button>
+
                           <input
                             type="file"
                             accept=".pdf,.doc,.docx"
@@ -2108,92 +2027,61 @@ export default function SOPGenerator() {
                       )}
                     </motion.div>
 
-                    {/* Resume Validation Status */}
+                    {/* VALIDATION STATUS */}
                     {formData.resume && formData.name && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5, duration: 0.3 }}
-                        className="mt-6"
+                        className="mt-6 space-y-3"
                       >
                         {isValidatingResume && (
-                          <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-                            <div className="flex items-center space-x-3">
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
-                              <p className="text-yellow-700 font-medium">
-                                Validating resume name match...
-                              </p>
-                            </div>
+                          <div className="bg-muted rounded-xl p-4 border border-muted flex items-center gap-3">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                            <p className="text-muted-foreground font-medium">
+                              Validating resume name match...
+                            </p>
                           </div>
                         )}
 
                         {!isValidatingResume && resumeValidated && (
-                          <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                            <div className="flex items-center space-x-3">
-                              <Check className="h-5 w-5 text-green-600" />
-                              <p className="text-green-700 font-medium">
-                                Resume validated successfully! Name matches.
-                              </p>
-                            </div>
+                          <div className="bg-primary/5 rounded-xl p-4 border border-primary/20 flex items-center gap-3">
+                            <Check className="h-5 w-5 text-primary" />
+                            <p className="text-primary font-medium">
+                              Resume validated successfully! Name matches.
+                            </p>
                           </div>
                         )}
 
                         {!isValidatingResume && resumeValidationError && (
-                          <div className="bg-red-50 rounded-xl p-4 border border-red-200">
-                            <div className="flex items-start space-x-3">
-                              <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <span className="text-red-600 text-xs font-bold">
-                                  !
-                                </span>
-                              </div>
-                              <div>
-                                <p className="text-red-700 font-medium mb-2">
-                                  Validation Failed
-                                </p>
-                                <p className="text-red-600 text-sm">
-                                  {resumeValidationError}
-                                </p>
-                                {/*
-                                <p className="text-red-600 text-sm mt-2">
-                                  Please upload a different resume or correct the name in the form.
-                                </p>
-                                */}
-                              </div>
-                            </div>
+                          <div className="bg-destructive/5 rounded-xl p-4 border border-destructive/20">
+                            <p className="text-destructive font-medium mb-1">
+                              Validation Failed
+                            </p>
+                            <p className="text-destructive text-sm">
+                              {resumeValidationError}
+                            </p>
                           </div>
                         )}
                       </motion.div>
                     )}
 
+                    {/* TIPS */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.6, duration: 0.4 }}
-                      className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200"
+                      className="mt-6 bg-muted rounded-xl p-4 border border-muted"
                     >
-                      <div className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-blue-600 text-sm font-bold">
-                            💡
-                          </span>
-                        </div>
-                        <div className="text-sm text-blue-700">
-                          <p className="font-medium mb-1">
-                            Tips for best results:
-                          </p>
-                          <ul className="space-y-1 text-blue-600">
-                            <li>• Use a recent, updated resume</li>
-                            <li>• Ensure all sections are clearly formatted</li>
-                            <li>
-                              • Include relevant work experience and skills
-                            </li>
-                            <li>
-                              • Make sure the name on your resume matches the
-                              name entered above
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
+                      <p className="font-medium text-foreground mb-2">
+                        💡 Tips for best results:
+                      </p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Use a recent, updated resume</li>
+                        <li>• Ensure all sections are clearly formatted</li>
+                        <li>• Include relevant work experience and skills</li>
+                        <li>• Ensure resume name matches the form name</li>
+                      </ul>
                     </motion.div>
                   </div>
                 </motion.div>
@@ -2491,103 +2379,80 @@ export default function SOPGenerator() {
                   transition={{ duration: 0.5 }}
                   className="max-w-4xl mx-auto space-y-8"
                 >
-                  {/* Header */}
+                  {/* HEADER */}
                   <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
                     className="text-center"
                   >
-                    <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                      <CreditCard className="h-8 w-8 text-white" />
+                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
+                      <CreditCard className="h-8 w-8 text-primary" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+
+                    <h2 className="font-heading text-3xl font-bold text-foreground mb-2">
                       Secure Payment
                     </h2>
-                    <p className="text-gray-600">
+
+                    <p className="font-body text-muted-foreground">
                       Complete your SOP generation with our expert package
                     </p>
                   </motion.div>
 
-                  {/* Package Card */}
+                  {/* PACKAGE CARD */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
                     className="relative max-w-2xl mx-auto"
                   >
-                    {/* 
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5, duration: 0.3 }}
-                      className="absolute -top-4 left-0 right-0 flex justify-center z-10"
-                    >
-                      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-                        ⭐ Most Popular Choice
-                      </div>
-                    </motion.div>
-                    */}
-                    <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-3xl p-8 border-2 border-blue-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-                      {/* Package Header */}
+                    <div className="bg-card rounded-3xl p-8 border border-muted shadow-xl">
+                      {/* PACKAGE HEADER */}
                       <div className="text-center mb-6">
                         <div className="flex items-center justify-center mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-3">
-                            <Sparkles className="h-6 w-6 text-white" />
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                            <Sparkles className="h-6 w-6 text-primary" />
                           </div>
-                          <h3 className="text-2xl font-bold text-gray-800">
+
+                          <h3 className="font-heading text-2xl font-bold text-foreground">
                             {packages.expert.name}
                           </h3>
                         </div>
 
-                        {/* Pricing */}
+                        {/* PRICING */}
                         <div className="flex items-center justify-center space-x-3 mb-6">
                           {couponApplied && (
-                            <>
-                              <span className="text-2xl font-bold text-gray-400 line-through">
-                                ₹{originalPrice.toLocaleString()}
-                              </span>
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{
-                                  delay: 0.6,
-                                  type: "spring",
-                                  stiffness: 200,
-                                }}
-                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold"
-                              >
-                                10% OFF
-                              </motion.div>
-                            </>
+                            <span className="text-xl font-semibold text-muted-foreground line-through">
+                              ₹{originalPrice.toLocaleString()}
+                            </span>
                           )}
-                          <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+
+                          <span className="text-4xl font-bold text-primary">
                             ₹{discountedPrice.toLocaleString()}
                           </span>
                         </div>
                       </div>
 
-                      {/* Features */}
+                      {/* FEATURES */}
                       <div className="mb-8">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                        <h4 className="font-heading text-lg font-semibold text-foreground mb-4 text-center">
                           What's Included
                         </h4>
-                        <div className="space-y-4">
+
+                        <div className="space-y-3">
                           {packages.expert.features.map((feature, index) => (
                             <motion.div
                               key={index}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              transition={{
-                                delay: 0.7 + index * 0.1,
-                                duration: 0.3,
-                              }}
-                              className="flex items-start bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm"
+                              transition={{ delay: 0.5 + index * 0.1 }}
+                              className="flex items-start bg-muted rounded-xl p-4 border border-muted"
                             >
-                              <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                                <Check className="h-4 w-4 text-white" />
+                              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <Check className="h-4 w-4 text-primary-foreground" />
                               </div>
-                              <span className="text-gray-700 font-medium">
+
+                              <span className="font-body text-muted-foreground font-medium">
                                 {feature}
                               </span>
                             </motion.div>
@@ -2595,14 +2460,9 @@ export default function SOPGenerator() {
                         </div>
                       </div>
 
-                      {/* Coupon Code Section */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.0, duration: 0.4 }}
-                        className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-200 mb-6"
-                      >
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                      {/* COUPON */}
+                      <div className="bg-muted rounded-2xl p-6 border border-muted mb-6">
+                        <h4 className="font-heading text-lg font-semibold text-foreground mb-4 text-center">
                           Have a Coupon Code?
                         </h4>
 
@@ -2616,87 +2476,78 @@ export default function SOPGenerator() {
                                   setCouponError("");
                                 }}
                                 placeholder="Enter coupon code"
-                                className="flex-1 rounded-xl border-2 border-gray-200 focus:border-yellow-500"
+                                className="flex-1 rounded-xl border-2 border-muted focus:border-primary"
                               />
+
                               <Button
                                 onClick={handleCouponApply}
                                 disabled={!couponCode.trim()}
-                                className="px-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl"
+                                className="px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                               >
                                 Apply
                               </Button>
                             </div>
+
                             {couponError && (
-                              <p className="text-red-500 text-sm text-center">
+                              <p className="text-destructive text-sm text-center">
                                 {couponError}
                               </p>
                             )}
+
                             <div
-                              className="text-center p-3 bg-white/70 rounded-xl border border-yellow-300 cursor-pointer hover:bg-yellow-50 transition-colors duration-200"
+                              className="text-center p-3 bg-card rounded-xl border border-muted cursor-pointer hover:bg-muted"
                               onClick={() => {
                                 setCouponCode("GMI10");
-                                setCouponError("");
                                 setCouponApplied(true);
-                                // toast({
-                                //   title: "Coupon Applied! 🎉",
-                                //   description:
-                                //     "10% discount has been applied to your order.",
-                                // });
                               }}
                             >
-                              <p className="text-sm text-gray-600 mb-1">
+                              <p className="text-sm text-muted-foreground">
                                 Try our coupon:
                               </p>
-                              <p className="text-lg font-bold text-yellow-700 hover:text-yellow-800">
+                              <p className="text-lg font-bold text-primary">
                                 GMI10
                               </p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground">
                                 Click to apply 10% discount
                               </p>
                             </div>
                           </div>
                         ) : (
                           <div className="text-center space-y-3">
-                            <div className="flex items-center justify-center space-x-2">
-                              <Check className="h-5 w-5 text-green-600" />
-                              <span className="text-green-700 font-semibold">
-                                Coupon "GMI10" Applied!
-                              </span>
-                            </div>
+                            <p className="font-semibold text-primary">
+                              Coupon “GMI10” Applied
+                            </p>
+
                             <Button
                               onClick={handleCouponRemove}
                               variant="outline"
                               size="sm"
-                              className="text-red-600 border-red-300 hover:bg-red-50"
                             >
                               Remove Coupon
                             </Button>
                           </div>
                         )}
-                      </motion.div>
+                      </div>
 
-                      {/* Price Summary */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.2, duration: 0.4 }}
-                        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200 mb-6"
-                      >
+                      {/* PRICE SUMMARY */}
+                      <div className="bg-muted rounded-2xl p-6 border border-muted mb-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               Total Amount
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               (Inclusive of GST)
                             </p>
                           </div>
+
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-blue-900">
+                            <p className="text-2xl font-bold text-foreground">
                               ₹{discountedPrice.toLocaleString()}
                             </p>
+
                             {couponApplied && (
-                              <p className="text-sm text-green-600 font-medium">
+                              <p className="text-sm text-primary font-medium">
                                 You save ₹
                                 {(
                                   originalPrice - discountedPrice
@@ -2705,125 +2556,70 @@ export default function SOPGenerator() {
                             )}
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
 
-                      {/* Security Badge */}
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1.4, duration: 0.4 }}
-                        className="flex items-center justify-center mb-6 p-3 bg-green-50 rounded-xl border border-green-200"
-                      >
-                        <Shield className="h-5 w-5 text-green-600 mr-2" />
-                        <span className="text-sm font-medium text-green-700">
-                          🔒 Secured by 256-bit SSL encryption
+                      {/* SECURITY */}
+                      <div className="flex items-center justify-center mb-6 p-3 bg-muted rounded-xl border border-muted">
+                        <Shield className="h-5 w-5 text-primary mr-2" />
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Secured with SSL encryption
                         </span>
-                      </motion.div>
+                      </div>
 
-                      {/* Payment Button */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.6, duration: 0.4 }}
-                      >
-                        {!paymentCompleted ? (
-                          <Button
-                            onClick={handlePayment}
-                            disabled={isPaymentLoading}
-                            className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                            size="lg"
-                          >
-                            {isPaymentLoading ? (
-                              <>
-                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                                Processing Payment...
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="mr-3 h-6 w-6" />
-                                Pay ₹{discountedPrice.toLocaleString()} &
-                                Generate My SOP
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5, type: "spring" }}
-                            className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-200"
-                          >
-                            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Check className="h-8 w-8 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-green-700 mb-2">
-                              Payment Successful! 🎉
-                            </h3>
-                            <p className="text-green-600">
-                              Your SOP generation has started. You'll receive it
-                              within 24-48 hours.
-                            </p>
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    </div>
-                  </motion.div>
+                      {/* PAY BUTTON */}
+                      {!paymentCompleted ? (
+                        <Button
+                          onClick={handlePayment}
+                          disabled={isPaymentLoading}
+                          size="lg"
+                          className="w-full py-4 text-lg rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
+                        >
+                          {isPaymentLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3" />
+                              Processing Payment...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="mr-3 h-6 w-6" />
+                              Pay ₹{discountedPrice.toLocaleString()} & Generate
+                              SOP
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <div className="text-center p-6 bg-muted rounded-2xl border border-muted">
+                          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Check className="h-8 w-8 text-primary-foreground" />
+                          </div>
 
-                  {/* Trust Indicators */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.8, duration: 0.4 }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
-                  >
-                    {[
-                      {
-                        icon: Shield,
-                        title: "Secure Payment",
-                        desc: "Bank-level security",
-                      },
-                      {
-                        icon: Check,
-                        title: "Expert Writers",
-                        desc: "Professional SOP crafting",
-                      },
-                      {
-                        icon: Sparkles,
-                        title: "24-48 Hours",
-                        desc: "Quick delivery",
-                      },
-                    ].map((item, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 2.0 + index * 0.1, duration: 0.3 }}
-                        className="text-center p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm"
-                      >
-                        <div className="w-10 h-10 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <item.icon className="h-5 w-5 text-gray-600" />
+                          <h3 className="font-heading text-xl font-bold text-foreground mb-2">
+                            Payment Successful!
+                          </h3>
+
+                          <p className="font-body text-muted-foreground">
+                            Your SOP generation has started. You’ll receive it
+                            within 24–48 hours.
+                          </p>
                         </div>
-                        <h4 className="font-semibold text-gray-800 text-sm">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-gray-600">{item.desc}</p>
-                      </motion.div>
-                    ))}
+                      )}
+                    </div>
                   </motion.div>
                 </motion.div>
               )}
 
               {currentStep === "result" && (
-                <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
-                  <Card className="relative bg-gradient-to-br from-blue-50 via-white to-gray-100 dark:from-blue-950 dark:via-gray-900 dark:to-gray-950 rounded-2xl border border-blue-100 dark:border-gray-800 shadow-2xl overflow-hidden">
-                    {/* Floating animated bubble background */}
-                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-blue-200/[0.20] blur-2xl rounded-full animate-pulse pointer-events-none z-0" />
-                    <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-pink-200/[0.10] blur-xl rounded-full animate-blob pointer-events-none z-0" />
-                    {/* Animated checkmark circle */}
-                    <div className="flex justify-center mt-8 z-10 relative">
-                      <div className="flex items-center justify-center bg-gradient-to-br from-blue-400 via-green-300 to-green-500 w-20 h-20 rounded-full shadow-lg animate-bounce-slow">
+                <div className="space-y-6 animate-fade-in max-w-2xl mx-auto p-4">
+                  <Card className="relative bg-card rounded-2xl border border-muted shadow-2xl overflow-hidden">
+                    {/* Ambient background blobs */}
+                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/10 blur-2xl rounded-full animate-pulse pointer-events-none" />
+                    <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-primary/5 blur-xl rounded-full animate-blob pointer-events-none" />
+
+                    {/* Success Icon */}
+                    <div className="flex justify-center mt-8 relative z-10">
+                      <div className="flex items-center justify-center bg-primary w-20 h-20 rounded-full shadow-lg animate-bounce-slow">
                         <svg
-                          className="w-12 h-12 text-white drop-shadow-lg"
+                          className="w-12 h-12 text-primary-foreground"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth={4}
@@ -2837,66 +2633,87 @@ export default function SOPGenerator() {
                         </svg>
                       </div>
                     </div>
-                    <CardHeader className="text-center z-10 relative">
-                      <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-900 dark:text-blue-100 mt-6">
+
+                    <CardHeader className="text-center relative z-10">
+                      <p className="font-heading text-2xl sm:text-3xl font-bold text-foreground mt-6">
                         We’ve received your request
                       </p>
                     </CardHeader>
-                    <CardContent className="space-y-4 sm:space-y-6 text-center z-10 relative">
-                      <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300">
-                        SOP is Being Tailored by Our Experts! Customizing it to
-                        match your profile and requirements.
+
+                    <CardContent className="space-y-6 text-center relative z-10">
+                      <p className="font-body text-base sm:text-lg text-muted-foreground">
+                        Your SOP is now being carefully crafted by our experts
+                        to match your academic profile and goals.
                       </p>
-                      <p className="text-base sm:text-lg text-blue-700 dark:text-blue-200">
+
+                      <p className="font-body text-base sm:text-lg text-muted-foreground">
                         You will receive your professionally written SOP via
                         email within{" "}
-                        <span className="font-bold text-green-600 dark:text-green-400 animate-pulse">
+                        <span className="font-semibold text-primary animate-pulse">
                           1–2 working days
                         </span>
                         .
                       </p>
-                      <div className="flex flex-col items-center gap-4 sm:gap-6 mt-6">
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                          For any queries, feel free to contact us:
+
+                      {/* Contact Section */}
+                      <div className="flex flex-col items-center gap-4 mt-6">
+                        <p className="font-body text-sm sm:text-base text-muted-foreground">
+                          Need help? Reach out to us anytime:
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+
+                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                           <Button
                             variant="outline"
-                            className="flex items-center gap-2 hover:bg-blue-100 dark:hover:bg-blue-950 transition-all w-full sm:w-auto py-2 font-medium border-blue-300 shadow hover:scale-105"
+                            className="flex items-center gap-2 w-full sm:w-auto border-muted hover:bg-muted transition-all"
                             asChild
                           >
                             <a href="mailto:connect@globalmindsindia@gmail.com">
-                              <Mail className="w-5 h-5" />
-                              Email Us @ connect@globalmindsindia@gmail.com
+                              <Mail className="w-5 h-5 text-primary" />
+                              connect@globalmindsindia@gmail.com
                             </a>
                           </Button>
+
                           <Button
                             variant="outline"
-                            className="flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-950 transition-all w-full sm:w-auto py-2 font-medium border-green-300 shadow hover:scale-105"
+                            className="flex items-center gap-2 w-full sm:w-auto border-muted hover:bg-muted transition-all"
                             asChild
                           >
                             <a href="tel:+917353446655">
-                              <Phone className="w-5 h-5" />
+                              <Phone className="w-5 h-5 text-primary" />
                               +91 7353446655
                             </a>
                           </Button>
                         </div>
+
+                        {/* Home Button */}
                         <Button
-                          variant="default"
-                          className="mt-4 sm:mt-6 w-full sm:w-auto px-8 bg-gradient-to-r from-blue-600 to-green-500 text-white font-bold shadow-xl hover:scale-105 transition-transform"
+                          className="mt-6 px-8 py-3 bg-primary text-primary-foreground font-heading font-semibold rounded-xl shadow-lg hover:bg-primary/90 hover:scale-105 transition-all"
                           onClick={() => (window.location.href = "/")}
                         >
-                          Home
+                          Go to Home
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-                  {/* Custom keyframes for slow bounce and blob animation, can be added in your global CSS or Tailwind config */}
+
+                  {/* Animations */}
                   <style>{`
-      @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-      .animate-bounce-slow { animation: bounce-slow 2.5s infinite; }
-      @keyframes blob { 0%,100% { transform: scale(1) translate(0,0);} 33% { transform: scale(1.1) translate(-8px, 8px);} 66% { transform: scale(0.9) translate(8px, -4px);} }
-      .animate-blob { animation: blob 6s infinite; }
+      @keyframes bounce-slow {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+      }
+      .animate-bounce-slow {
+        animation: bounce-slow 2.5s infinite;
+      }
+
+      @keyframes blob {
+        0%, 100% { transform: scale(1) translate(0,0); }
+        33% { transform: scale(1.1) translate(-8px, 8px); }
+        66% { transform: scale(0.9) translate(8px, -4px); }
+      }
+      .animate-blob {
+        animation: blob 6s infinite;
+      }
     `}</style>
                 </div>
               )}
@@ -2959,45 +2776,24 @@ export default function SOPGenerator() {
         className="fixed bottom-6 right-6 z-50"
       >
         <motion.div
-          animate={{
-            y: [0, -8, 0],
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-            times: [0, 0.5, 1],
-          }}
-          whileHover={{ scale: 1.1, rotate: 10 }}
+          animate={{ y: [0, -8, 0], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
           <Button
             variant="secondary"
-            className="group relative overflow-hidden rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold p-4 shadow-2xl hover:shadow-purple-500/50 transition-all duration-500 border-2 border-white/20"
             onClick={() => setShowHelp(true)}
+            className="relative rounded-full p-4 bg-primary text-primary-foreground
+                 shadow-xl hover:shadow-2xl transition-all border border-primary/30"
           >
-            {/* Animated background gradient */}
+            {/* Pulse */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              animate={{
-                background: [
-                  "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)",
-                  "linear-gradient(45deg, #8b5cf6, #ec4899, #06b6d4)",
-                  "linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)",
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-
-            {/* Pulse effect */}
-            <motion.div
-              className="absolute inset-0 rounded-full bg-white/20"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              className="absolute inset-0 rounded-full bg-primary/20"
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
 
-            {/* Content */}
             <div className="relative flex items-center space-x-2">
               <motion.div
                 animate={{ rotate: [0, 360] }}
@@ -3007,229 +2803,114 @@ export default function SOPGenerator() {
               </motion.div>
               <span className="font-semibold">Help</span>
             </div>
-
-            {/* Sparkle effects */}
-            <motion.div
-              className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full"
-              animate={{
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: 0.5,
-              }}
-            />
-            <motion.div
-              className="absolute -bottom-1 -left-1 w-2 h-2 bg-pink-300 rounded-full"
-              animate={{
-                scale: [0, 1, 0],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                delay: 1,
-              }}
-            />
           </Button>
         </motion.div>
       </motion.div>
+
       {/* Enhanced Help Dialog */}
       {showHelp && (
         <AlertDialog open onOpenChange={setShowHelp}>
-          <AlertDialogContent className="max-w-md w-[95vw] sm:w-[90vw] lg:w-full mx-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl backdrop-blur-sm">
+          <AlertDialogContent className="max-w-md w-[95vw] mx-auto bg-card border border-border shadow-2xl">
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              initial={{ opacity: 0, scale: 0.85, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 50 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
+              {/* Header */}
               <AlertDialogHeader className="text-center pb-6">
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.4 }}
-                  className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg relative"
-                >
-                  <motion.div
-                    animate={{ rotate: [0, 360] }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  >
-                    <MessageCircle className="h-8 w-8 text-white" />
-                  </motion.div>
+                <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
+                  <MessageCircle className="h-8 w-8 text-primary-foreground" />
+                </div>
 
-                  {/* Floating particles */}
-                  <motion.div
-                    className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full"
-                    animate={{
-                      y: [-5, 5, -5],
-                      x: [-2, 2, -2],
-                      scale: [0.8, 1.2, 0.8],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="absolute -bottom-2 -left-2 w-3 h-3 bg-pink-400 rounded-full"
-                    animate={{
-                      y: [5, -5, 5],
-                      scale: [1, 0.7, 1],
-                    }}
-                    transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
-                  />
-                </motion.div>
-
-                <AlertDialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  🎯 Customer Support
+                <AlertDialogTitle className="text-2xl font-heading font-bold text-foreground">
+                  Customer Support
                 </AlertDialogTitle>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-gray-600 mt-2"
-                >
-                  We're here to help you succeed!
-                </motion.p>
+
+                <p className="font-body text-muted-foreground mt-2">
+                  We’re here to help you succeed
+                </p>
               </AlertDialogHeader>
 
               <AlertDialogDescription asChild>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="space-y-6"
-                >
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-blue-100 shadow-sm">
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                      className="text-center text-gray-700 mb-6 font-medium"
-                    >
-                      Need assistance? Our support team is ready to help!
-                    </motion.p>
+                <div className="space-y-6">
+                  {/* Contact Card */}
+                  <div className="bg-muted rounded-xl p-6 border border-border">
+                    <p className="text-center text-foreground font-medium mb-6">
+                      Need assistance? Reach us anytime.
+                    </p>
 
                     <div className="space-y-4">
-                      <motion.a
+                      {/* Email */}
+                      <a
                         href="mailto:connect@globalmindsindia.com"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.6 }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="group flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-300 shadow-sm hover:shadow-md"
+                        className="flex items-center space-x-4 p-4 bg-card rounded-xl border border-border hover:shadow-md transition-all"
                       >
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                          <Mail className="h-6 w-6 text-white" />
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                          <Mail className="h-6 w-6 text-primary-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">
+                          <p className="font-semibold text-foreground text-sm">
                             Email Support
                           </p>
-                          <p className="text-sm text-blue-600 font-medium break-all">
+                          <p className="text-sm text-muted-foreground break-all">
                             connect@globalmindsindia.com
                           </p>
                         </div>
-                        <motion.div
-                          animate={{ x: [0, 5, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <ArrowRight className="h-5 w-5 text-blue-500" />
-                        </motion.div>
-                      </motion.a>
+                      </a>
 
-                      <motion.a
+                      {/* Phone */}
+                      <a
                         href="tel:+917353446655"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.7 }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="group flex items-center space-x-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 transition-all duration-300 shadow-sm hover:shadow-md"
+                        className="flex items-center space-x-4 p-4 bg-card rounded-xl border border-border hover:shadow-md transition-all"
                       >
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                          <Phone className="h-6 w-6 text-white" />
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                          <Phone className="h-6 w-6 text-primary-foreground" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">
+                          <p className="font-semibold text-foreground text-sm">
                             Phone Support
                           </p>
-                          <p className="text-sm text-green-600 font-medium">
+                          <p className="text-sm text-muted-foreground">
                             +91 7353446655
                           </p>
                         </div>
-                        <motion.div
-                          animate={{ rotate: [0, 10, -10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Phone className="h-5 w-5 text-green-500" />
-                        </motion.div>
-                      </motion.a>
+                      </a>
                     </div>
                   </div>
 
                   {/* Quick Tips */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-200"
-                  >
+                  <div className="bg-muted rounded-xl p-4 border border-border">
                     <div className="flex items-center mb-3">
-                      <Sparkles className="h-5 w-5 text-purple-600 mr-2" />
-                      <h4 className="font-semibold text-purple-800">
+                      <Sparkles className="h-5 w-5 text-primary mr-2" />
+                      <h4 className="font-semibold text-foreground">
                         Quick Tips
                       </h4>
                     </div>
-                    <ul className="space-y-2 text-sm text-purple-700">
-                      <motion.li
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.9 }}
-                        className="flex items-center"
-                      >
-                        <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                        Response time: Within 2-4 hours
-                      </motion.li>
-                      <motion.li
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1.0 }}
-                        className="flex items-center"
-                      >
-                        <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                        Available: Monday to Saturday, 9 AM - 7 PM
-                      </motion.li>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-center">
+                        <span className="w-2 h-2 bg-primary rounded-full mr-3" />
+                        Response time: 2–4 hours
+                      </li>
+                      <li className="flex items-center">
+                        <span className="w-2 h-2 bg-primary rounded-full mr-3" />
+                        Mon–Sat, 9 AM – 7 PM
+                      </li>
                     </ul>
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
               </AlertDialogDescription>
 
+              {/* Footer */}
               <AlertDialogFooter className="mt-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.1 }}
-                  className="w-full"
+                <AlertDialogAction
+                  onClick={() => setShowHelp(false)}
+                  className="w-full py-3 rounded-xl font-heading font-semibold
+                       bg-primary text-primary-foreground hover:bg-primary/90
+                       shadow-lg transition-all"
                 >
-                  <AlertDialogAction
-                    onClick={() => setShowHelp(false)}
-                    className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                  >
-                    <motion.span
-                      className="flex items-center justify-center"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Got it, Thanks!
-                    </motion.span>
-                  </AlertDialogAction>
-                </motion.div>
+                  <Check className="h-4 w-4 mr-2" />
+                  Got it, Thanks!
+                </AlertDialogAction>
               </AlertDialogFooter>
             </motion.div>
           </AlertDialogContent>

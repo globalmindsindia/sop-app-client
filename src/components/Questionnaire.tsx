@@ -230,18 +230,18 @@ export default function Questionnaire({
       transition={{ duration: 0.5 }}
       className="space-y-8 max-w-4xl mx-auto"
     >
-      {/* Step Header */}
+      {/* STEP HEADER */}
       <div className="flex justify-center mb-8">
-        <div className="flex items-center space-x-2 bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
+        <div className="flex items-center space-x-2 bg-card rounded-2xl p-4 shadow-sm border border-muted">
           {QUESTION_GROUPS.map((_, i) => (
             <div key={i} className="flex items-center">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                className={`flex items-center justify-center w-10 h-10 rounded-full font-medium transition-colors ${
                   i === subStep
-                    ? `bg-gradient-to-r ${getSectionColor(i)} text-white`
+                    ? "bg-primary text-primary-foreground"
                     : i < subStep
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-500"
+                    ? "bg-primary/20 text-primary"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 {i < subStep ? (
@@ -250,10 +250,11 @@ export default function Questionnaire({
                   <span>{i + 1}</span>
                 )}
               </div>
+
               {i < QUESTION_GROUPS.length - 1 && (
                 <div
-                  className={`w-8 h-0.5 ${
-                    i < subStep ? "bg-green-500" : "bg-gray-200"
+                  className={`w-8 h-0.5 transition-colors ${
+                    i < subStep ? "bg-primary/40" : "bg-muted"
                   }`}
                 />
               )}
@@ -262,7 +263,7 @@ export default function Questionnaire({
         </div>
       </div>
 
-      {/* Questions */}
+      {/* QUESTIONS */}
       {group.items.map(({ key, label }, index) => {
         const value = formData[key] || "";
         const isInvalid = invalidFields[key];
@@ -274,14 +275,15 @@ export default function Questionnaire({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1, duration: 0.4 }}
-            className="bg-white rounded-2xl p-6 border-2 border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-md transition-all"
+            className="bg-card rounded-2xl p-6 border border-muted shadow-sm hover:shadow-md transition-all"
           >
             <Label
               htmlFor={key}
-              className="text-base font-semibold text-gray-800 block mb-2"
+              className="text-base font-semibold text-foreground block mb-2"
             >
               {label}
             </Label>
+
             <Textarea
               id={key}
               value={value}
@@ -289,30 +291,32 @@ export default function Questionnaire({
                 EXAMPLE_ANSWERS[key] || "Type your detailed response..."
               }
               onChange={(e) => handleChange(key, e.target.value)}
-              className={`min-h-32 rounded-xl border-2 transition-all duration-200 bg-gray-50 focus:bg-white resize-none ${
+              className={`min-h-32 rounded-xl border-2 resize-none transition-all duration-200 bg-muted focus:bg-card ${
                 isInvalid
-                  ? "border-red-400 focus:border-red-500"
+                  ? "border-destructive focus:border-destructive"
                   : isAnswered
-                  ? "border-green-400 focus:border-green-600"
-                  : "border-gray-200 focus:border-blue-500"
+                  ? "border-primary focus:border-primary"
+                  : "border-muted focus:border-primary"
               }`}
               rows={4}
             />
+
             {isInvalid && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center text-red-500 text-sm mt-2"
+                className="flex items-center text-destructive text-sm mt-2"
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Please enter meaningful text with correct spelling.
               </motion.div>
             )}
+
             {isAnswered && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center text-green-600 text-sm mt-2"
+                className="flex items-center text-primary text-sm mt-2"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Looks good!
@@ -322,7 +326,7 @@ export default function Questionnaire({
         );
       })}
 
-      {/* Navigation */}
+      {/* NAVIGATION */}
       <div className="flex justify-between pt-8">
         <Button
           variant="outline"
@@ -340,8 +344,8 @@ export default function Questionnaire({
             onClick={() => setSubStep(subStep + 1)}
             className={`rounded-xl px-6 py-3 font-medium ${
               isComplete
-                ? `bg-gradient-to-r ${getSectionColor(subStep)} text-white`
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}
           >
             Next <ArrowRight className="h-4 w-4 ml-2" />
@@ -352,8 +356,8 @@ export default function Questionnaire({
             onClick={() => onComplete(buildAnswersMap())}
             className={`rounded-xl px-6 py-3 font-medium ${
               isComplete
-                ? `bg-gradient-to-r ${getSectionColor(subStep)} text-white`
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}
           >
             <CheckCircle className="h-4 w-4 mr-2" />

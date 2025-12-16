@@ -74,13 +74,15 @@ export default function Features() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const { imgWidth, imgHeight, radius, cardWidth, cardWidthPx, marginTop } = responsive;
+  const { imgWidth, imgHeight, radius, cardWidth, cardWidthPx, marginTop } =
+    responsive;
 
   const features = [
     {
       icon: Sparkles,
       title: "Smart Writing",
-      description: "Our team crafts compelling, personalized statements reflecting your unique story.",
+      description:
+        "Our team crafts compelling, personalized statements reflecting your unique story.",
       color: "from-indigo-200 to-blue-100",
     },
     {
@@ -92,7 +94,8 @@ export default function Features() {
     {
       icon: Target,
       title: "University-Specific",
-      description: "Content tailored for specific programs and university expectations.",
+      description:
+        "Content tailored for specific programs and university expectations.",
       color: "from-rose-100 to-pink-50",
     },
     {
@@ -104,13 +107,15 @@ export default function Features() {
     {
       icon: Users,
       title: "Expert-Reviewed",
-      description: "Reviewed by experienced professionals, based on thousands of successes.",
+      description:
+        "Reviewed by experienced professionals, based on thousands of successes.",
       color: "from-yellow-100 to-amber-50",
     },
     {
       icon: Trophy,
       title: "Proven Success",
-      description: "95% of users report improved outcomes and acceptance rates.",
+      description:
+        "95% of users report improved outcomes and acceptance rates.",
       color: "from-orange-100 to-yellow-50",
     },
     {
@@ -128,7 +133,8 @@ export default function Features() {
     {
       icon: Globe,
       title: "Global Reach",
-      description: "Supports applications worldwide with region-specific formatting.",
+      description:
+        "Supports applications worldwide with region-specific formatting.",
       color: "from-fuchsia-100 to-indigo-50",
     },
   ];
@@ -136,30 +142,35 @@ export default function Features() {
   return (
     <section
       id="features"
-      className="pt-6 md:pt-8 pb-1 md:pb-0 bg-gradient-to-br from-blue-100 via-white to-blue-50 relative"
-      // style={{
-      //   backgroundImage: 'url(/src/assets/SOP_Background.jpg)',
-      //   backgroundSize: 'cover',
-      //   backgroundPosition: 'center',
-      //   backgroundRepeat: 'no-repeat',
-      // }}
+      className="relative overflow-hidden py-12 sm:py-16 md:py-20 bg-gradient-to-br from-[hsl(var(--hero-gradient-start))] to-[hsl(var(--hero-gradient-end))]"
     >
-      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-6 md:mb-4">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-900 mb-2 md:mb-2">
-            Why Choose SOP Generator?
+      {/* Soft overlay just like reference hero */}
+      <div className="absolute inset-0 bg-background"></div>
+
+      <div className="container-app relative z-10">
+        {/* TITLE BLOCK — MATCHED EXACTLY */}
+        <div className="text-center mb-12">
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground mb-3">
+            Why Choose <span className="text-primary">SOP Generator?</span>
           </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-600/80 max-w-3xl mx-auto font-medium px-4">
-            We combine cutting-edge technology with deep admission process expertise to help your application stand out.
+
+          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
+            We combine cutting-edge technology with deep admissions expertise to
+            help your application stand out.
           </p>
         </div>
+
+        {/* ORBIT SECTION */}
         <div
           className={`relative flex justify-center items-center ${marginTop} md:mt-0 overflow-visible`}
           style={{
-            minHeight: `${Math.max(imgHeight + radius * 2 - (imgWidth > 200 ? 500 : 0), 220)}px`,
+            minHeight: `${Math.max(
+              imgHeight + radius * 2 - (imgWidth > 200 ? 500 : 0),
+              220
+            )}px`,
           }}
         >
+          {/* Center Image */}
           <img
             src={whyChooseUsImg}
             alt="Expert"
@@ -172,53 +183,63 @@ export default function Features() {
               objectPosition: "center",
             }}
           />
+
+          {/* Orbiting Cards */}
           <div
             className="absolute inset-0 animate-spin"
-            style={{
-              animationDuration: "20s",
-            }}
+            style={{ animationDuration: "20s" }}
           >
             {features.map((feature, idx) => {
-              const angle = ((2 * Math.PI) / features.length) * idx - Math.PI / 2;
+              const angle =
+                ((2 * Math.PI) / features.length) * idx - Math.PI / 2;
               const x = Math.cos(angle) * radius;
               const y = Math.sin(angle) * radius;
               const isOpen = openIndex === idx;
+
               return (
                 <button
                   key={feature.title}
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className={
-                    `absolute flex flex-col items-center p-0 border-0 transition-all ${cardWidth} group focus:outline-none` +
-                    (isOpen ? " z-30" : " z-20")
-                  }
+                  className={`absolute flex flex-col items-center transition-all group ${
+                    isOpen ? "z-30" : "z-20"
+                  }`}
                   style={{
                     left: `calc(50% + ${x}px)`,
                     top: `calc(50% + ${y}px)`,
                     transform: "translate(-50%, -50%)",
-                    cursor: "pointer",
-                    background: "none",
                     width: `${cardWidthPx}px`,
+                    background: "none",
                   }}
-                  tabIndex={0}
                 >
+                  {/* CARD */}
                   <div
-                    className={
-                      // hover:scale-105 was removed below!
-                      `w-full rounded-lg md:rounded-2xl shadow-xl px-1 md:px-4 py-2 md:py-5 select-none bg-gradient-to-br ${feature.color} border border-blue-100 duration-200 animate-spin`
-                    }
+                    className={`
+                    w-full rounded-xl md:rounded-2xl shadow-xl 
+                    px-3 md:px-4 py-3 md:py-5 
+                    bg-card border border-muted 
+                    transition-all 
+                    animate-spin
+                  `}
                     style={{
                       animationDuration: "20s",
                       animationDirection: "reverse",
                     }}
                   >
                     <div className="flex flex-col items-center">
-                      <div className="rounded-full bg-white mb-1 md:mb-2 p-0.5 md:p-2 shadow">
-                        <feature.icon className="h-3 w-3 md:h-8 md:w-8 text-blue-700" />
+                      {/* ICON */}
+                      <div className="rounded-full bg-primary/10 mb-2 p-2 shadow-sm">
+                        <feature.icon className="h-6 w-6 text-primary" />
                       </div>
-                      <div className="text-xs md:text-base font-bold text-blue-900 text-center leading-tight md:leading-normal">{feature.title}</div>
+
+                      {/* TITLE */}
+                      <div className="text-sm md:text-base font-heading font-bold text-foreground text-center">
+                        {feature.title}
+                      </div>
+
+                      {/* DESCRIPTION */}
                       {isOpen && (
-                        <div className="text-xs mt-1 md:mt-2 text-blue-800 font-medium text-center transition-all">
+                        <div className="text-xs mt-2 text-muted-foreground font-body text-center">
                           {feature.description}
                         </div>
                       )}

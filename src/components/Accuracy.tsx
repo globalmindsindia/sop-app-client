@@ -48,14 +48,18 @@ function AnimatedNumber({ target }: { target: number | string }) {
 }
 
 // Animated Progress bar
-function AnimatedProgress({ value, className = "" }: { value: number; className?: string }) {
+function AnimatedProgress({
+  value,
+  className = "",
+}: {
+  value: number;
+  className?: string;
+}) {
   const [progress, setProgress] = React.useState(0);
   useEffect(() => {
     setTimeout(() => setProgress(value), 100);
   }, [value]);
-  return (
-    <Progress value={progress} className={className} />
-  );
+  return <Progress value={progress} className={className} />;
 }
 
 export default function Accuracy() {
@@ -90,128 +94,141 @@ export default function Accuracy() {
     {
       metric: "Grammar & Language",
       score: 99,
-      description: "We ensure flawless grammar and a natural flow of language in every statement.",
+      description:
+        "We ensure flawless grammar and a natural flow of language in every statement.",
     },
     {
       metric: "Content Relevance",
       score: 96,
-      description: "We tailor each SOP to match specific program requirements and university expectations.",
+      description:
+        "We tailor each SOP to match specific program requirements and university expectations.",
     },
     {
       metric: "Personalization",
       score: 94,
-      description: "We craft unique narratives based on your personal background, goals, and experiences.",
+      description:
+        "We craft unique narratives based on your personal background, goals, and experiences.",
     },
     {
       metric: "Structure & Format",
       score: 98,
-      description: "We follow academic standards and admission committee preferences to maintain a strong structure.",
+      description:
+        "We follow academic standards and admission committee preferences to maintain a strong structure.",
     },
-    
+
     {
       metric: "Authenticity",
       score: 97,
-      description: "We preserve your genuine voice while effectively highlighting your achievements and aspirations.",
+      description:
+        "We preserve your genuine voice while effectively highlighting your achievements and aspirations.",
     },
 
     {
       metric: "Impact & Clarity",
       score: 95,
-      description: "We ensure your SOP leaves a lasting impression through clear, concise, and compelling storytelling.",
+      description:
+        "We ensure your SOP leaves a lasting impression through clear, concise, and compelling storytelling.",
     },
   ];
 
   const certifications = [
-  "Trusted and Secure Platform",
-  "Data Privacy and Protection Assured",
-  "Reliable Performance and Uptime",
-  "Committed to Quality and Compliance",
-];
-
+    "Trusted and Secure Platform",
+    "Data Privacy and Protection Assured",
+    "Reliable Performance and Uptime",
+    "Committed to Quality and Compliance",
+  ];
 
   return (
-    <section
-      id="accuracy"
-      className="relative py-20 w-full bg-gradient-to-br from-blue-50 via-white to-pastel-blue-100 overflow-hidden"
-    >
-      {/* Subtle animated background blobs */}
-      <div className="absolute -top-32 left-0 w-96 h-96 bg-gradient-to-br from-primary/20 to-secondary/30 rounded-full blur-3xl opacity-30 animate-float" />
-      <div className="absolute right-0 -bottom-32 w-96 h-80 bg-gradient-to-tr from-secondary/20 to-primary/20 rounded-full blur-3xl opacity-20 animate-float2" />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+    <section id="accuracy" className="relative py-20 w-full bg-card">
+      <div className="container-app">
+        {/* Heading */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold leading-tight drop-shadow-gradient bg-gradient-to-r from-primary via-blue-400 to-secondary bg-clip-text text-transparent">
-            Proven Accuracy & Results
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground mb-3">
+            Proven <span className="text-primary">Accuracy</span> & Results
           </h2>
-          <p className="text-xl text-foreground max-w-3xl mx-auto mt-3 mb-2">
-            Our platform delivers consistently high-quality results, backed by rigorous testing and inspiring success stories.
+
+          <p className="font-body text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Our platform delivers consistently high-quality results, backed by
+            rigorous testing and inspiring success stories.
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 mb-16">
+        {/* STATS GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 mb-20">
           {stats.map((stat) => (
             <Card
               key={stat.label}
-              className="border-0 shadow-large-glass bg-gradient-to-br from-pastel-blue-200/80 to-blue-100/60 backdrop-blur-lg filter hover:scale-[1.04] transition-transform duration-300 hover:shadow-2xl animate-fade-in"
+              className="border border-muted bg-card shadow-lg hover:shadow-xl hover:scale-[1.03] transition-all duration-300"
             >
               <CardContent className="p-7 flex flex-col items-center text-center">
-                <div className="bg-gradient-to-b from-primary/20 to-pastel-blue-400 rounded-full p-4 w-16 h-16 mx-auto mb-5 flex items-center justify-center transition-shadow duration-300 shadow-inner-glow-inner hover:shadow-glow-lg">
-                  <stat.icon className="h-8 w-8 text-primary drop-shadow" />
+                {/* Icon */}
+                <div className="bg-primary/10 rounded-full p-4 w-16 h-16 mb-5 flex items-center justify-center">
+                  <stat.icon className="h-8 w-8 text-primary" />
                 </div>
-                <div className="text-4xl font-bold text-foreground mb-1 tracking-tight">
+
+                {/* Value */}
+                <div className="font-heading text-4xl font-bold text-foreground mb-1">
                   <AnimatedNumber target={stat.value} />
                 </div>
-                <div className="font-semibold text-lg text-foreground mb-1">{stat.label}</div>
-                <p className="text-sm text-muted-foreground">{stat.description}</p>
+
+                {/* Label */}
+                <div className="font-body font-semibold text-lg text-foreground mb-1">
+                  {stat.label}
+                </div>
+
+                {/* Description */}
+                <p className="font-body text-sm text-muted-foreground">
+                  {stat.description}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Quality Metrics */}
-        <div className="mb-16">
-          <h3 className="text-2xl font-bold mb-7 text-center bg-gradient-to-r from-primary/80 via-blue-300/80 to-secondary/80 bg-clip-text text-transparent">
+        {/* QUALITY METRICS */}
+        <div className="mb-20">
+          <h3 className="font-heading font-bold text-2xl sm:text-3xl text-center text-foreground mb-8">
             Quality Metrics
           </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {accuracyMetrics.map((metric, idx) => (
               <div
                 key={metric.metric}
-                className="animate-fade-slide-up bg-gradient-to-br from-muted/50 via-white/70 to-pastel-blue-100/70 rounded-2xl p-7 hover:scale-105 hover:shadow-xl group transition-all duration-300 cursor-pointer border border-primary/10 shadow-md"
-                style={{ animationDelay: `${0.06 * idx}s` }}
+                className="bg-muted rounded-2xl p-7 border border-muted shadow-md hover:shadow-lg transition-all duration-300"
               >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-foreground text-left text-lg">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-body font-medium text-foreground text-lg">
                     {metric.metric}
                   </span>
-                  <span
-                    className="text-primary font-bold text-lg animate-bounce-ltr"
-                    style={{ animationDelay: `${0.06 * idx}s` }}
-                  >
+
+                  <span className="font-heading text-primary font-bold text-lg">
                     {metric.score}%
                   </span>
                 </div>
-                <div>
-                  <AnimatedProgress
-                    value={metric.score}
-                    className="h-2 rounded-full bg-gradient-to-r from-secondary/20 to-primary/20 shadow-inner"
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground text-left mt-2">{metric.description}</p>
+
+                <AnimatedProgress
+                  value={metric.score}
+                  className="h-2 rounded-full bg-primary/10"
+                />
+
+                <p className="font-body text-sm text-muted-foreground mt-2">
+                  {metric.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Certifications & Trust */}
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Security & Reliability */}
-          <Card className="border-0 shadow-large-glass bg-gradient-to-bl from-primary/10 via-white/90 to-blue-100/80 backdrop-blur-lg">
+        {/* CERTIFICATIONS & TRUST */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {/* Card 1 */}
+          <Card className="border border-muted bg-card shadow-lg">
             <CardContent className="p-7">
-              <h4 className="font-semibold text-lg text-foreground mb-4">
+              <h4 className="font-heading font-semibold text-lg text-foreground mb-4">
                 Security & Reliability
               </h4>
+
               <div className="space-y-5">
                 {[
                   {
@@ -228,12 +245,17 @@ export default function Accuracy() {
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start space-x-3">
-                    <div className="bg-pastel-green rounded p-1 mt-1">
+                    <div className="bg-primary/10 rounded p-1 mt-1">
                       <CheckCircle className="h-4 w-4 text-primary" />
                     </div>
+
                     <div>
-                      <p className="font-medium text-foreground">{item.title}</p>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="font-heading font-medium text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="font-body text-sm text-muted-foreground">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -241,12 +263,13 @@ export default function Accuracy() {
             </CardContent>
           </Card>
 
-          {/* Trust Reasons */}
-          <Card className="border-0 shadow-large-glass bg-gradient-to-bl from-secondary/10 via-white/90 to-primary/10 backdrop-blur-lg">
+          {/* Card 2 */}
+          <Card className="border border-muted bg-card shadow-lg">
             <CardContent className="p-7">
-              <h4 className="font-semibold text-lg text-foreground mb-4">
+              <h4 className="font-heading font-semibold text-lg text-foreground mb-4">
                 Why Trust Us
               </h4>
+
               <div className="space-y-5">
                 {[
                   {
@@ -263,12 +286,17 @@ export default function Accuracy() {
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start space-x-3">
-                    <div className="bg-pastel-green rounded p-1 mt-1">
+                    <div className="bg-primary/10 rounded p-1 mt-1">
                       <CheckCircle className="h-4 w-4 text-primary" />
                     </div>
+
                     <div>
-                      <p className="font-medium text-foreground">{item.title}</p>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="font-heading font-medium text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="font-body text-sm text-muted-foreground">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 ))}

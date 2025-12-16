@@ -30,7 +30,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="pt-16">
       <Header onGetStarted={handleGetStarted} />
       <Hero onGetStarted={handleGetStarted} />
       <Features />

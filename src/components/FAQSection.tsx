@@ -114,7 +114,8 @@ const FAQSection = () => {
         "Any debited amount is automatically refunded within 3–7 business days.",
     },
     {
-      question: "When will I get my SOP draft? I need more than 1 SOP, do I get a discount?",
+      question:
+        "When will I get my SOP draft? I need more than 1 SOP, do I get a discount?",
       answer:
         "We will send you the first draft within 1-2 business days of payment confirmation. Tight deadline or ordering more than three SOPs? Mention it in that initial conversation and our editor will confirm the feasibility.",
     },
@@ -135,56 +136,67 @@ const FAQSection = () => {
   }
 
   // Default: first 10 questions in 2 columns
-  const [defaultLeftFAQs, defaultRightFAQs] = splitToAlternatingColumns(faqs.slice(0, 10));
+  const [defaultLeftFAQs, defaultRightFAQs] = splitToAlternatingColumns(
+    faqs.slice(0, 10)
+  );
   // Show All: all questions in 2 columns
   const [allLeftFAQs, allRightFAQs] = splitToAlternatingColumns(faqs);
 
   return (
-    <section id="faq" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="faq"
+      className="py-14 px-4 bg-gradient-to-br from-[hsl(var(--hero-gradient-start))] to-[hsl(var(--hero-gradient-end))] relative"
+    >
+      <div className="container-app mx-auto relative z-10">
+        {/* TITLE BLOCK */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Frequently Asked Questions
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            Frequently Asked <span className="text-primary">Questions</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+
+          <p className="font-body text-lg text-muted-foreground max-w-3xl mx-auto">
             Everything you need to know about creating a compelling Statement of
-            Purpose that gets you noticed by admissions committees.
+            Purpose that stands out.
           </p>
         </div>
 
+        {/* FAQ GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+          {/* LEFT SIDE */}
           <div className="space-y-6">
-            {(showAll ? allLeftFAQs : defaultLeftFAQs).map((faq, idx) => {
-              const questionIndex = showAll
-                ? faqs.indexOf(faq)
-                : faqs.indexOf(faq);
+            {(showAll ? allLeftFAQs : defaultLeftFAQs).map((faq) => {
+              const questionIndex = faqs.indexOf(faq);
+
               return (
                 <Card
                   key={questionIndex}
-                  className={`w-full border-0 shadow-card transition-all duration-200 hover:shadow-lg ${
+                  className={`w-full border border-muted bg-card shadow-md hover:shadow-lg transition-all duration-200 ${
                     faq.highlight
-                      ? "bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-primary"
-                      : "bg-gradient-card"
+                      ? "border-l-4 border-l-primary bg-primary/-5"
+                      : ""
                   }`}
                 >
                   <CardContent className="p-0">
+                    {/* Question Button */}
                     <button
                       onClick={() => toggleItem(questionIndex)}
-                      className="w-full px-8 py-6 text-left focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
+                      className="w-full px-8 py-6 text-left rounded-lg focus:outline-none"
                     >
                       <div className="flex items-center justify-between">
                         <h3
-                          className={`font-semibold text-lg text-foreground pr-4 ${
+                          className={`font-heading font-semibold text-lg text-foreground pr-4 ${
                             faq.highlight ? "text-primary" : ""
                           }`}
                         >
                           {faq.question}
+
                           {faq.highlight && (
                             <span className="inline-flex items-center ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
                               Important
                             </span>
                           )}
                         </h3>
+
                         <div className="flex-shrink-0">
                           {openItems.includes(questionIndex) ? (
                             <Minus className="h-5 w-5 text-primary" />
@@ -194,10 +206,12 @@ const FAQSection = () => {
                         </div>
                       </div>
                     </button>
+
+                    {/* Answer */}
                     {openItems.includes(questionIndex) && (
                       <div className="px-8 pb-6">
-                        <div className="pt-4 border-t border-gray-200">
-                          <p className="text-muted-foreground leading-relaxed">
+                        <div className="pt-4 border-t border-muted">
+                          <p className="font-body text-muted-foreground leading-relaxed">
                             {faq.answer}
                           </p>
                         </div>
@@ -208,38 +222,42 @@ const FAQSection = () => {
               );
             })}
           </div>
+
+          {/* RIGHT SIDE */}
           <div className="space-y-6">
-            {(showAll ? allRightFAQs : defaultRightFAQs).map((faq, idx) => {
-              const questionIndex = showAll
-                ? faqs.indexOf(faq)
-                : faqs.indexOf(faq);
+            {(showAll ? allRightFAQs : defaultRightFAQs).map((faq) => {
+              const questionIndex = faqs.indexOf(faq);
+
               return (
                 <Card
                   key={questionIndex}
-                  className={`w-full border-0 shadow-card transition-all duration-200 hover:shadow-lg ${
+                  className={`w-full border border-muted bg-card shadow-md hover:shadow-lg transition-all duration-200 ${
                     faq.highlight
-                      ? "bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-primary"
-                      : "bg-gradient-card"
+                      ? "border-l-4 border-l-primary bg-primary/5"
+                      : ""
                   }`}
                 >
                   <CardContent className="p-0">
+                    {/* Question Button */}
                     <button
                       onClick={() => toggleItem(questionIndex)}
-                      className="w-full px-8 py-6 text-left focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
+                      className="w-full px-8 py-6 text-left rounded-lg focus:outline-none"
                     >
                       <div className="flex items-center justify-between">
                         <h3
-                          className={`font-semibold text-lg text-foreground pr-4 ${
+                          className={`font-heading font-semibold text-lg text-foreground pr-4 ${
                             faq.highlight ? "text-primary" : ""
                           }`}
                         >
                           {faq.question}
+
                           {faq.highlight && (
                             <span className="inline-flex items-center ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
                               Important
                             </span>
                           )}
                         </h3>
+
                         <div className="flex-shrink-0">
                           {openItems.includes(questionIndex) ? (
                             <Minus className="h-5 w-5 text-primary" />
@@ -249,10 +267,12 @@ const FAQSection = () => {
                         </div>
                       </div>
                     </button>
+
+                    {/* Answer */}
                     {openItems.includes(questionIndex) && (
                       <div className="px-8 pb-6">
-                        <div className="pt-4 border-t border-gray-200">
-                          <p className="text-muted-foreground leading-relaxed">
+                        <div className="pt-4 border-t border-muted">
+                          <p className="font-body text-muted-foreground leading-relaxed">
                             {faq.answer}
                           </p>
                         </div>
@@ -265,10 +285,11 @@ const FAQSection = () => {
           </div>
         </div>
 
+        {/* VIEW MORE BUTTON */}
         {faqs.length > 10 && (
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center">
             <button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-lg font-semibold transition-colors"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-lg font-heading font-semibold transition-colors"
               onClick={() => setShowAll((prev) => !prev)}
             >
               {showAll ? "View Less" : "View More"}
