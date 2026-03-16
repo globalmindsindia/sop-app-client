@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import SOPForms from "./pages/sopforms";
 import TermsandConditions from "./components/TermsandConditions";
 import RefundPolicy from "./components/RefundPolicy";
 import PrivacyPolicy from "./components/PrivacyPolicy";
@@ -42,6 +43,7 @@ const App = () => (
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/instagram-ads" element={<SOPForms />} />
           <Route
             path="/terms-and-conditions"
             element={<TermsandConditions />}
