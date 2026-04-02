@@ -1525,8 +1525,8 @@ export default function SOPGenerator() {
                     isActive
                       ? "bg-primary text-primary-foreground shadow-md scale-110"
                       : isCompleted || isPast
-                      ? "bg-primary/15 text-primary shadow-sm"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        ? "bg-primary/15 text-primary shadow-sm"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                             whileHover={{ scale: isActive ? 1.1 : 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -1553,8 +1553,8 @@ export default function SOPGenerator() {
                     isActive
                       ? "text-primary"
                       : isCompleted || isPast
-                      ? "text-primary/80"
-                      : "text-muted-foreground"
+                        ? "text-primary/80"
+                        : "text-muted-foreground"
                   }`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -1715,14 +1715,14 @@ export default function SOPGenerator() {
                     </div>
                   </div>
 
-                  {/* ACADEMIC DETAILS */}
+                  {/* Overseas Study Preferences */}
                   <div className="bg-card rounded-2xl p-6 border border-muted">
                     <div className="flex items-center mb-4">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
                         <GraduationCap className="h-5 w-5 text-primary" />
                       </div>
                       <h3 className="font-heading text-lg font-semibold text-foreground">
-                        Academic Details
+                        Overseas Study Preferences
                       </h3>
                     </div>
 
@@ -1897,8 +1897,8 @@ export default function SOPGenerator() {
                         formData.resume
                           ? "border-primary/40 bg-primary/5"
                           : isDragOver
-                          ? "border-primary bg-primary/10 scale-105"
-                          : "border-muted bg-card hover:border-primary/50"
+                            ? "border-primary bg-primary/10 scale-105"
+                            : "border-muted bg-card hover:border-primary/50"
                       }`}
                       onDragOver={handleDragOver}
                       onDragEnter={handleDragEnter}
@@ -2111,8 +2111,8 @@ export default function SOPGenerator() {
                       qualityScore >= 75
                         ? "bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 border-green-300"
                         : qualityScore <= 15
-                        ? "bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 border-red-200"
-                        : "bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 border-orange-200"
+                          ? "bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 border-red-200"
+                          : "bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 border-orange-200"
                     }`}
                   >
                     <div className="flex items-center justify-center mb-6">
@@ -2121,8 +2121,8 @@ export default function SOPGenerator() {
                           qualityScore >= 75
                             ? "bg-gradient-to-r from-green-500 to-emerald-600"
                             : qualityScore <= 15
-                            ? "bg-gradient-to-r from-red-500 to-rose-600"
-                            : "bg-gradient-to-r from-orange-500 to-amber-600"
+                              ? "bg-gradient-to-r from-red-500 to-rose-600"
+                              : "bg-gradient-to-r from-orange-500 to-amber-600"
                         }`}
                       >
                         <Sparkles className="h-6 w-6 text-white" />
@@ -2153,8 +2153,8 @@ export default function SOPGenerator() {
                               qualityScore >= 75
                                 ? "text-green-500"
                                 : qualityScore >= 60
-                                ? "text-yellow-500"
-                                : "text-red-500"
+                                  ? "text-yellow-500"
+                                  : "text-red-500"
                             }`}
                             strokeWidth="8"
                             strokeDasharray={`${
@@ -2183,8 +2183,8 @@ export default function SOPGenerator() {
                                 qualityScore >= 75
                                   ? "text-green-700"
                                   : qualityScore <= 15
-                                  ? "text-red-700"
-                                  : "text-gray-800"
+                                    ? "text-red-700"
+                                    : "text-gray-800"
                               }`}
                             >
                               {qualityScore}
@@ -2339,7 +2339,7 @@ export default function SOPGenerator() {
                           onClick={handleSubmitImprovements}
                           disabled={
                             !Object.values(improvementAnswers).every((v) =>
-                              v?.trim()
+                              v?.trim(),
                             ) || loading
                           }
                           className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
